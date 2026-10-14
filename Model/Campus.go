@@ -85,12 +85,8 @@ func (c *Campus) CreateEvent(name string, dateTime time.Time, location string, p
 		clubID:    clubID,
 	}
 
-	c.addEvent(newEvent)
+	c.events[newEvent.id] = newEvent
 	return newEvent
-}
-
-func (c *Campus) addEvent(event *Event) {
-	c.events[event.id] = event
 }
 
 func (c *Campus) CreateUser(name string) *User {
@@ -100,12 +96,8 @@ func (c *Campus) CreateUser(name string) *User {
 		rsvpList: make(map[int]struct{}),
 	}
 
-	c.addUser(newUser)
+	c.users[newUser.id] = newUser
 	return newUser
-}
-
-func (c *Campus) addUser(user *User) {
-	c.users[user.id] = user
 }
 
 func (c *Campus) CreateClub(name string) *Club {
@@ -114,12 +106,8 @@ func (c *Campus) CreateClub(name string) *Club {
 		id:     c.getNextClubID(),
 	}
 
-	c.addClub(newClub)
+	c.clubs[newClub.id] = newClub
 	return newClub
-}
-
-func (c *Campus) addClub(club *Club) {
-	c.clubs[club.id] = club
 }
 // ---
 
