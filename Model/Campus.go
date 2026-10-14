@@ -133,8 +133,14 @@ func (c *Campus) RemoveEvent(event *Event) {
 	}
 	delete(c.events, event.id)
 }
-
+	
 func (c *Campus) RemoveClub(club *Club) {
+	// delete up all events that belong to this club before removing the club
+	for _, event := range c.events {
+		if event.clubID == club.id {
+			c.RemoveEvent(event)
+		}
+	}
 	delete(c.clubs, club.id)
 }
 
