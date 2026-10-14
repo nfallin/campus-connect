@@ -1,22 +1,24 @@
 package Model
 
 /*
-	TestNewCampus	Campus initializes with empty user/club maps and all ID counters starting at 1
-	TestGetNextUserID	User IDs increment correctly
-	TestGetNextClubID	Club IDs increment correctly
-	TestGetNextEventID	Event IDs increment correctly
-	TestCreateUser	Creates a user with the correct name, ID, and initialized RSVP list
-	TestCreateMultipleUsers	Multiple users receive unique sequential IDs
-	TestCreateClub	Creates a club with the correct name, ID, and initialized event map
-	TestCreateMultipleClubs	Multiple clubs receive unique sequential IDs
-	TestAddUser	Adds a user to the Campus user map
-	TestRemoveUser	Removes a user from the Campus user map
-	TestAddClub	Adds a club to the Campus club map
-	TestRemoveClub	Removes a club from the Campus club map
-	TestGetUsers	Returns the Campus users
-	TestGetClubs	Returns the Campus clubs
-	TestGetEventsEmpty	Returns an empty map when there are no events
-	TestGetEvents	Returns all events across all clubs
-	TestGetEventsMultipleClubs	Correctly combines events from multiple clubs
-	TestGetEventsNoDuplicateIDs	Events are correctly represented by their IDs
+	TestNewCampus	Initializes empty user, club, and event maps with IDs starting at 1
+	TestGetNextUserID	Generates sequential user IDs
+	TestGetNextClubID	Generates sequential club IDs
+	TestGetNextEventID	Generates sequential event IDs
+	TestGetUsers	Returns all campus users
+	TestGetUser	Returns an existing user and nil for an unknown ID
+	TestGetClubs	Returns all campus clubs
+	TestGetClub	Returns an existing club and nil for an unknown ID
+	TestGetEvents	Returns all campus events
+	TestGetEvent	Returns an existing event and nil for an unknown ID
+	TestCreateUser	Creates a user, assigns an ID, initializes its RSVP list, and adds it to campus
+	TestAddUser	Adds a user to the campus user map
+	TestCreateClub	Creates a club, assigns an ID, and adds it to campus
+	TestAddClub	Adds a club to the campus club map
+	TestCreateEvent	Creates an event, assigns an ID, initializes attendees, stores its fields, and adds it to campus
+	TestAddEvent	Adds an event to the campus event map
+	TestCreateMultipleEntities	Assigns independent sequential IDs for users, clubs, and events
+	TestRemoveEvent	Removes an event from campus and cleans up attending users
+	TestRemoveClub	Removes a club and all of its events while preserving unrelated events
+	TestRemoveUser	Removes a user and cleans up the user's RSVPs from events
 */
