@@ -49,7 +49,7 @@ func main() {
 	fmt.Printf("Game Night attendees: %v\n", gameNight.GetAttendees())
 
 	fmt.Printf("Bob's rsvp list before the robot workshop is deleted: %v\n", bob.GetRsvpList())
-	c.DeleteEvent(robotWorkshop, roboticsClub)
+	c.RemoveEvent(robotWorkshop)
 	fmt.Printf("Bob's rsvp list after the robot workshop is deleted: %v\n", bob.GetRsvpList())
 
 	fmt.Printf("photo walk atendees before diana is deleted: %v\n", photoWalk.GetAttendees())
@@ -59,13 +59,6 @@ func main() {
 	fmt.Printf("ethan's rsvp list before the game dev club is deleted: %v\n", ethan.GetRsvpList())
 	c.RemoveClub(gameDevClub)
 	fmt.Printf("ethan's rsvp list after the game dev club is deleted: %v\n", ethan.GetRsvpList())
-
-	// several erroneus operations:
-	c.AddUser(bob)
-	c.AddClub(gameDevClub)
-
-	// nonstudent := &Model.User{name: "Non Student", id: 999, rsvpList: make(map[int]struct{})} // doesn't work because fields are private, no way to create a user without going through campus
-	// fakeEvent := &Model.Event{name: "Fake Event", id: 999, dateTime: time.Now(), location: "Nowhere", poster: nil, attendees: make(map[int]struct{}), clubID: 999} // doesn't work because fields are private, no way to create an event without going through campus
 
 	Web.Serve()
 }

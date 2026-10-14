@@ -15,6 +15,14 @@ type Event struct {
 	clubID    int
 }
 
+func (e *Event) GetName() string {
+	return e.name
+}
+
+func (e *Event) GetID() int {
+	return e.id
+}
+
 func (e *Event) GetDateTime() time.Time {
 	return e.dateTime
 }
@@ -35,6 +43,6 @@ func (e *Event) GetNumAttendees() int {
 	return len(e.attendees)
 }
 
-func (e *Event) GetName() string {
-	return e.name
+func (e *Event) GetClubID() int {
+	return e.clubID
 }
