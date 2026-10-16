@@ -9,5 +9,5 @@ package Model
 	TestGetAttendees	Returns the event's attendees
 	TestGetNumAttendeesEmpty	Returns 0 when nobody is attending
 	TestGetNumAttendees	Returns the correct number of attendees
-	TestGetClubID	Returns the ID of the club hosting the event
+	TestGetClubName	Returns the name of the club hosting the event
 */
