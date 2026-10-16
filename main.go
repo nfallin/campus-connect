@@ -11,10 +11,10 @@ func main() {
 
 	c := Model.NewCampus()
 
-	// three clubs
-	gameDevClub := c.CreateClub("Game Development Club")
-	roboticsClub := c.CreateClub("Robotics Club")
-	photographyClub := c.CreateClub("Photography Club")
+	// three club names
+	gameDevClub := "Game Development Club"
+	roboticsClub := "Robotics Club"
+	photographyClub := "Photography Club"
 
 	// five users
 	alice := c.CreateUser("Alice")
@@ -24,10 +24,10 @@ func main() {
 	ethan := c.CreateUser("Ethan")
 
 	// four events
-	gameNight := c.CreateEvent("Game Night", time.Now().AddDate(0, 0, 3), "Room 101", nil, gameDevClub.GetID())
-	robotWorkshop := c.CreateEvent("Robot Workshop", time.Now().AddDate(0, 0, 5), "Room 202", nil, roboticsClub.GetID())
-	photoWalk := c.CreateEvent("Photo Walk", time.Now().AddDate(0, 0, 7), "Campus Grounds", nil, photographyClub.GetID())
-	campusSocial := c.CreateEvent("Campus Social", time.Now().AddDate(0, 0, 10), "Room 101", nil, gameDevClub.GetID())
+	gameNight := c.CreateEvent("Game Night", time.Now().AddDate(0, 0, 3), "Room 101", nil, gameDevClub)
+	robotWorkshop := c.CreateEvent("Robot Workshop", time.Now().AddDate(0, 0, 5), "Room 202", nil, roboticsClub)
+	photoWalk := c.CreateEvent("Photo Walk", time.Now().AddDate(0, 0, 7), "Campus Grounds", nil, photographyClub)
+	campusSocial := c.CreateEvent("Campus Social", time.Now().AddDate(0, 0, 10), "Room 101", nil, gameDevClub)
 
 	// everyone RSVPs to some events
 	alice.RsvpAdd(gameNight)
@@ -55,10 +55,6 @@ func main() {
 	fmt.Printf("photo walk atendees before diana is deleted: %v\n", photoWalk.GetAttendees())
 	c.RemoveUser(diana)
 	fmt.Printf("photo walk atendees after diana is deleted: %v\n", photoWalk.GetAttendees())
-
-	fmt.Printf("ethan's rsvp list before the game dev club is deleted: %v\n", ethan.GetRsvpList())
-	c.RemoveClub(gameDevClub)
-	fmt.Printf("ethan's rsvp list after the game dev club is deleted: %v\n", ethan.GetRsvpList())
 
 	Web.Serve()
 }

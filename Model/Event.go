@@ -12,7 +12,7 @@ type Event struct {
 	location  string
 	poster    image.Image
 	attendees map[int]struct{}
-	clubID    int
+	clubName    string
 }
 
 func (e *Event) GetName() string {
@@ -43,6 +43,6 @@ func (e *Event) GetNumAttendees() int {
 	return len(e.attendees)
 }
 
-func (e *Event) GetClubID() int {
-	return e.clubID
+func (e *Event) GetClubName() string {
+	return e.clubName
 }
