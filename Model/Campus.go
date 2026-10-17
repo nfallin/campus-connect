@@ -40,6 +40,16 @@ func (c Campus) GetUser(userID int) *User {
 	return c.users[userID]
 }
 
+func (c Campus) GetUserByName(name string) *User {
+	for _, user := range c.users {
+		if user.name == name {
+			return user
+		}
+	}
+
+	return nil
+}
+
 // ---
 
 // incrementally generate unique IDs for events and users
@@ -73,6 +83,10 @@ func (c *Campus) CreateEvent(name string, dateTime time.Time, location string, c
 }
 
 func (c *Campus) CreateUser(name string) *User {
+	if c.GetUserByName(name) != nil {
+		return nil
+	}
+
 	newUser := &User{
 		name:     name,
 		id:       c.getNextUserID(),

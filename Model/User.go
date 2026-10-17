@@ -6,6 +6,10 @@ type User struct {
 	rsvpList map[int]struct{}
 }
 
+func (u User) GetName() string {
+	return u.name
+}
+
 // returns the list of events that u has RSVP'd to
 func (u User) GetRsvpList() map[int]struct{} {
 	return u.rsvpList

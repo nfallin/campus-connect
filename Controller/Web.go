@@ -1,6 +1,8 @@
 package Controller
 
 import (
+	"campus_connect/Model"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,15 +14,20 @@ type defaultPostBody struct {
 }
 
 // starts the router
-func Serve() {
+func Serve(campus *Model.Campus) error {
+	router := newRouter(campus)
+	return router.Run("localhost:8080")
+}
+
+func newRouter(campus *Model.Campus) *gin.Engine {
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
-	defineRoutes(router)
-	router.Run("localhost:8080")
+	defineRoutes(router, campus)
+	return router
 }
 
 // define get/post routes here
-func defineRoutes(r *gin.Engine) {
+func defineRoutes(r *gin.Engine, c *Model.Campus) {
 	// api routes
 	r.GET("/", defaultGet)
 	r.POST("/post", defaultPost)

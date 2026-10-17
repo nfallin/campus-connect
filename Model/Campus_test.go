@@ -126,6 +126,41 @@ func TestGetUser(t *testing.T) {
 	}
 }
 
+func TestGetUserByUsername(t *testing.T) {
+	c := NewCampus()
+	alice := c.CreateUser("Alice")
+
+	if c.GetUserByName("Alice") != alice {
+		t.Errorf("expected to retrieve Alice by username, got %v", c.GetUserByName("Alice"))
+	}
+
+	if c.GetUserByName("Unknown") != nil {
+		t.Errorf("expected nil for an unknown username, got %v", c.GetUserByName("Unknown"))
+	}
+}
+
+func TestCreateUserRejectsDuplicateUsername(t *testing.T) {
+	c := NewCampus()
+	alice := c.CreateUser("Alice")
+	duplicate := c.CreateUser("Alice")
+
+	if duplicate != nil {
+		t.Errorf("expected duplicate username to be rejected, got %v", duplicate)
+	}
+
+	if len(c.users) != 1 {
+		t.Errorf("expected one user after duplicate creation, got %d", len(c.users))
+	}
+
+	if c.nextUserID != 2 {
+		t.Errorf("expected duplicate creation not to consume a user ID, next ID is %d", c.nextUserID)
+	}
+
+	if c.GetUserByName("Alice") != alice {
+		t.Errorf("expected original user to remain associated with username")
+	}
+}
+
 // Test that GetEvents returns all events in the campus
 func TestGetEvents(t *testing.T) {
 	c := NewCampus()
@@ -200,6 +235,10 @@ func TestRemoveUser(t *testing.T) {
 
 	if c.GetUser(alice.id) != nil {
 		t.Errorf("expected user to be removed from campus, but they were still found")
+	}
+
+	if c.GetUserByName("Alice") != nil {
+		t.Errorf("expected removed user's username to be available, but it was still found")
 	}
 
 	if _, exists := event.attendees[alice.id]; exists {
