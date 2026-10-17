@@ -2,8 +2,6 @@
 
 This document defines the API contract for the Campus Connect MVP.
 
-For this MVP, every user must choose a unique username. Display names,
-username changes, and authentication are deferred until a later version.
 ## Running the API
 
 All request and response bodies use JSON. Event date/time values use ISO 8601
@@ -15,36 +13,18 @@ format in UTC, for example:
 
 IDs are positive integers.
 
-## MVP coverage
-
-| Requirement | Endpoint |
-| --- | --- |
-| Discover campus events | `GET /events` |
-| See a specific named event | `GET /events/:eventId` |
-| View an event's date and time | Included in `GET /events` and `GET /events/:eventId` |
-| View an event's location | Included in `GET /events` and `GET /events/:eventId` |
-| Create or recover a user | `POST /users` and `GET /users?username=:username` |
-| RSVP to an event | `POST /users/:userId/rsvps/:eventId` |
-| See events a user RSVP'd to | `GET /users/:userId/rsvps` |
-| Create an event | `POST /events` |
-| Add details to an event | `POST /events` |
-
 ## Endpoint summary
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `POST` | `/users` | Create a user from a username |
+| `POST` | `/users` | Create or return a user by username |
 | `GET` | `/users/:userId` | Get a user by ID |
-| `GET` | `/users?username=:username` | Find a user by username |
-| `GET` | `/events` | List events happening on campus |
+| `GET` | `/events` | List or filter events happening on campus |
 | `GET` | `/events/:eventId` | Get one event by ID |
 | `POST` | `/events` | Create an event |
 | `POST` | `/users/:userId/rsvps/:eventId` | RSVP a user to an event |
 | `DELETE` | `/users/:userId/rsvps/:eventId` | Remove a user's RSVP |
 | `GET` | `/users/:userId/rsvps` | List a user's RSVP'd events |
-
-The RSVP removal endpoint is included so the frontend can correct an RSVP;
-removing an RSVP is not a separate MVP discovery feature.
 
 ## Data shapes
 
@@ -61,9 +41,6 @@ removing an RSVP is not a separate MVP discovery feature.
 }
 ```
 
-`attendeeCount` is included for display purposes. Individual attendee
-identities are not required by the MVP.
-
 ### User
 
 ```json
@@ -73,9 +50,7 @@ identities are not required by the MVP.
 }
 ```
 
-`username` is required and must be unique. It is the user's stable identifier
-for the MVP, but it is not a password and does not provide authentication.
-The MVP does not have a separate display name.
+`username` must be unique within the campus.
 
 ### Create user request
 
@@ -84,10 +59,6 @@ The MVP does not have a separate display name.
   "username": "alice"
 }
 ```
-
-Usernames should be normalized consistently by the backend, for example by
-trimming whitespace and treating them case-insensitively. The response should
-always return the canonical username.
 
 ## User endpoints
 
@@ -98,9 +69,11 @@ POST /users
 Content-Type: application/json
 ```
 
-Creates a new user and returns the generated ID.
+Creates a user if the username is new. If the username already exists, returns
+the existing user. The frontend should save the returned user object, especially
+`id`, because RSVP endpoints use the numeric ID.
 
-#### Response: `201 Created`
+#### Response: `201 Created` or `200 OK`
 
 ```json
 {
@@ -112,7 +85,7 @@ Creates a new user and returns the generated ID.
 #### Errors
 
 - `400 Bad Request` if the JSON is malformed or the username is empty.
-- `409 Conflict` if the username is already in use.
+- `200 OK` if the username already exists.
 
 ### Get a user by ID
 
@@ -120,8 +93,7 @@ Creates a new user and returns the generated ID.
 GET /users/:userId
 ```
 
-Returns the user represented by the ID. The frontend can use this endpoint
-when it has persisted the ID from an earlier session.
+Returns the user represented by the ID.
 
 #### Response: `200 OK`
 
@@ -137,36 +109,6 @@ when it has persisted the ID from an earlier session.
 - `400 Bad Request` if `userId` is not a valid integer.
 - `404 Not Found` if no user has that ID.
 
-### Find a user by username
-
-```http
-GET /users?username=alice
-```
-
-Returns the existing user with that exact username. This is the MVP's
-username-based return flow: if a frontend only has the username the user
-entered after a page reload, it can look up the user and recover the ID needed
-by the RSVP endpoints.
-
-#### Response: `200 OK`
-
-```json
-{
-  "id": 1,
-  "username": "alice"
-}
-```
-
-#### Errors
-
-- `400 Bad Request` if `username` is missing or empty.
-- `404 Not Found` if no user has that username.
-
-The frontend should first call `GET /users?username=...` when a user enters an
-existing username. If the lookup returns `404`, it can offer to create the
-user with `POST /users`. It should not blindly create a new user every time a
-user returns, because that would produce duplicate identities.
-
 ### Create event request
 
 ```json
@@ -178,18 +120,26 @@ user returns, because that would produce duplicate identities.
 }
 ```
 
-All four fields are required. `clubName` is the event's host or organization
-label; the MVP does not require a separate club resource.
-
 ## Endpoints
 
-### List campus events
+### List or filter campus events
 
 ```http
 GET /events
 ```
 
-Returns every event currently available on campus.
+Returns every event currently available on campus. Optional query parameters
+can narrow the results by an inclusive date range, club name, or both:
+
+```http
+GET /events?startDate=2026-10-25T00:00:00Z&endDate=2026-10-31T23:59:59Z
+GET /events?clubName=Game%20Development%20Club
+GET /events?startDate=2026-10-25T00:00:00Z&endDate=2026-10-31T23:59:59Z&clubName=Game%20Development%20Club
+```
+
+`startDate` and `endDate` must be ISO 8601 timestamps. Either boundary may be
+omitted. `clubName` is an exact, case-sensitive match in the MVP. 
+Results are sorted by `dateTime`, then by `id`.
 
 #### Response: `200 OK`
 
@@ -215,6 +165,19 @@ An empty campus returns:
   "events": []
 }
 ```
+
+An empty filtered result is the same:
+
+```json
+{
+  "events": []
+}
+```
+
+#### Errors
+
+- `400 Bad Request` if a date is not a valid ISO 8601 timestamp.
+- `400 Bad Request` if `startDate` is after `endDate`.
 
 ### Get one event
 
@@ -287,9 +250,8 @@ Creates an event with all details needed for the Host MVP feature.
 POST /users/:userId/rsvps/:eventId
 ```
 
-Adds the event to the user's RSVP list and increments the event's attendee
-count. The operation should be idempotent: RSVP'ing to the same event twice
-must not create a duplicate RSVP or increment the count twice.
+Adds the event to the user's RSVP list, adds the user to the event's attendence list, and increments the event's attendee
+count.
 
 #### Response: `200 OK`
 
@@ -312,8 +274,8 @@ must not create a duplicate RSVP or increment the count twice.
 DELETE /users/:userId/rsvps/:eventId
 ```
 
-Removes the event from the user's RSVP list and decrements the event's
-attendee count. Removing an RSVP that does not exist should be harmless.
+Removes the event from the user's RSVP list, removes the user from the event's attendence list, and decrements the event's
+attendee count.
 
 #### Response: `204 No Content`
 
@@ -372,39 +334,39 @@ consistent so the frontend can display or log failures predictably.
 
 ## User identity and return flow
 
-The MVP has no authentication system or passwords. A username is only a
-stable way to find the same user again; it does not prove that the person
-entering it owns that identity.
-
-When a user first enters a username:
-
-1. Call `GET /users?username=:username`.
-2. If it returns `200`, save the returned `id` as the active user ID.
-3. If it returns `404`, call `POST /users` to create the user, then save the
-   returned `id`.
+When a user enters a username, call `POST /users`. It returns the existing user
+if the username is already registered, or creates and returns a new user.
 
 The frontend should persist the returned ID locally when practical, such as in
 `localStorage`, and can verify it later with `GET /users/:userId`. If local
-storage is unavailable or cleared, the username lookup recovers the ID:
+storage is unavailable or cleared, repeat the request:
 
 ```text
-GET /users?username=alice
+POST /users
 -> { "id": 1, "username": "alice" }
 
 POST /users/1/rsvps/4
 ```
 
-A future authentication layer can replace this lookup and the explicit
-`:userId` with the authenticated user from a session or token without changing
-the event response shapes.
+## Typical frontend workflow
 
-## Out of scope for this MVP
+The following sequence is sufficient to build the MVP website or app:
 
-- Display names and username changes
-- Passwords, authentication, and account recovery
-- Searching or filtering events
-- Editing or deleting events
-- Club management
-- Attendee identity lists
-- Social connections, messaging, or friend features
-- Pagination
+1. **Identify the user**
+   - Call `POST /users` with the username and store the returned user object.
+   - Persist the returned `id` locally when possible. If local storage is
+     cleared, repeat the request.
+2. **Discover events**
+   - Call `GET /events` to render the campus event list.
+3. **Inspect an event**
+   - Call `GET /events/:eventId` for the selected event's complete details.
+4. **Host an event**
+   - Submit the event form to `POST /events`.
+   - Use the returned event object to show the newly created event.
+5. **RSVP**
+   - Call `POST /users/:userId/rsvps/:eventId` using the IDs returned by the
+     user and event endpoints.
+6. **Show the user's RSVP list**
+   - Call `GET /users/:userId/rsvps`.
+7. **Cancel an RSVP**
+   - Call `DELETE /users/:userId/rsvps/:eventId`.

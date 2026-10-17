@@ -1,6 +1,7 @@
 package Model
 
 import (
+	"sort"
 	"time"
 )
 
@@ -26,6 +27,34 @@ func NewCampus() *Campus {
 // Getters for the 'events', ”, and 'users' maps in the campus as well as individual items.
 func (c Campus) GetEvents() map[int]*Event {
 	return c.events
+}
+
+func (c Campus) FilterEvents(startDate, endDate *time.Time, clubName string) []*Event {
+	events := make([]*Event, 0)
+
+	for _, event := range c.events {
+		eventDate := event.GetDateTime()
+		if startDate != nil && eventDate.Before(*startDate) {
+			continue
+		}
+		if endDate != nil && eventDate.After(*endDate) {
+			continue
+		}
+		if clubName != "" && event.GetClubName() != clubName {
+			continue
+		}
+
+		events = append(events, event)
+	}
+
+	sort.Slice(events, func(i, j int) bool {
+		if events[i].GetDateTime().Equal(events[j].GetDateTime()) {
+			return events[i].GetID() < events[j].GetID()
+		}
+		return events[i].GetDateTime().Before(events[j].GetDateTime())
+	})
+
+	return events
 }
 
 func (c Campus) GetEvent(eventID int) *Event {

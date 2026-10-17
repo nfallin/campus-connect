@@ -9,5 +9,5 @@ func main() {
 
 	c := Model.NewCampus()
 
-	Controller.Serve()
+	Controller.Serve(c)
 }

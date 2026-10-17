@@ -174,6 +174,33 @@ func TestGetEvents(t *testing.T) {
 	}
 }
 
+func TestFilterEventsByDateRange(t *testing.T) {
+	c := NewCampus()
+	start := time.Date(2026, 10, 20, 0, 0, 0, 0, time.UTC)
+	inRange := c.CreateEvent("In range", start.AddDate(0, 0, 1), "Room 101", "Club A")
+	c.CreateEvent("Before range", start.AddDate(0, 0, -1), "Room 102", "Club A")
+	c.CreateEvent("After range", start.AddDate(0, 0, 3), "Room 103", "Club A")
+	end := start.AddDate(0, 0, 2)
+
+	events := c.FilterEvents(&start, &end, "")
+
+	if len(events) != 1 || events[0] != inRange {
+		t.Errorf("expected only the event in the date range, got %v", events)
+	}
+}
+
+func TestFilterEventsByClubName(t *testing.T) {
+	c := NewCampus()
+	clubEvent := c.CreateEvent("Club event", time.Now(), "Room 101", "Club A")
+	c.CreateEvent("Other event", time.Now(), "Room 102", "Club B")
+
+	events := c.FilterEvents(nil, nil, "Club A")
+
+	if len(events) != 1 || events[0] != clubEvent {
+		t.Errorf("expected only Club A's event, got %v", events)
+	}
+}
+
 // Test that GetEvent Returns an existing event and nil for an unknown ID
 func TestGetEvent(t *testing.T) {
 	c := NewCampus()
