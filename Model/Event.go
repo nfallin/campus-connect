@@ -1,7 +1,6 @@
 package Model
 
 import (
-	"image"
 	"time"
 )
 
@@ -10,9 +9,8 @@ type Event struct {
 	id        int
 	dateTime  time.Time
 	location  string
-	poster    image.Image
 	attendees map[int]struct{}
-	clubName    string
+	clubName  string
 }
 
 func (e *Event) GetName() string {
@@ -29,10 +27,6 @@ func (e *Event) GetDateTime() time.Time {
 
 func (e *Event) GetLocation() string {
 	return e.location
-}
-
-func (e *Event) GetPoster() image.Image {
-	return e.poster
 }
 
 func (e *Event) GetAttendees() map[int]struct{} {

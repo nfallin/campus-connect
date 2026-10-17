@@ -1,14 +1,13 @@
 package Model
 
 import (
-	"image"
 	"time"
 )
 
 // campus struct definition and constructor function
 type Campus struct {
 	users       map[int]*User
-	events		map[int]*Event
+	events      map[int]*Event
 	nextEventID int
 	nextUserID  int
 }
@@ -16,14 +15,15 @@ type Campus struct {
 func NewCampus() *Campus {
 	return &Campus{
 		users:       make(map[int]*User),
-		events:		make(map[int]*Event),
+		events:      make(map[int]*Event),
 		nextEventID: 1,
 		nextUserID:  1,
 	}
 }
+
 // ---
 
-// Getters for the 'events', '', and 'users' maps in the campus as well as individual items.
+// Getters for the 'events', ”, and 'users' maps in the campus as well as individual items.
 func (c Campus) GetEvents() map[int]*Event {
 	return c.events
 }
@@ -39,6 +39,7 @@ func (c Campus) GetUsers() map[int]*User {
 func (c Campus) GetUser(userID int) *User {
 	return c.users[userID]
 }
+
 // ---
 
 // incrementally generate unique IDs for events and users
@@ -53,18 +54,18 @@ func (c *Campus) getNextUserID() int {
 	c.nextUserID++
 	return id
 }
+
 // ---
 
 // Constructor methods for creating new events, and users.
-func (c *Campus) CreateEvent(name string, dateTime time.Time, location string, poster image.Image, clubName string) *Event {
+func (c *Campus) CreateEvent(name string, dateTime time.Time, location string, clubName string) *Event {
 	newEvent := &Event{
 		name:      name,
 		id:        c.getNextEventID(),
 		dateTime:  dateTime,
 		location:  location,
-		poster:    poster,
 		attendees: map[int]struct{}{},
-		clubName:    clubName,
+		clubName:  clubName,
 	}
 
 	c.events[newEvent.id] = newEvent
@@ -104,4 +105,5 @@ func (c *Campus) RemoveUser(user *User) {
 	}
 	delete(c.users, user.id)
 }
+
 // ---

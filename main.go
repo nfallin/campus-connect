@@ -24,10 +24,10 @@ func main() {
 	ethan := c.CreateUser("Ethan")
 
 	// four events
-	gameNight := c.CreateEvent("Game Night", time.Now().AddDate(0, 0, 3), "Room 101", nil, gameDevClub)
-	robotWorkshop := c.CreateEvent("Robot Workshop", time.Now().AddDate(0, 0, 5), "Room 202", nil, roboticsClub)
-	photoWalk := c.CreateEvent("Photo Walk", time.Now().AddDate(0, 0, 7), "Campus Grounds", nil, photographyClub)
-	campusSocial := c.CreateEvent("Campus Social", time.Now().AddDate(0, 0, 10), "Room 101", nil, gameDevClub)
+	gameNight := c.CreateEvent("Game Night", time.Now().AddDate(0, 0, 3), "Room 101", gameDevClub)
+	robotWorkshop := c.CreateEvent("Robot Workshop", time.Now().AddDate(0, 0, 5), "Room 202", roboticsClub)
+	photoWalk := c.CreateEvent("Photo Walk", time.Now().AddDate(0, 0, 7), "Campus Grounds", photographyClub)
+	campusSocial := c.CreateEvent("Campus Social", time.Now().AddDate(0, 0, 10), "Room 101", gameDevClub)
 
 	// everyone RSVPs to some events
 	alice.RsvpAdd(gameNight)
