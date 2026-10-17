@@ -1,4 +1,4 @@
-package Web
+package Controller
 
 import (
 	"github.com/gin-gonic/gin"

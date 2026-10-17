@@ -1,8 +1,8 @@
 package main
 
 import (
+	"campus_connect/Controller"
 	"campus_connect/Model"
-	"campus_connect/Web"
 	"fmt"
 	"time"
 )
@@ -56,5 +56,5 @@ func main() {
 	c.RemoveUser(diana)
 	fmt.Printf("photo walk atendees after diana is deleted: %v\n", photoWalk.GetAttendees())
 
-	Web.Serve()
+	Controller.Serve()
 }
