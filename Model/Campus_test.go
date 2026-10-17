@@ -5,21 +5,6 @@ import (
 	"time"
 )
 
-/*
-	TestNewCampus	Initializes empty user and event maps with IDs starting at 1
-	TestGetNextUserID	Generates sequential user IDs
-	TestGetNextEventID	Generates sequential event IDs
-	TestGetUsers	Returns all campus users
-	TestGetUser	Returns an existing user and nil for an unknown ID
-	TestGetEvents	Returns all campus events
-	TestGetEvent	Returns an existing event and nil for an unknown ID
-	TestCreateUser	Creates a user, assigns an ID, initializes its RSVP list, and adds it to campus
-	TestCreateEvent	Creates an event, assigns an ID, initializes attendees, stores its fields, and adds it to campus
-	TestCreateMultipleEntities	Assigns independent sequential IDs for users and events
-	TestRemoveEvent	Removes an event from campus and cleans up attending users
-	TestRemoveUser	Removes a user and cleans up the user's RSVPs from events
-*/
-
 // Test that CreateUser creates a user, assigns an ID, initializes its RSVP list, and adds it to campus
 func TestCreateUser(t *testing.T) {
 	c := NewCampus()
