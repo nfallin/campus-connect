@@ -112,6 +112,12 @@ IDs are positive integers.
   "dateTime": "2026-10-25T18:30:00Z",
   "location": "Room 101",
   "clubName": "Game Development Club",
+  "host": {
+    "id": 1,
+    "name": "Alice"
+  },
+  "contactEmail": "alice@example.com",
+  "websiteURL": "https://example.com/game-night",
   "attendeeCount": 12
 }
 ```
@@ -285,9 +291,15 @@ Content-Type: application/json
   "name": "Game Night",
   "dateTime": "2026-10-25T18:30:00Z",
   "location": "Room 101",
-  "clubName": "Game Development Club"
+  "clubName": "Game Development Club",
+  "hostUserId": 1,
+  "contactEmail": "alice@example.com",
+  "websiteURL": "https://example.com/game-night"
 }
 ```
+
+`hostUserId` is required and must identify an existing user.
+`contactEmail` and `websiteURL` are optional and may be empty.
 
 #### Response: `201 Created`
 
@@ -300,6 +312,12 @@ Returns the newly created event:
   "dateTime": "2026-10-25T18:30:00Z",
   "location": "Room 101",
   "clubName": "Game Development Club",
+  "host": {
+    "id": 1,
+    "name": "Alice"
+  },
+  "contactEmail": "alice@example.com",
+  "websiteURL": "https://example.com/game-night",
   "attendeeCount": 0
 }
 ```
@@ -308,6 +326,28 @@ Returns the newly created event:
 
 Returned when the JSON is malformed, a required field is missing, or
 `dateTime` is not a valid timestamp.
+
+### Edit an event
+
+```http
+PATCH /events/:id
+Content-Type: application/json
+```
+
+All fields are optional. Omitted fields keep their existing values, while provided fields replace them.
+
+```json
+{
+  "name": "Updated Game Night",
+  "location": "Room 202",
+  "contactEmail": "events@example.com",
+  "websiteURL": "https://example.com/updated-game-night"
+}
+```
+
+The response is the updated event object with status `200 OK`. The endpoint
+returns `404 Not Found` when the event does not exist and `400 Bad Request`
+when the event ID, JSON, or host user ID is invalid.
 
 ## RSVPs
 

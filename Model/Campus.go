@@ -97,18 +97,31 @@ func (c *Campus) getNextUserID() int {
 // ---
 
 // Constructor methods for creating new events, and users.
-func (c *Campus) CreateEvent(name string, dateTime time.Time, location string, clubName string) *Event {
+func (c *Campus) CreateEvent(name string, dateTime time.Time, location string, clubName string, host *User, contactEmail string, websiteURL string) *Event {
 	newEvent := &Event{
-		name:      name,
-		id:        c.getNextEventID(),
-		dateTime:  dateTime,
-		location:  location,
-		attendees: map[int]struct{}{},
-		clubName:  clubName,
+		name:         name,
+		id:           c.getNextEventID(),
+		dateTime:     dateTime,
+		location:     location,
+		attendees:    map[int]struct{}{},
+		clubName:     clubName,
+		host:         host,
+		contactEmail: contactEmail,
+		websiteURL:   websiteURL,
 	}
 
 	c.events[newEvent.id] = newEvent
 	return newEvent
+}
+
+func (c *Campus) UpdateEvent(event *Event, name string, dateTime time.Time, location string, clubName string, host *User, contactEmail string, websiteURL string) {
+	event.name = name
+	event.dateTime = dateTime
+	event.location = location
+	event.clubName = clubName
+	event.host = host
+	event.contactEmail = contactEmail
+	event.websiteURL = websiteURL
 }
 
 func (c *Campus) CreateUser(name string) *User {

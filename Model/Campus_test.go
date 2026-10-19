@@ -30,7 +30,8 @@ func TestCreateUser(t *testing.T) {
 // Test that CreateEvent creates an event, assigns an ID, initializes attendees, stores its fields, and adds it to campus
 func TestCreateEvent(t *testing.T) {
 	c := NewCampus()
-	event := c.CreateEvent("Meeting", time.Now(), "Room 101", "Club A")
+	host := c.CreateUser("Host")
+	event := c.CreateEvent("Meeting", time.Now(), "Room 101", "Club A", host, "host@example.com", "https://example.com/events/meeting")
 
 	if event.name != "Meeting" {
 		t.Errorf("expected event name to be 'Meeting', got '%s'", event.name)
@@ -42,6 +43,18 @@ func TestCreateEvent(t *testing.T) {
 
 	if len(event.attendees) != 0 {
 		t.Errorf("expected a new event's attendees list to be empty, got %v", event.attendees)
+	}
+
+	if event.host != host {
+		t.Errorf("expected event host to be %v, got %v", host, event.host)
+	}
+
+	if event.contactEmail != "host@example.com" {
+		t.Errorf("expected event contact email to be 'host@example.com', got '%s'", event.contactEmail)
+	}
+
+	if event.websiteURL != "https://example.com/events/meeting" {
+		t.Errorf("expected event website URL to be 'https://example.com/events/meeting', got '%s'", event.websiteURL)
 	}
 
 	if c.GetEvent(event.id) != event {
@@ -87,13 +100,13 @@ func testGetNextUserID(t *testing.T) {
 // Test that GetNextEventID generates sequential event IDs
 func testGetNextEventID(t *testing.T) {
 	c := NewCampus()
-	event1 := c.CreateEvent("Event 1", time.Now(), "Location 1", "Club A")
+	event1 := c.CreateEvent("Event 1", time.Now(), "Location 1", "Club A", c.CreateUser("Host 1"), "host1@example.com", "https://example.com/events/1")
 
 	if event1.id != 1 {
 		t.Errorf("expected Event 1's ID to be 1, got %d", event1.id)
 	}
 
-	event2 := c.CreateEvent("Event 2", time.Now(), "Location 2", "Club B")
+	event2 := c.CreateEvent("Event 2", time.Now(), "Location 2", "Club B", c.CreateUser("Host 2"), "host2@example.com", "https://example.com/events/2")
 	if event2.id != 2 {
 		t.Errorf("expected Event 2's ID to be 2, got %d", event2.id)
 	}
@@ -164,8 +177,8 @@ func TestCreateUserRejectsDuplicateUsername(t *testing.T) {
 // Test that GetEvents returns all events in the campus
 func TestGetEvents(t *testing.T) {
 	c := NewCampus()
-	event1 := c.CreateEvent("Event 1", time.Now(), "Location 1", "Club A")
-	event2 := c.CreateEvent("Event 2", time.Now(), "Location 2", "Club B")
+	event1 := c.CreateEvent("Event 1", time.Now(), "Location 1", "Club A", c.CreateUser("Host 1"), "host1@example.com", "https://example.com/events/1")
+	event2 := c.CreateEvent("Event 2", time.Now(), "Location 2", "Club B", c.CreateUser("Host 2"), "host2@example.com", "https://example.com/events/2")
 
 	events := c.GetEvents()
 
@@ -177,9 +190,9 @@ func TestGetEvents(t *testing.T) {
 func TestFilterEventsByDateRange(t *testing.T) {
 	c := NewCampus()
 	start := time.Date(2026, 10, 20, 0, 0, 0, 0, time.UTC)
-	inRange := c.CreateEvent("In range", start.AddDate(0, 0, 1), "Room 101", "Club A")
-	c.CreateEvent("Before range", start.AddDate(0, 0, -1), "Room 102", "Club A")
-	c.CreateEvent("After range", start.AddDate(0, 0, 3), "Room 103", "Club A")
+	inRange := c.CreateEvent("In range", start.AddDate(0, 0, 1), "Room 101", "Club A", c.CreateUser("Host 1"), "host1@example.com", "https://example.com/events/in-range")
+	c.CreateEvent("Before range", start.AddDate(0, 0, -1), "Room 102", "Club A", c.CreateUser("Host 2"), "host2@example.com", "https://example.com/events/before")
+	c.CreateEvent("After range", start.AddDate(0, 0, 3), "Room 103", "Club A", c.CreateUser("Host 3"), "host3@example.com", "https://example.com/events/after")
 	end := start.AddDate(0, 0, 2)
 
 	events := c.FilterEvents(&start, &end, "")
@@ -191,8 +204,8 @@ func TestFilterEventsByDateRange(t *testing.T) {
 
 func TestFilterEventsByClubName(t *testing.T) {
 	c := NewCampus()
-	clubEvent := c.CreateEvent("Club event", time.Now(), "Room 101", "Club A")
-	c.CreateEvent("Other event", time.Now(), "Room 102", "Club B")
+	clubEvent := c.CreateEvent("Club event", time.Now(), "Room 101", "Club A", c.CreateUser("Host 1"), "host1@example.com", "https://example.com/events/club")
+	c.CreateEvent("Other event", time.Now(), "Room 102", "Club B", c.CreateUser("Host 2"), "host2@example.com", "https://example.com/events/other")
 
 	events := c.FilterEvents(nil, nil, "Club A")
 
@@ -204,7 +217,7 @@ func TestFilterEventsByClubName(t *testing.T) {
 // Test that GetEvent Returns an existing event and nil for an unknown ID
 func TestGetEvent(t *testing.T) {
 	c := NewCampus()
-	event1 := c.CreateEvent("Event 1", time.Now(), "Location 1", "Club A")
+	event1 := c.CreateEvent("Event 1", time.Now(), "Location 1", "Club A", c.CreateUser("Host"), "host@example.com", "https://example.com/events/1")
 
 	if c.GetEvent(event1.id) != event1 {
 		t.Errorf("expected to retrieve Event 1, got %v", c.GetEvent(event1.id))
@@ -225,8 +238,8 @@ func TestCreateMultipleEntities(t *testing.T) {
 		t.Errorf("expected Alice's ID to be 1 and Bob's ID to be 2, got %d and %d", alice.id, bob.id)
 	}
 
-	event1 := c.CreateEvent("Event 1", time.Now(), "Location 1", "Club A")
-	event2 := c.CreateEvent("Event 2", time.Now(), "Location 2", "Club B")
+	event1 := c.CreateEvent("Event 1", time.Now(), "Location 1", "Club A", alice, "alice@example.com", "https://example.com/events/1")
+	event2 := c.CreateEvent("Event 2", time.Now(), "Location 2", "Club B", bob, "bob@example.com", "https://example.com/events/2")
 
 	if event1.id != 1 || event2.id != 2 {
 		t.Errorf("expected Event 1's ID to be 1 and Event 2's ID to be 2, got %d and %d", event1.id, event2.id)
@@ -237,7 +250,7 @@ func TestCreateMultipleEntities(t *testing.T) {
 func TestRemoveEvent(t *testing.T) {
 	c := NewCampus()
 	alice := c.CreateUser("Alice")
-	event := c.CreateEvent("Meeting", time.Now(), "Room 101", "Club A")
+	event := c.CreateEvent("Meeting", time.Now(), "Room 101", "Club A", alice, "alice@example.com", "https://example.com/events/meeting")
 	alice.RsvpAdd(event)
 
 	c.RemoveEvent(event)
@@ -255,7 +268,7 @@ func TestRemoveEvent(t *testing.T) {
 func TestRemoveUser(t *testing.T) {
 	c := NewCampus()
 	alice := c.CreateUser("Alice")
-	event := c.CreateEvent("Meeting", time.Now(), "Room 101", "Club A")
+	event := c.CreateEvent("Meeting", time.Now(), "Room 101", "Club A", alice, "alice@example.com", "https://example.com/events/meeting")
 	alice.RsvpAdd(event)
 
 	c.RemoveUser(alice)

@@ -19,7 +19,7 @@ func TestGetRsvpList(t *testing.T) {
 func TestRsvpAddRemove(t *testing.T) {
 	c := NewCampus()
 	alice := c.CreateUser("Alice")
-	event := c.CreateEvent("Meeting", time.Now(), "Room 101", "Club A")
+	event := c.CreateEvent("Meeting", time.Now(), "Room 101", "Club A", alice, "alice@example.com", "https://example.com/events/meeting")
 
 	alice.RsvpAdd(event)
 	if _, exists := alice.rsvpList[event.id]; !exists {
@@ -36,7 +36,7 @@ func TestRsvpAddRemove(t *testing.T) {
 func TestRsvpSameEventTwice(t *testing.T) {
 	c := NewCampus()
 	alice := c.CreateUser("Alice")
-	event := c.CreateEvent("Meeting", time.Now(), "Room 101", "Club A")
+	event := c.CreateEvent("Meeting", time.Now(), "Room 101", "Club A", alice, "alice@example.com", "https://example.com/events/meeting")
 	alice.RsvpAdd(event)
 	alice.RsvpAdd(event) // Attempt to RSVP again
 
@@ -49,7 +49,7 @@ func TestRsvpSameEventTwice(t *testing.T) {
 func TestRsvpRemoveNonRsvpEvent(t *testing.T) {
 	c := NewCampus()
 	alice := c.CreateUser("Alice")
-	event := c.CreateEvent("Meeting", time.Now(), "Room 101", "Club A")
+	event := c.CreateEvent("Meeting", time.Now(), "Room 101", "Club A", alice, "alice@example.com", "https://example.com/events/meeting")
 	alice.RsvpRemove(event) // Attempt to remove an event that Alice hasn't RSVP'd to
 
 	if len(alice.rsvpList) != 0 {
@@ -61,8 +61,8 @@ func TestRsvpRemoveNonRsvpEvent(t *testing.T) {
 func TestRsvpMultipleEvents(t *testing.T) {
 	c := NewCampus()
 	alice := c.CreateUser("Alice")
-	event1 := c.CreateEvent("Meeting 1", time.Now(), "Room 101", "Club A")
-	event2 := c.CreateEvent("Meeting 2", time.Now(), "Room 102", "Club B")
+	event1 := c.CreateEvent("Meeting 1", time.Now(), "Room 101", "Club A", alice, "alice@example.com", "https://example.com/events/meeting-1")
+	event2 := c.CreateEvent("Meeting 2", time.Now(), "Room 102", "Club B", alice, "alice@example.com", "https://example.com/events/meeting-2")
 
 	alice.RsvpAdd(event1)
 	alice.RsvpAdd(event2)

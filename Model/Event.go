@@ -5,12 +5,15 @@ import (
 )
 
 type Event struct {
-	name      string
-	id        int
-	dateTime  time.Time
-	location  string
-	attendees map[int]struct{}
-	clubName  string
+	name         string
+	id           int
+	dateTime     time.Time
+	location     string
+	attendees    map[int]struct{}
+	clubName     string
+	host         *User
+	contactEmail string
+	websiteURL   string
 }
 
 func (e *Event) GetName() string {
@@ -39,4 +42,16 @@ func (e *Event) GetNumAttendees() int {
 
 func (e *Event) GetClubName() string {
 	return e.clubName
+}
+
+func (e *Event) GetHost() *User {
+	return e.host
+}
+
+func (e *Event) GetContactEmail() string {
+	return e.contactEmail
+}
+
+func (e *Event) GetWebsiteURL() string {
+	return e.websiteURL
 }

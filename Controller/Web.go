@@ -34,6 +34,7 @@ func defineRoutes(r *gin.Engine, api *API) {
 
 	readRoutes.GET("/events", api.getEvents)
 	writeRoutes.POST("/events", api.createEvent)
+	writeRoutes.PATCH("/events/:id", api.updateEvent)
 	readRoutes.GET("/events/:id", api.getEvent)
 
 	writeRoutes.POST("/users", api.createUser)
