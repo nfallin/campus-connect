@@ -6,17 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ***************************
-// * POST request structures *
-// ***************************
-type defaultPostBody struct {
-	Message string `json:"message"`
-}
-
 // starts the router
 func Serve() error {
 	router := newRouter()
-	return router.Run("localhost:8080")
+	return router.Run("0.0.0.0:8080")
 }
 
 func newRouter() *gin.Engine {
@@ -39,13 +32,14 @@ func defineRoutes(r *gin.Engine, api *API) {
 	writeRoutes := r.Group("")
 	writeRoutes.Use(api.writeLock())
 
+	readRoutes.GET("/events", api.getEvents)
 	writeRoutes.POST("/events", api.createEvent)
 	readRoutes.GET("/events/:id", api.getEvent)
 
 	writeRoutes.POST("/users", api.createUser)
 	readRoutes.GET("/users/:id", api.getUser)
 
-	writeRoutes.POST("/users/:userId/rsvps/:eventId/add", api.rsvpAdd)
-	writeRoutes.POST("/users/:userId/rsvps/:eventId/remove", api.rsvpRemove)
-	readRoutes.POST("/users/:userId/rsvps", api.getRSVPs)
+	writeRoutes.POST("/users/:userId/rsvps/:eventId", api.rsvpAdd)
+	writeRoutes.DELETE("/users/:userId/rsvps/:eventId", api.rsvpRemove)
+	readRoutes.GET("/users/:userId/rsvps", api.getRSVPs)
 }
