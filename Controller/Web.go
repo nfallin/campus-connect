@@ -37,7 +37,7 @@ func defineRoutes(r *gin.Engine, api *API) {
 	readRoutes.GET("/events/:id", api.getEvent)
 
 	writeRoutes.POST("/users", api.createUser)
-	readRoutes.GET("/users/:id", api.getUser)
+	readRoutes.GET("/users/:userId", api.getUser)
 
 	writeRoutes.POST("/users/:userId/rsvps/:eventId", api.rsvpAdd)
 	writeRoutes.DELETE("/users/:userId/rsvps/:eventId", api.rsvpRemove)

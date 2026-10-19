@@ -30,7 +30,7 @@ func (api *API) createUser(c *gin.Context) {
 }
 
 func (api *API) getUser(c *gin.Context) {
-	userID, err := strconv.Atoi(c.Param("id"))
+	userID, err := strconv.Atoi(c.Param("userId"))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{

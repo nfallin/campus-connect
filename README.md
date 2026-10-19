@@ -171,7 +171,7 @@ or empty.
 ### Get a user
 
 ```http
-GET /users/:id
+GET /users/:userId
 ```
 
 #### Response: `200 OK`
