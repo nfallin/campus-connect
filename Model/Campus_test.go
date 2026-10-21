@@ -84,7 +84,7 @@ func TestNewCampus(t *testing.T) {
 }
 
 // Test that GetNextUserID generates sequential user IDs
-func testGetNextUserID(t *testing.T) {
+func TestGetNextUserID(t *testing.T) {
 	c := NewCampus()
 	alice := c.CreateUser("Alice")
 	if alice.id != 1 {
@@ -98,7 +98,7 @@ func testGetNextUserID(t *testing.T) {
 }
 
 // Test that GetNextEventID generates sequential event IDs
-func testGetNextEventID(t *testing.T) {
+func TestGetNextEventID(t *testing.T) {
 	c := NewCampus()
 	event1 := c.CreateEvent("Event 1", time.Now(), "Location 1", "Club A", c.CreateUser("Host 1"), "host1@example.com", "https://example.com/events/1")
 
