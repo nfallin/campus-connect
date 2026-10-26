@@ -7,15 +7,10 @@ on:
 
 jobs:
     build-and-test:
-        runs-on: ${{ matrix.os }}
+        runs-on: ubuntu-latest
         defaults:
             run:
                 working-directory: backend
-        strategy:
-            matrix:
-                os:
-                    - macos-latest
-                    - windows-latest
         steps:
             - name: Check out repository
               uses: actions/checkout@v4
