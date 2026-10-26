@@ -1,18 +1,19 @@
 package Model
 
 import (
-	"image"
 	"time"
 )
 
 type Event struct {
-	name      string
-	id        int
-	dateTime  time.Time
-	location  string
-	poster    image.Image
-	attendees map[int]struct{}
-	clubID    int
+	name         string
+	id           int
+	dateTime     time.Time
+	location     string
+	attendees    map[int]struct{}
+	clubName     string
+	host         *User
+	contactEmail string
+	websiteURL   string
 }
 
 func (e *Event) GetName() string {
@@ -31,10 +32,6 @@ func (e *Event) GetLocation() string {
 	return e.location
 }
 
-func (e *Event) GetPoster() image.Image {
-	return e.poster
-}
-
 func (e *Event) GetAttendees() map[int]struct{} {
 	return e.attendees
 }
@@ -43,6 +40,18 @@ func (e *Event) GetNumAttendees() int {
 	return len(e.attendees)
 }
 
-func (e *Event) GetClubID() int {
-	return e.clubID
+func (e *Event) GetClubName() string {
+	return e.clubName
+}
+
+func (e *Event) GetHost() *User {
+	return e.host
+}
+
+func (e *Event) GetContactEmail() string {
+	return e.contactEmail
+}
+
+func (e *Event) GetWebsiteURL() string {
+	return e.websiteURL
 }
