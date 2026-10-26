@@ -10,7 +10,7 @@ jobs:
         runs-on: ${{ matrix.os }}
         defaults:
             run:
-                working-directory: ./campus-connect-backend
+                working-directory: backend
         strategy:
             matrix:
                 os:
