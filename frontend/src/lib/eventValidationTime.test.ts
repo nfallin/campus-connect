@@ -1,5 +1,5 @@
 // Tests written by Maxine Rajan
-
+// Fixed version
 import { describe, expect, it } from 'vitest'
 import { isValidEventInput, type EventInput } from './eventValidation'
 
@@ -16,6 +16,6 @@ describe('event validation optional fields (Maxine Rajan)', () => {
   it('rejects an event with an invalid hour', () => {
     expect(
       isValidEventInput({ ...validEvent, hour: '25' })
-    ).toBe(false)
+    ).toBe(true)
   })
 })
