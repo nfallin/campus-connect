@@ -1,9 +1,11 @@
-# Building and running locally
+# Campus Connect Backend
+An API that manages creating, storing, and organizing events for the Campus Connect web application.
+
+# Setup, building, running, and testing
 
 ## 1. Install Go
 
-- macOS with Homebrew: brew install go
-- Windows: use the official installer at https://go.dev/dl/.
+Use the official installer at https://go.dev/dl/.
 
 to verify:
 ```powershell
@@ -12,12 +14,13 @@ go version
 
 ## 2. Download the project
 
-If you have Git installed, clone the repository:
+Clone the repository:
 
 ```powershell
 git clone https://github.com/nfallin/campus-connect-backend.git
 cd campus-connect-backend
 ```
+(All commands from now on are performed from the campus-connect-backend directory)
 
 ## 3. Download the Go dependencies
 
@@ -59,7 +62,7 @@ Instead of using `go run`, create an executable:
 go build -o campus-connect.exe .
 ```
 
-Start the built application with:
+Start the built application at http://localhost:8080 with:
 
 ```powershell
 .\campus-connect.exe
