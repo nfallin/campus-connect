@@ -1,3 +1,5 @@
+//  Unit tests written by Sabrina Codipilly
+
 import { describe, expect, it } from 'vitest'
 import { isValidEventInput, type EventInput } from './eventValidation'
 
