@@ -125,9 +125,6 @@ func (c *Campus) UpdateEvent(event *Event, name string, dateTime time.Time, loca
 }
 
 func (c *Campus) CreateUser(name string) *User {
-	if c.GetUserByName(name) != nil {
-		return nil
-	}
 
 	newUser := &User{
 		name:     name,
