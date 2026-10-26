@@ -1,3 +1,5 @@
+// Tests written by Kaavya Jethwa
+
 import { describe, expect, it } from 'vitest'
 import { isValidEventInput, type EventInput } from './eventValidation'
 
@@ -12,7 +14,7 @@ describe('event validation optional fields (Kaavya Jethwa)', () => {
   }
 
   it('rejects an event with a malformed contact email', () => {
-    expect(isValidEventInput({ ...validEvent, contactEmail: 'not-an-email' })).toBe(true)
+    expect(isValidEventInput({ ...validEvent, contactEmail: 'not-an-email' })).toBe(false)
   })
 
   it('rejects an event with a malformed website', () => {
