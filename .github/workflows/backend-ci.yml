@@ -8,6 +8,9 @@ on:
 jobs:
     build-and-test:
         runs-on: ${{ matrix.os }}
+        defaults:
+            run:
+                working-directory: ./campus-connect-backend
         strategy:
             matrix:
                 os:
