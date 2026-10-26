@@ -14,6 +14,19 @@ format, for example:
 
 IDs are positive integers.
 
+## How the frontend talks to the backend
+
+- All API calls go through `src/lib/api.ts`, which prefixes requests with
+  `VITE_API_BASE_URL` (defaults to `/api`, see `.env.example`).
+- In dev, `vite.config.ts` proxies anything under `/api` to
+  `http://localhost:8080` and strips the `/api` prefix, since the backend's
+  routes (`/events`, `/users`, ...) don't use that prefix themselves. So a
+  frontend call to `/api/events` reaches the backend's `/events` route.
+- In production there is no Vite proxy, so either put a reverse proxy in
+  front of both services doing the same `/api` rewrite, or set
+  `VITE_API_BASE_URL` to the backend's full deployed URL and enable CORS on
+  the backend for the frontend's origin.
+
 ## Data types
 
 ### User
