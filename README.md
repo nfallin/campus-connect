@@ -7,7 +7,7 @@ This repository contains the React frontend and Go API for Campus Connect. The b
 ## 1. Prerequisites
 - Node.js 22 or newer (`node -v` to check)
     - Official Node installer: https://nodejs.org/en/download
-- Go version 1.22.5 or newer (`go version` to check)
+- Go version 1.26.0 or newer (`go version` to check)
     - Official Go installer: https://go.dev/dl/
 
 ## 2. Install Dependencies
