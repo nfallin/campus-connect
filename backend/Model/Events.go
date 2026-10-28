@@ -4,6 +4,7 @@ import (
 	"campus_connect/Types"
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 )
@@ -11,7 +12,22 @@ import (
 // Events
 func (repository *Repository) CreateEvent(request Types.CreateEventRequest) (Types.EventResponse, error) {
 	if request.HostUserID == nil {
-		return Types.EventResponse{}, errors.New("host user id is required")
+		return Types.EventResponse{}, fmt.Errorf("%w: host user id is required", ErrInvalidEvent)
+	}
+	if request.Name == "" {
+		return Types.EventResponse{}, fmt.Errorf("%w: name is required", ErrInvalidEvent)
+	}
+	if request.DateTime.IsZero() {
+		return Types.EventResponse{}, fmt.Errorf("%w: date time is required", ErrInvalidEvent)
+	}
+	if request.Location == "" {
+		return Types.EventResponse{}, fmt.Errorf("%w: location is required", ErrInvalidEvent)
+	}
+	if request.ClubName == "" {
+		return Types.EventResponse{}, fmt.Errorf("%w: club name is required", ErrInvalidEvent)
+	}
+	if err := requirePositiveID(*request.HostUserID); err != nil {
+		return Types.EventResponse{}, fmt.Errorf("%w: host user id must be positive", ErrInvalidEvent)
 	}
 
 	if _, err := repository.GetUser(*request.HostUserID); err != nil {
@@ -166,18 +182,30 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 	}
 
 	if request.Name != nil {
+		if *request.Name == "" {
+			return Types.EventResponse{}, fmt.Errorf("%w: name cannot be empty", ErrInvalidEvent)
+		}
 		current.Name = *request.Name
 	}
 
 	if request.DateTime != nil {
+		if request.DateTime.IsZero() {
+			return Types.EventResponse{}, fmt.Errorf("%w: date time cannot be zero", ErrInvalidEvent)
+		}
 		current.DateTime = *request.DateTime
 	}
 
 	if request.Location != nil {
+		if *request.Location == "" {
+			return Types.EventResponse{}, fmt.Errorf("%w: location cannot be empty", ErrInvalidEvent)
+		}
 		current.Location = *request.Location
 	}
 
 	if request.ClubName != nil {
+		if *request.ClubName == "" {
+			return Types.EventResponse{}, fmt.Errorf("%w: club name cannot be empty", ErrInvalidEvent)
+		}
 		current.ClubName = *request.ClubName
 	}
 
@@ -190,6 +218,9 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 	}
 
 	if request.HostUserID != nil {
+		if err := requirePositiveID(*request.HostUserID); err != nil {
+			return Types.EventResponse{}, fmt.Errorf("%w: host user id must be positive", ErrInvalidEvent)
+		}
 		if _, err := repository.GetUser(*request.HostUserID); err != nil {
 			return Types.EventResponse{}, err
 		}

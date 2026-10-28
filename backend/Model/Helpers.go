@@ -7,6 +7,7 @@ import (
 
 var ErrNotFound = errors.New("record not found")
 var ErrInvalidID = errors.New("id must be a positive integer")
+var ErrInvalidEvent = errors.New("invalid event")
 
 func requirePositiveID(id int) error {
 	if id <= 0 {

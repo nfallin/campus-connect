@@ -139,7 +139,9 @@ func TestEventRoutes(t *testing.T) {
 		t.Fatalf("invalid event status = %d", response.Code)
 	}
 	// attempt to create an event with a nonexistent host user ID
-	if response := request(t, controllerBackend.router, http.MethodPost, "/events", Types.CreateEventRequest{Name: "bad", DateTime: time.Now().UTC(), HostUserID: intPointer(999)}); response.Code != http.StatusBadRequest {
+	nonexistentHostEvent := body
+	nonexistentHostEvent.HostUserID = intPointer(999)
+	if response := request(t, controllerBackend.router, http.MethodPost, "/events", nonexistentHostEvent); response.Code != http.StatusBadRequest {
 		t.Fatalf("missing host event status = %d", response.Code)
 	}
 	// attempt to create an event with invalid JSON
@@ -151,11 +153,11 @@ func TestEventRoutes(t *testing.T) {
 	if response := request(t, controllerBackend.router, http.MethodPatch, "/events/nope", Types.UpdateEventRequest{}); response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid update ID status = %d", response.Code)
 	}
-	// attempt to update an event with a 0 ID
+	// attempt to update an event with a nonexistent ID
 	if response := request(t, controllerBackend.router, http.MethodPatch, "/events/999", Types.UpdateEventRequest{}); response.Code != http.StatusNotFound {
 		t.Fatalf("missing update event status = %d", response.Code)
 	}
-	// attempt to update an event with a nonexistent ID
+	// attempt to update an event with a bad JSON
 	if response := request(t, controllerBackend.router, http.MethodPatch, "/events/1", "{"); response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid update JSON status = %d", response.Code)
 	}

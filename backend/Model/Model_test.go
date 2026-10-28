@@ -54,7 +54,7 @@ func TestRepositoryUsers(t *testing.T) {
 		t.Fatalf("update user = %+v, %v", updated, err)
 	}
 
-	// attempt to delete the user 
+	// attempt to delete the user
 	if err := repository.DeleteUser(user.ID); err != nil {
 		t.Fatal(err)
 	}
@@ -137,12 +137,27 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	if _, err := repository.GetEvent(999); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("get missing event error = %v", err)
 	}
-	// attempt to create an event with missing required fields
-	if _, err := repository.CreateEvent(Types.CreateEventRequest{Name: "bad"}); err == nil {
-		t.Fatal("expected missing host error")
+	validRequest := Types.CreateEventRequest{
+		Name: "Valid event", DateTime: when, Location: "Room", ClubName: "Club", HostUserID: &host.ID,
+	}
+	for name, request := range map[string]Types.CreateEventRequest{
+		"missing name":      {DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
+		"missing date":      {Name: validRequest.Name, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
+		"missing location":  {Name: validRequest.Name, DateTime: validRequest.DateTime, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
+		"missing club name": {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, HostUserID: validRequest.HostUserID},
+		"missing host":      {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName},
+		"non-positive host": {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: intPointer(0)},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := repository.CreateEvent(request); !errors.Is(err, ErrInvalidEvent) {
+				t.Fatalf("create event error = %v", err)
+			}
+		})
 	}
 	// attempt to create an event with a nonexistent host
-	if _, err := repository.CreateEvent(Types.CreateEventRequest{Name: "bad", HostUserID: intPointer(999)}); !errors.Is(err, ErrNotFound) {
+	nonexistentHost := validRequest
+	nonexistentHost.HostUserID = intPointer(999)
+	if _, err := repository.CreateEvent(nonexistentHost); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("invalid host error = %v", err)
 	}
 	// attempt to update an event with a nonexistent ID
@@ -152,6 +167,12 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	// attempt to update an event with a nonexistent host
 	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{HostUserID: intPointer(999)}); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("invalid replacement host error = %v", err)
+	}
+	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{Name: stringPointer("")}); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("empty replacement name error = %v", err)
+	}
+	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{HostUserID: intPointer(0)}); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("non-positive replacement host error = %v", err)
 	}
 	// attempt to delete an event
 	if err := repository.DeleteEvent(event.ID); err != nil {
