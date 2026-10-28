@@ -13,5 +13,8 @@ func main() {
 	}
 	defer db.Close()
 
-	Controller.Serve()
+	repository := Database.NewRepository(db)
+	if err := Controller.Serve(repository); err != nil {
+		panic(err)
+	}
 }

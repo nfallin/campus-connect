@@ -1,7 +1,9 @@
 package Controller
 
 import (
-	"campus_connect/Model"
+	"campus_connect/Database"
+	"campus_connect/Types"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -9,50 +11,49 @@ import (
 )
 
 func (api *API) createUser(c *gin.Context) {
-	var request CreateUserRequest
+	var request Types.CreateUserRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{
 			Message: err.Error(),
 		})
 		return
 	}
 
-	newUser := api.campus.GetUserByName(request.Name)
-	status := http.StatusOK
-
-	if newUser == nil {
-		newUser = api.campus.CreateUser(request.Name)
-		status = http.StatusCreated
+	user, created, err := api.repository.CreateUser(request)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
+		return
 	}
 
-	c.JSON(status, toUserResponse(newUser))
+	status := http.StatusOK
+	if created {
+		status = http.StatusCreated
+	}
+	c.JSON(status, user)
 }
 
 func (api *API) getUser(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("userId"))
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{
 			Message: "user id must be an integer",
 		})
 		return
 	}
 
-	user := api.campus.GetUser(userID)
-	if user == nil {
-		c.JSON(http.StatusNotFound, ErrorResponse{
+	user, err := api.repository.GetUser(userID)
+	if errors.Is(err, Database.ErrNotFound) {
+		c.JSON(http.StatusNotFound, Types.ErrorResponse{
 			Message: "user not found",
 		})
 		return
 	}
-
-	c.JSON(http.StatusOK, toUserResponse(user))
-}
-
-func toUserResponse(user *Model.User) UserResponse {
-	return UserResponse{
-		ID:   user.GetID(),
-		Name: user.GetName(),
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
+		return
 	}
+
+	c.JSON(http.StatusOK, user)
 }

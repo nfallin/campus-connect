@@ -26,7 +26,7 @@ const eventsTable = `
 	);
 `
 
-// rsvps are deleted when their user or host are deleted.
+// rsvps are deleted when their user or event is deleted.
 // rsvps don't need their own id
 const rsvpTable = `
 	CREATE TABLE IF NOT EXISTS rsvps (
