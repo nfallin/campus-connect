@@ -1,4 +1,4 @@
-package Database
+package Model
 
 import (
 	"campus_connect/Types"

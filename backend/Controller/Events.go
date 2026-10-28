@@ -1,7 +1,7 @@
 package Controller
 
 import (
-	"campus_connect/Database"
+	"campus_connect/Model"
 	"campus_connect/Types"
 	"errors"
 	"net/http"
@@ -27,7 +27,7 @@ func (api *API) createEvent(c *gin.Context) {
 	}
 
 	event, err := api.repository.CreateEvent(request)
-	if errors.Is(err, Database.ErrNotFound) {
+	if errors.Is(err, Model.ErrNotFound) {
 		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: "host user not found"})
 		return
 	}
@@ -52,7 +52,7 @@ func (api *API) updateEvent(c *gin.Context) {
 	}
 
 	event, err := api.repository.UpdateEvent(eventID, request)
-	if errors.Is(err, Database.ErrNotFound) {
+	if errors.Is(err, Model.ErrNotFound) {
 		c.JSON(http.StatusNotFound, Types.ErrorResponse{Message: "event not found"})
 		return
 	}
@@ -71,7 +71,7 @@ func (api *API) getEvent(c *gin.Context) {
 	}
 
 	event, err := api.repository.GetEvent(eventID)
-	if errors.Is(err, Database.ErrNotFound) {
+	if errors.Is(err, Model.ErrNotFound) {
 		c.JSON(http.StatusNotFound, Types.ErrorResponse{Message: "event not found"})
 		return
 	}

@@ -1,4 +1,4 @@
-package Database
+package Model
 
 // users cannot have the same name and email address, but they can have the same name.
 // they are differentiated by the PAIR of values.

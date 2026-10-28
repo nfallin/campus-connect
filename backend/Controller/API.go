@@ -1,14 +1,14 @@
 package Controller
 
 import (
-	"campus_connect/Database"
+	"campus_connect/Model"
 )
 
 type API struct {
-	repository *Database.Repository
+	repository *Model.Repository
 }
 
-func NewAPI(repository *Database.Repository) *API {
+func NewAPI(repository *Model.Repository) *API {
 	return &API{
 		repository: repository,
 	}

@@ -2,18 +2,18 @@ package main
 
 import (
 	"campus_connect/Controller"
-	"campus_connect/Database"
+	"campus_connect/Model"
 )
 
 func main() {
 
-	db, err := Database.Init("campus_connect.db")
+	db, err := Model.Init("campus_connect.db")
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
 
-	repository := Database.NewRepository(db)
+	repository := Model.NewRepository(db)
 	if err := Controller.Serve(repository); err != nil {
 		panic(err)
 	}

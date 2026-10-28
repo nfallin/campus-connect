@@ -1,18 +1,18 @@
 package Controller
 
 import (
-	"campus_connect/Database"
+	"campus_connect/Model"
 
 	"github.com/gin-gonic/gin"
 )
 
 // starts the router
-func Serve(repository *Database.Repository) error {
+func Serve(repository *Model.Repository) error {
 	router := newRouter(repository)
 	return router.Run("0.0.0.0:8080")
 }
 
-func newRouter(repository *Database.Repository) *gin.Engine {
+func newRouter(repository *Model.Repository) *gin.Engine {
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
 

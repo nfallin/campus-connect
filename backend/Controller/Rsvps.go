@@ -1,7 +1,7 @@
 package Controller
 
 import (
-	"campus_connect/Database"
+	"campus_connect/Model"
 	"campus_connect/Types"
 	"errors"
 	"net/http"
@@ -30,7 +30,7 @@ func (api *API) rsvpAdd(c *gin.Context) {
 		return
 	}
 	err := api.repository.AddRSVP(userID, eventID)
-	if errors.Is(err, Database.ErrNotFound) {
+	if errors.Is(err, Model.ErrNotFound) {
 		c.JSON(http.StatusNotFound, Types.ErrorResponse{Message: "user or event not found"})
 		return
 	}
@@ -47,7 +47,7 @@ func (api *API) rsvpRemove(c *gin.Context) {
 		return
 	}
 	err := api.repository.RemoveRSVP(userID, eventID)
-	if errors.Is(err, Database.ErrNotFound) {
+	if errors.Is(err, Model.ErrNotFound) {
 		c.JSON(http.StatusNotFound, Types.ErrorResponse{Message: "user or event not found"})
 		return
 	}
@@ -65,7 +65,7 @@ func (api *API) getRSVPs(c *gin.Context) {
 		return
 	}
 	events, err := api.repository.GetUserRSVPs(userID)
-	if errors.Is(err, Database.ErrNotFound) {
+	if errors.Is(err, Model.ErrNotFound) {
 		c.JSON(http.StatusNotFound, Types.ErrorResponse{Message: "user not found"})
 		return
 	}

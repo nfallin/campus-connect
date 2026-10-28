@@ -1,7 +1,7 @@
 package Controller
 
 import (
-	"campus_connect/Database"
+	"campus_connect/Model"
 	"campus_connect/Types"
 	"errors"
 	"net/http"
@@ -44,7 +44,7 @@ func (api *API) getUser(c *gin.Context) {
 	}
 
 	user, err := api.repository.GetUser(userID)
-	if errors.Is(err, Database.ErrNotFound) {
+	if errors.Is(err, Model.ErrNotFound) {
 		c.JSON(http.StatusNotFound, Types.ErrorResponse{
 			Message: "user not found",
 		})
