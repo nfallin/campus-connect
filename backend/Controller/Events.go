@@ -32,7 +32,7 @@ func (api *API) createEvent(c *gin.Context) {
 		return
 	}
 	if err != nil {
-		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
+		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
 		return
 	}
 	c.JSON(http.StatusCreated, event)
@@ -61,7 +61,7 @@ func (api *API) updateEvent(c *gin.Context) {
 		return
 	}
 	if err != nil {
-		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
+		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, event)
