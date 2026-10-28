@@ -63,8 +63,8 @@ npm test
 ## Information Directory
 - `README.md`: Instructions for installing, running, and testing the project
 - `API.md`: Developer communication contract for sending information between the backend and frontend
-- `requirements.md` Current list of system user requirements
-- `specifications.md` Current list of system user specifications
+- `REQUIREMENTS.md` Current list of system user requirements
+- `SPECIFICATIONS.md` Current list of system user specifications
 
 ## Tech Stack
 - **React and TypeScript:** Frontend development
