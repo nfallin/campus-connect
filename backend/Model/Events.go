@@ -40,6 +40,9 @@ func (repository *Repository) CreateEvent(request Types.CreateEventRequest) (Typ
 }
 
 func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
+	if err := requirePositiveID(id); err != nil {
+		return Types.EventResponse{}, err
+	}
 	var event Types.EventResponse
 	var dateTime string
 	var host Types.UserResponse
@@ -153,6 +156,9 @@ func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.Eve
 }
 
 func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventRequest) (Types.EventResponse, error) {
+	if err := requirePositiveID(id); err != nil {
+		return Types.EventResponse{}, err
+	}
 	current, err := repository.GetEvent(id)
 
 	if err != nil {
@@ -208,6 +214,9 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 }
 
 func (repository *Repository) DeleteEvent(id int) error {
+	if err := requirePositiveID(id); err != nil {
+		return err
+	}
 	result, err := repository.db.Exec(`DELETE FROM events WHERE event_id = ?`, id)
 
 	if err != nil {

@@ -44,6 +44,10 @@ func (api *API) getUser(c *gin.Context) {
 	}
 
 	user, err := api.repository.GetUser(userID)
+	if errors.Is(err, Model.ErrInvalidID) {
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
+		return
+	}
 	if errors.Is(err, Model.ErrNotFound) {
 		c.JSON(http.StatusNotFound, Types.ErrorResponse{
 			Message: "user not found",

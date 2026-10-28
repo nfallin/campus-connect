@@ -52,6 +52,10 @@ func (api *API) updateEvent(c *gin.Context) {
 	}
 
 	event, err := api.repository.UpdateEvent(eventID, request)
+	if errors.Is(err, Model.ErrInvalidID) {
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
+		return
+	}
 	if errors.Is(err, Model.ErrNotFound) {
 		c.JSON(http.StatusNotFound, Types.ErrorResponse{Message: "event not found"})
 		return
@@ -71,6 +75,10 @@ func (api *API) getEvent(c *gin.Context) {
 	}
 
 	event, err := api.repository.GetEvent(eventID)
+	if errors.Is(err, Model.ErrInvalidID) {
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
+		return
+	}
 	if errors.Is(err, Model.ErrNotFound) {
 		c.JSON(http.StatusNotFound, Types.ErrorResponse{Message: "event not found"})
 		return

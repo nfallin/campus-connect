@@ -47,6 +47,9 @@ func (repository *Repository) CreateUser(request Types.CreateUserRequest) (Types
 }
 
 func (repository *Repository) GetUser(id int) (Types.UserResponse, error) {
+	if err := requirePositiveID(id); err != nil {
+		return Types.UserResponse{}, err
+	}
 	var user Types.UserResponse
 
 	err := repository.db.QueryRow(`
@@ -99,6 +102,9 @@ func (repository *Repository) GetAllUsers() ([]Types.UserResponse, error) {
 }
 
 func (repository *Repository) UpdateUser(id int, request Types.UpdateUserRequest) (Types.UserResponse, error) {
+	if err := requirePositiveID(id); err != nil {
+		return Types.UserResponse{}, err
+	}
 	current, err := repository.GetUser(id)
 
 	if err != nil {
@@ -127,6 +133,9 @@ func (repository *Repository) UpdateUser(id int, request Types.UpdateUserRequest
 }
 
 func (repository *Repository) DeleteUser(id int) error {
+	if err := requirePositiveID(id); err != nil {
+		return err
+	}
 	result, err := repository.db.Exec(`DELETE FROM users WHERE user_id = ?`, id)
 
 	if err != nil {

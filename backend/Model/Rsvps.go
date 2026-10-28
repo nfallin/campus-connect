@@ -7,6 +7,12 @@ import (
 
 // RSVPs
 func (repository *Repository) AddRSVP(userID, eventID int) error {
+	if err := requirePositiveID(userID); err != nil {
+		return err
+	}
+	if err := requirePositiveID(eventID); err != nil {
+		return err
+	}
 	if _, err := repository.GetUser(userID); err != nil {
 		return err
 	}
@@ -25,6 +31,12 @@ func (repository *Repository) AddRSVP(userID, eventID int) error {
 }
 
 func (repository *Repository) RemoveRSVP(userID, eventID int) error {
+	if err := requirePositiveID(userID); err != nil {
+		return err
+	}
+	if err := requirePositiveID(eventID); err != nil {
+		return err
+	}
 	if _, err := repository.GetUser(userID); err != nil {
 		return err
 	}
@@ -42,6 +54,9 @@ func (repository *Repository) RemoveRSVP(userID, eventID int) error {
 }
 
 func (repository *Repository) GetUserRSVPs(userID int) ([]Types.EventResponse, error) {
+	if err := requirePositiveID(userID); err != nil {
+		return nil, err
+	}
 	if _, err := repository.GetUser(userID); err != nil {
 		return nil, err
 	}
