@@ -6,6 +6,7 @@ import (
 
 type Event struct {
 	name         string
+	description  string
 	id           int
 	dateTime     time.Time
 	location     string
@@ -18,6 +19,10 @@ type Event struct {
 
 func (e *Event) GetName() string {
 	return e.name
+}
+
+func (e *Event) GetDescription() string {
+	return e.description
 }
 
 func (e *Event) GetID() int {

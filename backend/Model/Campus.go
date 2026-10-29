@@ -97,9 +97,15 @@ func (c *Campus) getNextUserID() int {
 // ---
 
 // Constructor methods for creating new events, and users.
-func (c *Campus) CreateEvent(name string, dateTime time.Time, location string, clubName string, host *User, contactEmail string, websiteURL string) *Event {
+func (c *Campus) CreateEvent(name string, dateTime time.Time, location string, clubName string, host *User, contactEmail string, websiteURL string, descriptions ...string) *Event {
+	description := ""
+	if len(descriptions) > 0 {
+		description = descriptions[0]
+	}
+
 	newEvent := &Event{
 		name:         name,
+		description:  description,
 		id:           c.getNextEventID(),
 		dateTime:     dateTime,
 		location:     location,
@@ -114,7 +120,7 @@ func (c *Campus) CreateEvent(name string, dateTime time.Time, location string, c
 	return newEvent
 }
 
-func (c *Campus) UpdateEvent(event *Event, name string, dateTime time.Time, location string, clubName string, host *User, contactEmail string, websiteURL string) {
+func (c *Campus) UpdateEvent(event *Event, name string, dateTime time.Time, location string, clubName string, host *User, contactEmail string, websiteURL string, descriptions ...string) {
 	event.name = name
 	event.dateTime = dateTime
 	event.location = location
@@ -122,6 +128,9 @@ func (c *Campus) UpdateEvent(event *Event, name string, dateTime time.Time, loca
 	event.host = host
 	event.contactEmail = contactEmail
 	event.websiteURL = websiteURL
+	if len(descriptions) > 0 {
+		event.description = descriptions[0]
+	}
 }
 
 func (c *Campus) CreateUser(name string) *User {

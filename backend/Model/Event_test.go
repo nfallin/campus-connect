@@ -15,6 +15,15 @@ func TestGetName(t *testing.T) {
 	}
 }
 
+func TestGetDescription(t *testing.T) {
+	c := NewCampus()
+	event := c.CreateEvent("Meeting", time.Now(), "Room 101", "Club A", c.CreateUser("Host"), "host@example.com", "https://example.com/events/meeting", "A team planning meeting.")
+
+	if description := event.GetDescription(); description != "A team planning meeting." {
+		t.Errorf("expected event description to be 'A team planning meeting.', got '%s'", description)
+	}
+}
+
 // Test that GetID() returns the event ID
 func TestGetID(t *testing.T) {
 	c := NewCampus()

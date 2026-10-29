@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,6 +37,10 @@ func (api *API) createEvent(c *gin.Context) {
 		})
 		return
 	}
+	if strings.TrimSpace(request.Description) == "" {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Message: "description is required"})
+		return
+	}
 
 	host := api.campus.GetUser(*request.HostUserID)
 	if host == nil {
@@ -50,6 +55,7 @@ func (api *API) createEvent(c *gin.Context) {
 		host,
 		request.ContactEmail,
 		request.WebsiteURL,
+		request.Description,
 	)
 
 	c.JSON(http.StatusCreated, toEventResponse(event))
@@ -77,6 +83,14 @@ func (api *API) updateEvent(c *gin.Context) {
 	name := event.GetName()
 	if request.Name != nil {
 		name = *request.Name
+	}
+	description := event.GetDescription()
+	if request.Description != nil {
+		if strings.TrimSpace(*request.Description) == "" {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Message: "description is required"})
+			return
+		}
+		description = *request.Description
 	}
 	dateTime := event.GetDateTime()
 	if request.DateTime != nil {
@@ -107,7 +121,7 @@ func (api *API) updateEvent(c *gin.Context) {
 		websiteURL = *request.WebsiteURL
 	}
 
-	api.campus.UpdateEvent(event, name, dateTime, location, clubName, host, contactEmail, websiteURL)
+	api.campus.UpdateEvent(event, name, dateTime, location, clubName, host, contactEmail, websiteURL, description)
 	c.JSON(http.StatusOK, toEventResponse(event))
 }
 
@@ -142,6 +156,7 @@ func toEventResponse(event *Model.Event) EventResponse {
 	return EventResponse{
 		ID:            event.GetID(),
 		Name:          event.GetName(),
+		Description:   event.GetDescription(),
 		DateTime:      event.GetDateTime(),
 		Location:      event.GetLocation(),
 		ClubName:      event.GetClubName(),
