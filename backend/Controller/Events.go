@@ -2,167 +2,98 @@ package Controller
 
 import (
 	"campus_connect/Model"
+	"campus_connect/Types"
+	"errors"
 	"net/http"
-	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (api *API) getEvents(c *gin.Context) {
-	events := api.campus.GetEvents()
-	eventResponses := make([]EventResponse, 0, len(events))
-
-	for _, event := range events {
-		eventResponses = append(eventResponses, toEventResponse(event))
+	events, err := api.repository.GetEvents(Types.EventFilters{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
+		return
 	}
-
-	sort.Slice(eventResponses, func(i, j int) bool {
-		if eventResponses[i].DateTime.Equal(eventResponses[j].DateTime) {
-			return eventResponses[i].ID < eventResponses[j].ID
-		}
-		return eventResponses[i].DateTime.Before(eventResponses[j].DateTime)
-	})
-
-	c.JSON(http.StatusOK, gin.H{"events": eventResponses})
+	c.JSON(http.StatusOK, gin.H{"events": events})
 }
 
 func (api *API) createEvent(c *gin.Context) {
-	var request CreateEventRequest
-
+	var request Types.CreateEventRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: err.Error(),
-		})
-		return
-	}
-	if strings.TrimSpace(request.Description) == "" {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Message: "description is required"})
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
 		return
 	}
 
-	host := api.campus.GetUser(*request.HostUserID)
-	if host == nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Message: "host user not found"})
+	event, err := api.repository.CreateEvent(request)
+	if errors.Is(err, Model.ErrInvalidEvent) {
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
 		return
 	}
-	event := api.campus.CreateEvent(
-		request.Name,
-		request.DateTime,
-		request.Location,
-		request.ClubName,
-		host,
-		request.ContactEmail,
-		request.WebsiteURL,
-		request.Description,
-	)
-
-	c.JSON(http.StatusCreated, toEventResponse(event))
+	if errors.Is(err, Model.ErrNotFound) {
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: "host user not found"})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, event)
 }
 
 func (api *API) updateEvent(c *gin.Context) {
 	eventID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Message: "event id must be an integer"})
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: "event id must be an integer"})
 		return
 	}
 
-	event := api.campus.GetEvent(eventID)
-	if event == nil {
-		c.JSON(http.StatusNotFound, ErrorResponse{Message: "event not found"})
-		return
-	}
-
-	var request UpdateEventRequest
+	var request Types.UpdateEventRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
 		return
 	}
 
-	name := event.GetName()
-	if request.Name != nil {
-		name = *request.Name
+	event, err := api.repository.UpdateEvent(eventID, request)
+	if errors.Is(err, Model.ErrInvalidID) {
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
+		return
 	}
-	description := event.GetDescription()
-	if request.Description != nil {
-		if strings.TrimSpace(*request.Description) == "" {
-			c.JSON(http.StatusBadRequest, ErrorResponse{Message: "description is required"})
-			return
-		}
-		description = *request.Description
+	if errors.Is(err, Model.ErrInvalidEvent) {
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
+		return
 	}
-	dateTime := event.GetDateTime()
-	if request.DateTime != nil {
-		dateTime = *request.DateTime
+	if errors.Is(err, Model.ErrNotFound) {
+		c.JSON(http.StatusNotFound, Types.ErrorResponse{Message: "event not found"})
+		return
 	}
-	location := event.GetLocation()
-	if request.Location != nil {
-		location = *request.Location
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
+		return
 	}
-	clubName := event.GetClubName()
-	if request.ClubName != nil {
-		clubName = *request.ClubName
-	}
-	host := event.GetHost()
-	if request.HostUserID != nil {
-		host = api.campus.GetUser(*request.HostUserID)
-		if host == nil {
-			c.JSON(http.StatusBadRequest, ErrorResponse{Message: "host user not found"})
-			return
-		}
-	}
-	contactEmail := event.GetContactEmail()
-	if request.ContactEmail != nil {
-		contactEmail = *request.ContactEmail
-	}
-	websiteURL := event.GetWebsiteURL()
-	if request.WebsiteURL != nil {
-		websiteURL = *request.WebsiteURL
-	}
-
-	api.campus.UpdateEvent(event, name, dateTime, location, clubName, host, contactEmail, websiteURL, description)
-	c.JSON(http.StatusOK, toEventResponse(event))
+	c.JSON(http.StatusOK, event)
 }
 
 func (api *API) getEvent(c *gin.Context) {
 	eventID, err := strconv.Atoi(c.Param("id"))
-
 	if err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: "event id must be an integer",
-		})
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: "event id must be an integer"})
 		return
 	}
 
-	event := api.campus.GetEvent(eventID)
-	if event == nil {
-		c.JSON(http.StatusNotFound, ErrorResponse{
-			Message: "event not found",
-		})
+	event, err := api.repository.GetEvent(eventID)
+	if errors.Is(err, Model.ErrInvalidID) {
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusOK, toEventResponse(event))
-}
-
-func toEventResponse(event *Model.Event) EventResponse {
-	var host *UserResponse
-	if event.GetHost() != nil {
-		hostResponse := toUserResponse(event.GetHost())
-		host = &hostResponse
+	if errors.Is(err, Model.ErrNotFound) {
+		c.JSON(http.StatusNotFound, Types.ErrorResponse{Message: "event not found"})
+		return
 	}
-
-	return EventResponse{
-		ID:            event.GetID(),
-		Name:          event.GetName(),
-		Description:   event.GetDescription(),
-		DateTime:      event.GetDateTime(),
-		Location:      event.GetLocation(),
-		ClubName:      event.GetClubName(),
-		Host:          host,
-		ContactEmail:  event.GetContactEmail(),
-		WebsiteURL:    event.GetWebsiteURL(),
-		AttendeeCount: event.GetNumAttendees(),
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
+		return
 	}
+	c.JSON(http.StatusOK, event)
 }

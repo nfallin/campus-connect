@@ -78,8 +78,7 @@
   color: #333;
 }
 
-.field input,
-.field textarea {
+.field input {
   font: inherit;
   font-size: 15px;
   padding: 10px 12px;
@@ -90,18 +89,11 @@
   box-sizing: border-box;
 }
 
-.field textarea {
-  min-height: 120px;
-  resize: vertical;
-}
-
-.field input::placeholder,
-.field textarea::placeholder {
+.field input::placeholder {
   color: #999;
 }
 
-.field input:focus,
-.field textarea:focus {
+.field input:focus {
   outline: none;
   box-shadow: 0 0 0 2px #000;
 }
@@ -257,18 +249,6 @@
   font-size: 13px;
   font-weight: 600;
   text-align: right;
-}
-
-.event-description {
-  margin: 6px 0 0;
-  font-size: 14px;
-  line-height: 1.45;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.event-description strong {
-  color: #333;
 }
 
 .event-meta {

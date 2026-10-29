@@ -10,7 +10,6 @@ const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
 type Event = {
   id: number
   title: string
-  description: string
   dateTime: string
   date: string
   time: string
@@ -23,7 +22,6 @@ type Event = {
 type EventResponse = {
   id: number
   name: string
-  description: string
   dateTime: string
   location: string
   clubName: string
@@ -57,7 +55,6 @@ function fromEventResponse(event: EventResponse): Event {
   return {
     id: event.id,
     title: event.name,
-    description: event.description ?? '',
     dateTime: event.dateTime,
     date,
     time,
@@ -71,7 +68,6 @@ function fromEventResponse(event: EventResponse): Event {
 function App() {
   const [page, setPage] = useState<Page>(getPageFromHash)
   const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
   const [date, setDate] = useState('')
   const [hour, setHour] = useState('')
   const [minute, setMinute] = useState('')
@@ -94,7 +90,7 @@ function App() {
       (err) => console.error('Failed to load events', err),
     )
 
-    api.post<UserResponse>('/users', { name: 'Guest' }).then(
+    api.post<UserResponse>('/users', { name: 'Guest', email: 'guest@example.com' }).then(
       (user) => setHostUserId(user.id),
       (err) => {
         console.error('Failed to provision host user', err)
@@ -107,7 +103,6 @@ function App() {
 
   const eventInput = {
     title,
-    description,
     date,
     hour,
     minute,
@@ -125,7 +120,6 @@ function App() {
     api
       .post<EventResponse>('/events', {
         name: title.trim(),
-        description: description.trim(),
         dateTime: toUtcDateTime(date, hour, minute, period),
         location: location.trim(),
         clubName: clubName.trim(),
@@ -135,13 +129,11 @@ function App() {
       })
       .then((created) => {
         const event = fromEventResponse(created)
-        if (!event.description) event.description = description.trim()
         if (!event.contactEmail) event.contactEmail = contactEmail.trim()
         if (!event.website) event.website = website.trim()
         setEvents((prev) => sortEventsChronologically([...prev, event]))
         window.location.hash = '#events'
         setTitle('')
-        setDescription('')
         setDate('')
         setHour('')
         setMinute('')
@@ -180,18 +172,6 @@ function App() {
             placeholder="e.g. Fall Hackathon Kickoff"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-
-        <div className="field">
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
-            rows={5}
-            required
-            placeholder="Tell people what this event is about"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
           />
         </div>
 
@@ -342,10 +322,6 @@ function App() {
                 <div className="event-heading">
                   <div className="event-title">{event.title}</div>
                   <div className="event-club">{event.clubName || 'Club not specified'}</div>
-                </div>
-                <div className="event-description">
-                  <strong>Description:</strong>{' '}
-                  {event.description || 'No description provided.'}
                 </div>
                 <div className="event-meta">
                   {formatDate(event.date)} &middot; {event.time} &middot; {event.location}

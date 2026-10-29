@@ -1,21 +1,27 @@
-package Controller
+package Types
 
 import (
 	"time"
 )
 
 type CreateUserRequest struct {
-	Name string `json:"name" binding:"required"`
+	Name  string `json:"name" binding:"required"`
+	Email string `json:"email" binding:"required,email"`
+}
+
+type UpdateUserRequest struct {
+	Name  *string `json:"name"`
+	Email *string `json:"email"`
 }
 
 type UserResponse struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 type CreateEventRequest struct {
 	Name         string    `json:"name" binding:"required"`
-	Description  string    `json:"description" binding:"required"`
 	DateTime     time.Time `json:"dateTime" binding:"required"`
 	Location     string    `json:"location" binding:"required"`
 	ClubName     string    `json:"clubName" binding:"required"`
@@ -26,7 +32,6 @@ type CreateEventRequest struct {
 
 type UpdateEventRequest struct {
 	Name         *string    `json:"name"`
-	Description  *string    `json:"description"`
 	DateTime     *time.Time `json:"dateTime"`
 	Location     *string    `json:"location"`
 	ClubName     *string    `json:"clubName"`
@@ -38,7 +43,6 @@ type UpdateEventRequest struct {
 type EventResponse struct {
 	ID            int           `json:"id"`
 	Name          string        `json:"name"`
-	Description   string        `json:"description"`
 	DateTime      time.Time     `json:"dateTime"`
 	Location      string        `json:"location"`
 	ClubName      string        `json:"clubName"`
@@ -46,6 +50,15 @@ type EventResponse struct {
 	ContactEmail  string        `json:"contactEmail"`
 	WebsiteURL    string        `json:"websiteURL"`
 	AttendeeCount int           `json:"attendeeCount"`
+	HostUserID    int           `json:"-"`
+}
+
+type EventFilters struct {
+	StartDate  *time.Time
+	EndDate    *time.Time
+	ClubName   string
+	Location   string
+	HostUserID *int
 }
 
 type ErrorResponse struct {

@@ -1,8 +1,8 @@
 # System Specifications
 
 ## Functional Specifications
-- The frontend must allow the user to enter an event title, date/time, location, location, clube name, contact email, and event website in separate interactable fields.
-- The frotnend must allow the user to create new events in the backend according to the information they enter.
+- The frontend must allow the user to enter an event title, date/time, location, club name, contact email, and event website in separate input fields.
+- The frontend must allow the user to create new events in the backend according to the information they enter.
 - The frontend must refuse to allow the user to create an event unless its title, date/time, location, club name, and host user ID fields are non-empty.
 - The frontend must refuse to allow the user to create an event whose date/time is not a valid timestamp.
 - The frontend must refuse to allow the user to create an event whose contact email does not match the conventional email format X@Y.Z.
@@ -10,6 +10,7 @@
 - The frontend must provide functional hyperlinks for events containing website links.
 - The API must reject any requests that do not match the request formats outlined in `API.md`.
 - The API must reject event creation requests that do not contain a host ID identifying an existing user.
+- The frontend must display all events successfully retrieved from the backend, including their title, date, time, location, club name, contact email, and event website.
 
 ## Non-Functional Specifications
 - The frontend must obtain the list of stored events within 3 seconds of initialization as long as the backend is running and reachable. 

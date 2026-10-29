@@ -1,6 +1,5 @@
 export type EventInput = {
   title: string
-  description: string
   date: string
   hour: string
   minute: string
@@ -52,7 +51,6 @@ export function getEventInputErrors(input: EventInput, now = new Date()): string
   const errors: string[] = []
 
   if (input.title.trim() === '') errors.push('Enter an event title.')
-  if (input.description.trim() === '') errors.push('Enter an event description.')
 
   if (input.date === '') {
     errors.push('Choose an event date.')

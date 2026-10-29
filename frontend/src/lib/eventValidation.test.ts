@@ -12,7 +12,6 @@ describe('event validation (Sabrina Codipilly)', () => {
   const today = new Date(2026, 9, 28)
   const validEvent: EventInput = {
     title: 'Campus Hackathon',
-    description: 'A campus-wide hackathon.',
     date: '2026-11-15',
     hour: '10',
     minute: '30',
@@ -24,14 +23,14 @@ describe('event validation (Sabrina Codipilly)', () => {
     expect(isValidEventInput(validEvent, today)).toBe(true)
   })
 
-  it.each(['title', 'description', 'date', 'hour', 'minute', 'location', 'clubName'] as const)(
+  it.each(['title', 'date', 'hour', 'minute', 'location', 'clubName'] as const)(
     'rejects an event with an empty %s',
     (field) => {
       expect(isValidEventInput({ ...validEvent, [field]: '' }, today)).toBe(false)
     },
   )
 
-  it.each(['title', 'description', 'location', 'clubName'] as const)(
+  it.each(['title', 'location', 'clubName'] as const)(
     'rejects an event when %s contains only whitespace',
     (field) => {
       expect(isValidEventInput({ ...validEvent, [field]: '   ' }, today)).toBe(false)
@@ -61,7 +60,6 @@ describe('event validation (Sabrina Codipilly)', () => {
         {
           ...validEvent,
           title: '',
-          description: ' ',
           date: '2026-10-27',
           hour: '',
           contactEmail: 'not-an-email',
@@ -70,7 +68,6 @@ describe('event validation (Sabrina Codipilly)', () => {
       ),
     ).toEqual([
       'Enter an event title.',
-      'Enter an event description.',
       'Choose today or a future date.',
       'Choose an event time.',
       'Enter a valid contact email or leave it blank.',
