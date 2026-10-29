@@ -34,7 +34,8 @@ IDs are positive integers.
 ```json
 {
   "id": 1,
-  "name": "Alice"
+  "name": "Alice",
+  "email": "alice@example.com"
 }
 ```
 
@@ -49,7 +50,8 @@ IDs are positive integers.
   "clubName": "Game Development Club",
   "host": {
     "id": 1,
-    "name": "Alice"
+    "name": "Alice",
+    "email": "alice@example.com"
   },
   "contactEmail": "alice@example.com",
   "websiteURL": "https://example.com/game-night",
@@ -78,29 +80,32 @@ Content-Type: application/json
 
 ```json
 {
-  "name": "Alice"
+  "name": "Alice",
+  "email": "alice@example.com"
 }
 ```
 
 #### Response: `201 Created`
 
-Returned when the name is new.
+Returned when the name/email pair is new.
 
 ```json
 {
   "id": 1,
-  "name": "Alice"
+  "name": "Alice",
+  "email": "alice@example.com"
 }
 ```
 
 #### Response: `200 OK`
 
-Returned when the name already exists. The existing user is returned.
+Returned when the name/email pair already exists. The existing user is returned.
 
 ```json
 {
   "id": 1,
-  "name": "Alice"
+  "name": "Alice",
+  "email": "alice@example.com"
 }
 ```
 
@@ -120,7 +125,8 @@ GET /users/:userId
 ```json
 {
   "id": 1,
-  "name": "Alice"
+  "name": "Alice",
+  "email": "alice@example.com"
 }
 ```
 
@@ -249,7 +255,8 @@ Returns the newly created event:
   "clubName": "Game Development Club",
   "host": {
     "id": 1,
-    "name": "Alice"
+    "name": "Alice",
+    "email": "alice@example.com"
   },
   "contactEmail": "alice@example.com",
   "websiteURL": "https://example.com/game-night",
@@ -372,7 +379,7 @@ Returned when the user does not exist.
 
 ## Expected Usage
 
-1. Call `POST /users` with the user's name.
+1. Call `POST /users` with the user's name and email.
 2. Save the returned user `id`.
 3. Call `GET /events` to display available events.
 4. Call `GET /events/:id` to obtain one event.

@@ -2,34 +2,14 @@ package Controller
 
 import (
 	"campus_connect/Model"
-	"sync"
-
-	"github.com/gin-gonic/gin"
 )
 
 type API struct {
-	mu     sync.RWMutex
-	campus *Model.Campus
+	repository *Model.Repository
 }
 
-func NewAPI(campus *Model.Campus) *API {
+func NewAPI(repository *Model.Repository) *API {
 	return &API{
-		campus: campus,
-	}
-}
-
-func (api *API) readLock() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		api.mu.RLock()
-		defer api.mu.RUnlock()
-		c.Next()
-	}
-}
-
-func (api *API) writeLock() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		api.mu.Lock()
-		defer api.mu.Unlock()
-		c.Next()
+		repository: repository,
 	}
 }
