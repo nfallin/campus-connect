@@ -25,6 +25,7 @@ type CreateEventRequest struct {
 	DateTime     time.Time `json:"dateTime" binding:"required"`
 	Location     string    `json:"location" binding:"required"`
 	ClubName     string    `json:"clubName" binding:"required"`
+	Description  string    `json:"description" binding:"required"`
 	HostUserID   *int      `json:"hostUserId" binding:"required"`
 	ContactEmail string    `json:"contactEmail"`
 	WebsiteURL   string    `json:"websiteURL"`
@@ -35,6 +36,7 @@ type UpdateEventRequest struct {
 	DateTime     *time.Time `json:"dateTime"`
 	Location     *string    `json:"location"`
 	ClubName     *string    `json:"clubName"`
+	Description  *string    `json:"description"`
 	HostUserID   *int       `json:"hostUserId"`
 	ContactEmail *string    `json:"contactEmail"`
 	WebsiteURL   *string    `json:"websiteURL"`
@@ -46,6 +48,7 @@ type EventResponse struct {
 	DateTime      time.Time     `json:"dateTime"`
 	Location      string        `json:"location"`
 	ClubName      string        `json:"clubName"`
+	Description   string        `json:"description"`
 	Host          *UserResponse `json:"host,omitempty"`
 	ContactEmail  string        `json:"contactEmail"`
 	WebsiteURL    string        `json:"websiteURL"`

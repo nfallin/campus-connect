@@ -91,7 +91,7 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	// attempt to create a valid event
 	when := time.Date(2026, 10, 28, 18, 0, 0, 0, time.UTC)
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
-		Name: "Meeting", DateTime: when, Location: "Room 1", ClubName: "Club A",
+		Name: "Meeting", DateTime: when, Location: "Room 1", ClubName: "Club A", Description: "Description",
 		HostUserID: &host.ID,
 	})
 	if err != nil || event.Host == nil || event.AttendeeCount != 0 {
@@ -138,15 +138,16 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 		t.Fatalf("get missing event error = %v", err)
 	}
 	validRequest := Types.CreateEventRequest{
-		Name: "Valid event", DateTime: when, Location: "Room", ClubName: "Club", HostUserID: &host.ID,
+		Name: "Valid event", DateTime: when, Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
 	}
 	for name, request := range map[string]Types.CreateEventRequest{
-		"missing name":      {DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
-		"missing date":      {Name: validRequest.Name, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
-		"missing location":  {Name: validRequest.Name, DateTime: validRequest.DateTime, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
-		"missing club name": {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, HostUserID: validRequest.HostUserID},
-		"missing host":      {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName},
-		"non-positive host": {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: intPointer(0)},
+		"missing name":        {DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
+		"missing date":        {Name: validRequest.Name, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
+		"missing location":    {Name: validRequest.Name, DateTime: validRequest.DateTime, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
+		"missing club name":   {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, HostUserID: validRequest.HostUserID},
+		"misisng description": {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
+		"missing host":        {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName},
+		"non-positive host":   {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: intPointer(0)},
 	} {
 		t.Run(name, func(t *testing.T) {
 			if _, err := repository.CreateEvent(request); !errors.Is(err, ErrInvalidEvent) {
@@ -189,7 +190,7 @@ func TestRepositoryRSVPs(t *testing.T) {
 	host, _, _ := repository.CreateUser(Types.CreateUserRequest{Name: "Host", Email: "host@example.com"})
 	attendee, _, _ := repository.CreateUser(Types.CreateUserRequest{Name: "Attendee", Email: "attendee@example.com"})
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
-		Name: "Meeting", DateTime: time.Now().UTC(), Location: "Room", ClubName: "Club", HostUserID: &host.ID,
+		Name: "Meeting", DateTime: time.Now().UTC(), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -230,7 +231,7 @@ func TestRepositoryDeleteRelationships(t *testing.T) {
 		t.Fatal(err)
 	}
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
-		Name: "Meeting", DateTime: time.Now().UTC(), Location: "Room", ClubName: "Club", HostUserID: &host.ID,
+		Name: "Meeting", DateTime: time.Now().UTC(), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -358,9 +359,9 @@ func TestRepositoryMalformedDate(t *testing.T) {
 	}
 	_, err = repository.db.Exec(`
 		INSERT INTO events (
-			event_name, date_time, location, club_name, host_user_id
-		) VALUES (?, ?, ?, ?, ?)
-	`, "Bad date", "not-a-date", "Room", "Club", host.ID)
+			event_name, date_time, location, club_name, description, host_user_id
+		) VALUES (?, ?, ?, ?, ?, ?)
+	`, "Bad date", "not-a-date", "Room", "Club", "Description", host.ID)
 	if err != nil {
 		t.Fatal(err)
 	}

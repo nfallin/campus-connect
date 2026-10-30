@@ -30,7 +30,11 @@ func (api *API) createUser(c *gin.Context) {
 	if created {
 		status = http.StatusCreated
 	}
-	c.JSON(status, user)
+
+	c.JSON(status, gin.H{
+		"user":      user,
+		"isNewUser": created,
+	})
 }
 
 func (api *API) getUser(c *gin.Context) {

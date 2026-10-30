@@ -17,6 +17,7 @@ describe('event validation (Sabrina Codipilly)', () => {
     minute: '30',
     location: 'Student Center',
     clubName: 'ACM',
+    description: 'Join us for a day of coding and fun!',
   }
 
   it('accepts an event when every required field is provided', () => {
