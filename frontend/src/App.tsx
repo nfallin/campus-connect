@@ -6,8 +6,9 @@ import './App.css'
 import type { Event, EventResponse, User, Page } from './types'
 import type { EventFormData } from './components/EventForm'
 
-import EventCard from './components/EventCard'
-import EventForm from './components/EventForm'
+import EventsPage from './pages/EventsPage'
+import CreateEventPage from './pages/CreateEventPage'
+
 
 function getPageFromHash(): Page {
   switch (window.location.hash) {
@@ -128,23 +129,12 @@ function App() {
       </nav>
 
       {page === 'create' ? (
-        <EventForm
-          disabled={hostUserId === null || hostUserError}
+        <CreateEventPage
           onSubmit={handleCreate}
+          disabled={hostUserId === null || hostUserError}
         />
       ) : (
-        <main className="events-page">
-          <h2 className="events-heading">Events</h2>
-          {events.length === 0 ? (
-            <p className="events-empty">No events yet.</p>
-          ) : (
-            <ul className="events-list">
-              {events.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </ul>
-          )}
-        </main>
+        <EventsPage events={events} />
       )}
     </div>
   )
