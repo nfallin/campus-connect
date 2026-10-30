@@ -256,3 +256,32 @@
   font-size: 13px;
   color: #555;
 }
+
+.event-description {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.event-contact {
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.field textarea {
+  font: inherit;
+  font-size: 15px;
+  padding: 10px 12px;
+  border: 1px solid #000;
+  border-radius: 4px;
+  background: #fff;
+  color: #000;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.field textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #000;
+}
