@@ -28,6 +28,29 @@
   color: #555;
 }
 
+.page-nav {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: -20px 0 32px;
+}
+
+.page-nav a {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: #333;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.page-nav a:hover,
+.page-nav a[aria-current='page'] {
+  border-color: #000;
+  background: #000;
+  color: #fff;
+}
+
 .card {
   width: 100%;
   max-width: 420px;
@@ -155,10 +178,25 @@
   cursor: not-allowed;
 }
 
-.events {
+.form-message {
+  margin: -8px 0 0;
+  color: #9b1c1c;
+  font-size: 13px;
+  text-align: left;
+}
+
+.form-message p {
+  margin: 0;
+}
+
+.form-message ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+
+.events-page {
   width: 100%;
   max-width: 420px;
-  margin-top: 32px;
   text-align: left;
 }
 
@@ -192,10 +230,25 @@
   padding: 12px 14px;
 }
 
+.event-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
 .event-title {
   font-size: 15px;
   font-weight: 600;
   color: #000;
+}
+
+.event-club {
+  flex-shrink: 0;
+  color: #555;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
 }
 
 .event-meta {
