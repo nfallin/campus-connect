@@ -161,7 +161,7 @@ html {
 .welcome-message {
   margin: 0;
   font-size: 12px;
-  color: #666;
+  color: rgb(2, 164, 2);
   text-align: center;
 }
 
@@ -301,19 +301,23 @@ html {
 }
 
 .form-message {
-  margin: -8px 0 0;
+  margin-top: 8px;
+  padding-top: 4px;
   color: #9b1c1c;
-  font-size: 13px;
   text-align: left;
-}
-
-.form-message p {
-  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .form-message ul {
-  margin: 6px 0 0;
+  text-align: left;
+  margin: 8px 0 0;
   padding-left: 20px;
+}
+
+.create-btn {
+  margin-top: 12px;
+  flex-shrink: 0;
 }
 
 /* ==============================

@@ -215,7 +215,7 @@ function App() {
           >
             {currentUser
               ? welcomeMessage
-              : 'Please sign in to RSVP to events.'}
+              : ''}
           </div>
         </div>
       </header>

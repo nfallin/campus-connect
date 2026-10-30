@@ -216,11 +216,12 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
       <button type="submit" className="create-btn" disabled={!canSubmit}>
         {submitting ? 'Creating...' : 'Create event'}
       </button>
-
-      {inputErrors.length > 0 && (
+      
+      {(inputErrors.length > 0 || disabled) && (
         <div className="form-message" role="status" aria-live="polite">
-          <p>Please fix the following before creating the event:</p>
+          <p>Please meet the following requirements:</p>
           <ul>
+            {disabled && <li>You must be signed in to create an event.</li>}
             {inputErrors.map((error) => (
               <li key={error}>{error}</li>
             ))}

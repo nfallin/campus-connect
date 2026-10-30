@@ -74,9 +74,11 @@ function EventCard({
       >
         {isLoading
           ? 'Please wait...'
-          : hasRSVPed
-            ? 'Remove RSVP'
-            : 'RSVP'}
+          : disabled
+            ? 'Sign in to RSVP'
+            : hasRSVPed
+              ? 'Remove RSVP'
+              : 'RSVP'}
       </button>
     </li>
   )
