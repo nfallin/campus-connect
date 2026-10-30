@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { api } from './lib/api'
-import { fromUtcDateTime, sortEventsChronologically, toUtcDateTime } from './lib/eventDateTime'
+import { sortEventsChronologically, toUtcDateTime } from './lib/eventDateTime'
+import { fromEventResponse } from './lib/eventMappers'
 import './App.css'
 
 import type { Event, EventResponse, User, UserResponse, RSVPResponse, Page } from './types'
 import type { EventFormData } from './components/EventForm'
 
-import UserCard from './components/UserCard'
+import AppHeader from './components/AppHeader'
 import LoginPage from './pages/LoginPage'
 import EventsPage from './pages/EventsPage'
 import CreateEventPage from './pages/CreateEventPage'
@@ -25,23 +26,6 @@ function getPageFromHash(): Page {
       return 'rsvps'
     default:
       return 'login'
-  }
-}
-
-function fromEventResponse(event: EventResponse): Event {
-  const { date, time } = fromUtcDateTime(event.dateTime)
-
-  return {
-    id: event.id,
-    title: event.name,
-    dateTime: event.dateTime,
-    date,
-    time,
-    location: event.location,
-    clubName: event.clubName ?? '',
-    contactEmail: event.contactEmail ?? '',
-    description: event.description ?? '',
-    website: event.websiteURL ?? '',
   }
 }
 
@@ -189,36 +173,12 @@ function App() {
 
   return (
     <div className="page">
-      <header className="page-header">
-        <div className="header-top">
-          <div className="header-title">
-            <h1>Campus Connect</h1>
-            <p className="subtitle">
-              { page === 'login' ? 'Sign in or create an account'
-              : page === 'create' ? 'Create an event'
-              : page === 'rsvps' ? 'See your events'
-              : 'Browse events'}
-            </p>
-          </div>
-
-          {currentUser && (
-            <UserCard
-              user={currentUser}
-              onLogout={handleLogout}
-            />
-          )}
-        </div>
-
-        <div className="welcome-message-slot">
-          <div
-            className="welcome-message"
-          >
-            {currentUser
-              ? welcomeMessage
-              : ''}
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        page={page}
+        currentUser={currentUser}
+        welcomeMessage={welcomeMessage}
+        onLogout={handleLogout}
+      />
 
       <nav className="page-nav" aria-label="Main navigation">
         <a href="#login" aria-current={page === 'login' ? 'page' : undefined}>
