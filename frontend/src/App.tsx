@@ -3,12 +3,13 @@ import { api } from './lib/api'
 import { fromUtcDateTime, sortEventsChronologically, toUtcDateTime } from './lib/eventDateTime'
 import './App.css'
 
-import type { Event, EventResponse, User, UserResponse, Page } from './types'
+import type { Event, EventResponse, User, UserResponse, RSVPResponse, Page } from './types'
 import type { EventFormData } from './components/EventForm'
 
 import LoginPage from './pages/LoginPage'
 import EventsPage from './pages/EventsPage'
 import CreateEventPage from './pages/CreateEventPage'
+import MyEventsPage from './pages/MyEventsPage'
 
 
 function getPageFromHash(): Page {
@@ -44,10 +45,16 @@ function fromEventResponse(event: EventResponse): Event {
 }
 
 function App() {
-  const [events, setEvents] = useState<Event[]>([])
+  
   const [page, setPage] = useState<Page>('login')
+
   const [currentUser, setCurrentUser] = useState<User | null>(null)
+
   const [welcomeMessage, setWelcomeMessage] = useState('')
+  const [events, setEvents] = useState<Event[]>([])
+  
+  const [rsvpedEventIds, setRsvpedEventIds] = useState<number[]>([])
+  const [rsvpLoading, setRsvpLoading] = useState<number[]>([])
 
   useEffect(() => {
     window.location.hash = '#login'
@@ -69,17 +76,27 @@ function App() {
   }, [])
 
   const handleLogin = async (name: string, email: string) => {
-    const result: UserResponse = await api.post<UserResponse>('/users', {
+    const result = await api.post<UserResponse>('/users', {
       name,
       email,
     })
 
+    const rsvpData = await api.get<RSVPResponse>(
+      `/users/${result.user.id}/rsvps`
+    )
+
+    setRsvpedEventIds(
+      rsvpData.events.map((event) => event.id)
+    )
+
     setCurrentUser(result.user)
+
     setWelcomeMessage(
       result.isNewUser
         ? `Your account has been created, ${result.user.name}!`
         : `Welcome back, ${result.user.name}!`
     )
+
     window.location.hash = '#events'
   }
 
@@ -113,6 +130,53 @@ function App() {
     window.location.hash = '#events'
   }
 
+
+  const handleRSVP = async (eventId: number) => {
+    if (!currentUser || rsvpLoading.includes(eventId)) return
+
+    setRsvpLoading((prev) => [...prev, eventId])
+
+    try {
+      await api.post(
+        `/users/${currentUser.id}/rsvps/${eventId}`
+      )
+
+      setRsvpedEventIds((prev) =>
+        prev.includes(eventId) ? prev : [...prev, eventId]
+      )
+    } catch (err) {
+      console.error('Failed to RSVP', err)
+      alert('Unable to RSVP. Please try again.')
+    } finally {
+      setRsvpLoading((prev) =>
+        prev.filter((id) => id !== eventId)
+      )
+    }
+  }
+
+  const handleRemoveRSVP = async (eventId: number) => {
+    if (!currentUser || rsvpLoading.includes(eventId)) return
+
+    setRsvpLoading((prev) => [...prev, eventId])
+
+    try {
+      await api.delete(
+        `/users/${currentUser.id}/rsvps/${eventId}`
+      )
+
+      setRsvpedEventIds((prev) =>
+        prev.filter((id) => id !== eventId)
+      )
+    } catch (err) {
+      console.error('Failed to remove RSVP', err)
+      alert('Unable to remove RSVP. Please try again.')
+    } finally {
+      setRsvpLoading((prev) =>
+        prev.filter((id) => id !== eventId)
+      )
+    }
+  }
+
   return (
     <div className="page">
       <header className="page-header">
@@ -144,10 +208,28 @@ function App() {
           disabled={!currentUser}
           onSubmit={handleCreate}
         />
+      ) : page === 'rsvps' ? (
+        <MyEventsPage
+          events={events.filter((event) =>
+            rsvpedEventIds.includes(event.id)
+          )}
+          onRemoveRSVP={handleRemoveRSVP}
+          rsvpLoading={rsvpLoading}
+          disabled={!currentUser}
+        />
       ) : (
         <EventsPage
-          welcomeMessage={welcomeMessage}
+          welcomeMessage={
+            currentUser
+              ? welcomeMessage
+              : 'Please sign in to RSVP to events.'
+          }
           events={events}
+          rsvpedEventIds={rsvpedEventIds}
+          rsvpLoading={rsvpLoading}
+          onRSVP={handleRSVP}
+          onRemoveRSVP={handleRemoveRSVP}
+          disabled={!currentUser}
         />
       )}
     </div>

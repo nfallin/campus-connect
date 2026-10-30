@@ -1,7 +1,13 @@
+
 import type { Event } from '../types'
 
 type EventCardProps = {
   event: Event
+  hasRSVPed: boolean
+  isLoading: boolean
+  disabled: boolean
+  onRSVP: () => void
+  onRemoveRSVP: () => void
 }
 
 function toWebsiteHref(website: string) {
@@ -14,7 +20,14 @@ function formatDate(value: string) {
   return `${month}/${day}/${year}`
 }
 
-function EventCard({ event }: EventCardProps) {
+function EventCard({
+  event,
+  hasRSVPed,
+  isLoading,
+  disabled,
+  onRSVP,
+  onRemoveRSVP,
+}: EventCardProps) {
   return (
     <li className="event-item">
       <div className="event-heading">
@@ -53,6 +66,18 @@ function EventCard({ event }: EventCardProps) {
           )}
         </div>
       )}
+
+      <button
+        type="button"
+        onClick={hasRSVPed ? onRemoveRSVP : onRSVP}
+        disabled={disabled || isLoading}
+      >
+        {isLoading
+          ? 'Please wait...'
+          : hasRSVPed
+            ? 'Remove RSVP'
+            : 'RSVP'}
+      </button>
     </li>
   )
 }

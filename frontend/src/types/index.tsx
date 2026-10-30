@@ -35,4 +35,8 @@ export type EventResponse = {
   attendeeCount: number
 }
 
+export type RSVPResponse = {
+  events: EventResponse[]
+}
+
 export type Page = 'login' | 'create' | 'events' | 'rsvps'

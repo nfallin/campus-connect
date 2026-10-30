@@ -21,10 +21,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new ApiError(res.status, body || res.statusText)
   }
 
-  if (res.status === 204) return undefined as T
+  const text = await res.text()
 
-  return res.json() as Promise<T>
+  if (!text) return undefined as T
+
+  return JSON.parse(text) as T
 }
+
 
 export const api = {
   get: <T>(path: string) => request<T>(path),
