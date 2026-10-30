@@ -285,3 +285,18 @@
   outline: none;
   box-shadow: 0 0 0 2px #000;
 }
+
+.card form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.welcome-message {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: #e8f5e9;
+  color: #256b35;
+  border-radius: 8px;
+  border: 1px solid #c8e6c9;
+}

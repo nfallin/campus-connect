@@ -3,9 +3,10 @@ import { api } from './lib/api'
 import { fromUtcDateTime, sortEventsChronologically, toUtcDateTime } from './lib/eventDateTime'
 import './App.css'
 
-import type { Event, EventResponse, User, Page } from './types'
+import type { Event, EventResponse, User, UserResponse, Page } from './types'
 import type { EventFormData } from './components/EventForm'
 
+import LoginPage from './pages/LoginPage'
 import EventsPage from './pages/EventsPage'
 import CreateEventPage from './pages/CreateEventPage'
 
@@ -14,12 +15,14 @@ function getPageFromHash(): Page {
   switch (window.location.hash) {
     case '#login':
       return 'login'
+    case '#events':
+      return 'events'
     case '#create':
       return 'create'
     case '#rsvps':
       return 'rsvps'
     default:
-      return 'events'
+      return 'login'
   }
 }
 
@@ -42,11 +45,13 @@ function fromEventResponse(event: EventResponse): Event {
 
 function App() {
   const [events, setEvents] = useState<Event[]>([])
-  const [hostUserId, setHostUserId] = useState<number | null>(null)
-  const [hostUserError, setHostUserError] = useState(false)
-  const [page, setPage] = useState<Page>(getPageFromHash)
+  const [page, setPage] = useState<Page>('login')
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [welcomeMessage, setWelcomeMessage] = useState('')
 
   useEffect(() => {
+    window.location.hash = '#login'
+
     const handleHashChange = () => setPage(getPageFromHash())
 
     window.addEventListener('hashchange', handleHashChange)
@@ -60,23 +65,27 @@ function App() {
       (err) => console.error('Failed to load events', err),
     )
 
-    api.post<User>('/users', {
-      name: 'Guest',
-      email: 'guest@example.com',
-    }).then(
-      (user) => setHostUserId(user.id),
-      (err) => {
-        console.error('Failed to provision host user', err)
-        setHostUserError(true)
-      },
-    )
-
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
+  const handleLogin = async (name: string, email: string) => {
+    const result: UserResponse = await api.post<UserResponse>('/users', {
+      name,
+      email,
+    })
+
+    setCurrentUser(result.user)
+    setWelcomeMessage(
+      result.isNewUser
+        ? `Your account has been created, ${result.user.name}!`
+        : `Welcome back, ${result.user.name}!`
+    )
+    window.location.hash = '#events'
+  }
+
   const handleCreate = async (formData: EventFormData) => {
-    if (hostUserId === null) {
-      throw new Error('No host user is available.')
+    if (!currentUser) {
+      throw new Error('Please log in before creating an event.')
     }
 
     const created = await api.post<EventResponse>('/events', {
@@ -92,7 +101,7 @@ function App() {
       description: formData.description.trim(),
       contactEmail: formData.contactEmail.trim(),
       websiteURL: formData.website.trim(),
-      hostUserId,
+      hostUserId: currentUser.id,
     })
 
     const event = fromEventResponse(created)
@@ -127,14 +136,19 @@ function App() {
           My events
         </a>
       </nav>
-
-      {page === 'create' ? (
+      
+      {page === 'login' ? (
+        <LoginPage onLogin={handleLogin} />
+      ) : page === 'create' ? (
         <CreateEventPage
+          disabled={!currentUser}
           onSubmit={handleCreate}
-          disabled={hostUserId === null || hostUserError}
         />
       ) : (
-        <EventsPage events={events} />
+        <EventsPage
+          welcomeMessage={welcomeMessage}
+          events={events}
+        />
       )}
     </div>
   )

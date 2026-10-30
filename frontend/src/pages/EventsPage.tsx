@@ -4,12 +4,18 @@ import EventCard from '../components/EventCard'
 
 type EventsPageProps = {
   events: Event[]
+  welcomeMessage: string
 }
 
-function EventsPage({ events }: EventsPageProps) {
+function EventsPage({ events, welcomeMessage }: EventsPageProps) {
   return (
     <main className="events-page">
       <h2 className="events-heading">Events</h2>
+      {welcomeMessage && (
+        <div className="welcome-message" role="status">
+          {welcomeMessage}
+        </div>
+      )}
 
       {events.length === 0 ? (
         <p className="events-empty">No events yet.</p>

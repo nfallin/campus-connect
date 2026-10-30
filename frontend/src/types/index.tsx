@@ -4,6 +4,11 @@ export type User = {
   email: string
 }
 
+export type UserResponse = {
+  user: User
+  isNewUser: boolean
+}
+
 export type Event = {
   id: number
   title: string

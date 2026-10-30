@@ -92,9 +92,12 @@ Returned when the name/email pair is new.
 
 ```json
 {
-  "id": 1,
-  "name": "Alice",
-  "email": "alice@example.com"
+  "user": {
+    "id": 1,
+    "name": "Alex",
+    "email": "alex@example.com"
+  },
+  "isNewUser": true
 }
 ```
 
@@ -104,9 +107,12 @@ Returned when the name/email pair already exists. The existing user is returned.
 
 ```json
 {
-  "id": 1,
-  "name": "Alice",
-  "email": "alice@example.com"
+  "user": {
+    "id": 1,
+    "name": "Alex",
+    "email": "alex@example.com"
+  },
+  "isNewUser": false
 }
 ```
 
