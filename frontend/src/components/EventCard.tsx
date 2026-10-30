@@ -1,5 +1,6 @@
 
 import type { Event } from '../types'
+import './EventCard.css'
 
 type EventCardProps = {
   event: Event

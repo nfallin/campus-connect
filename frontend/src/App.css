@@ -1,7 +1,5 @@
 
-/* ==============================
-   Global layout
-============================== */
+/* Global layout */
 
 html {
   scrollbar-gutter: stable;
@@ -22,9 +20,7 @@ html {
   color: #111;
 }
 
-/* ==============================
-   Header and navigation
-============================== */
+/* Shared content width */
 
 .page-header,
 .page-nav,
@@ -34,9 +30,9 @@ html {
   max-width: 420px;
 }
 
+/* Header */
+
 .page-header {
-  width: 100%;
-  max-width: 420px;
   margin: 0 0 16px;
 }
 
@@ -57,16 +53,6 @@ html {
   font-size: 28px;
   font-weight: 600;
   letter-spacing: -0.5px;
-}
-
-
-
-
-.page-header h1 {
-  margin: 0;
-  font-size: 32px;
-  font-weight: 600;
-  letter-spacing: -0.5px;
   color: #000;
 }
 
@@ -75,6 +61,25 @@ html {
   font-size: 14px;
   color: #555;
 }
+
+/* Welcome message */
+
+.welcome-message-slot {
+  height: 24px;
+  margin-top: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.welcome-message {
+  margin: 0;
+  font-size: 12px;
+  color: rgb(2, 164, 2);
+  text-align: center;
+}
+
+/* Navigation */
 
 .page-nav {
   display: flex;
@@ -99,322 +104,3 @@ html {
   background: #000;
   color: #fff;
 }
-
-/* ==============================
-   User card
-============================== */
-
-.user-card-slot {
-  width: 100%;
-  height: 80px;
-  margin-top: 16px;
-}
-
-.user-card-slot.empty {
-  visibility: hidden;
-}
-
-.user-card {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: auto;
-  min-height: unset;
-  margin: 0;
-  padding: 6px 8px;
-  gap: 8px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-}
-
-.user-info span {
-  display: none;
-}
-
-.user-info strong {
-  font-size: 12px;
-}
-
-.user-info span {
-  font-size: 13px;
-  color: #666;
-}
-
-.user-card button {
-  padding: 5px 7px;
-  font-size: 11px;
-}
-
-/* ==============================
-   Welcome message
-============================== */
-
-.welcome-message-slot {
-  height: 24px;
-  margin-top: 6px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.welcome-message {
-  margin: 0;
-  font-size: 12px;
-  color: rgb(2, 164, 2);
-  text-align: center;
-}
-
-/* ==============================
-   Login and create event forms
-============================== */
-
-.card {
-  border: 1px solid #000;
-  border-radius: 8px;
-  padding: 32px;
-  display: flex;
-  flex-direction: column;
-}
-
-.card form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  text-align: left;
-}
-
-.field label {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  color: #333;
-}
-
-.field input,
-.field textarea {
-  width: 100%;
-  font: inherit;
-  font-size: 15px;
-  padding: 10px 12px;
-  border: 1px solid #000;
-  border-radius: 4px;
-  background: #fff;
-  color: #000;
-}
-
-.field input::placeholder {
-  color: #999;
-}
-
-.field input:focus,
-.field textarea:focus,
-.time-row select:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px #000;
-}
-
-.field textarea {
-  resize: vertical;
-}
-
-.time-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.time-row select {
-  min-width: 0;
-  font: inherit;
-  font-size: 15px;
-  padding: 10px 8px;
-  border: 1px solid #000;
-  border-radius: 4px;
-  background: #fff;
-  color: #000;
-}
-
-.time-sep {
-  font-weight: 600;
-  color: #000;
-}
-
-.period-toggle {
-  display: flex;
-  margin-left: 4px;
-  border: 1px solid #000;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.period-toggle button {
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 10px 12px;
-  border: none;
-  background: #fff;
-  color: #000;
-  cursor: pointer;
-}
-
-.period-toggle button + button {
-  border-left: 1px solid #000;
-}
-
-.period-toggle button.active {
-  background: #000;
-  color: #fff;
-}
-
-.create-btn {
-  margin-top: 8px;
-  padding: 12px 16px;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  border: 1px solid #000;
-  border-radius: 4px;
-  background: #000;
-  color: #fff;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-
-.create-btn:hover:not(:disabled) {
-  opacity: 0.85;
-}
-
-.create-btn:disabled {
-  background: #fff;
-  color: #999;
-  border-color: #ccc;
-  cursor: not-allowed;
-}
-
-.form-message {
-  margin-top: 8px;
-  padding-top: 4px;
-  color: #9b1c1c;
-  text-align: left;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.form-message ul {
-  text-align: left;
-  margin: 8px 0 0;
-  padding-left: 20px;
-}
-
-.create-btn {
-  margin-top: 12px;
-  flex-shrink: 0;
-}
-
-/* ==============================
-   Events and My Events
-============================== */
-
-.events-page {
-  text-align: left;
-  flex-shrink: 0;
-}
-
-.events-heading {
-  margin: 0 0 12px;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  color: #333;
-}
-
-.events-empty {
-  margin: 0;
-  font-size: 14px;
-  color: #999;
-}
-
-.events-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.event-item {
-  list-style: none;
-  border: 1px solid #000;
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.event-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-}
-
-.event-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #000;
-}
-
-.event-club {
-  flex-shrink: 0;
-  color: #555;
-  font-size: 13px;
-  font-weight: 600;
-  text-align: right;
-}
-
-.event-meta {
-  margin-top: 4px;
-  font-size: 13px;
-  color: #555;
-}
-
-.event-description {
-  margin: 10px 0 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #333;
-}
-
-.event-contact {
-  margin-top: 10px;
-  font-size: 13px;
-}
-
-/* ==============================
-   Responsive adjustments
-============================== */
-
-@media (max-width: 480px) {
-  .page {
-    padding: 32px 20px;
-  }
-
-  .card {
-    padding: 24px 20px;
-  }
-
-  .event-heading {
-    flex-wrap: wrap;
-  }
-}
-
-/* Thank you ChatGPT for having the artistic eye a human could never! */

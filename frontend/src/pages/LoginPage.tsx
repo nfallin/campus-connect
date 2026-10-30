@@ -1,5 +1,6 @@
 
 import { useState } from 'react'
+import '../components/Form.css'
 
 type LoginPageProps = {
   onLogin: (name: string, email: string) => Promise<void>

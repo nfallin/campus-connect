@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import { getEventDateBounds, getEventInputErrors } from '../lib/eventValidation'
+import './Form.css'
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1))
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
@@ -216,7 +217,7 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
       <button type="submit" className="create-btn" disabled={!canSubmit}>
         {submitting ? 'Creating...' : 'Create event'}
       </button>
-      
+
       {(inputErrors.length > 0 || disabled) && (
         <div className="form-message" role="status" aria-live="polite">
           <p>Please meet the following requirements:</p>

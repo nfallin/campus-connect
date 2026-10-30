@@ -1,0 +1,35 @@
+
+.user-card {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+  min-height: unset;
+  margin: 0;
+  padding: 6px 8px;
+  gap: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-info strong {
+  font-size: 12px;
+}
+
+.user-info span {
+  display: none;
+  font-size: 13px;
+  color: #666;
+}
+
+.user-card button {
+  padding: 5px 7px;
+  font-size: 11px;
+}

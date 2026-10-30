@@ -1,5 +1,6 @@
 
 import type { User } from '../types'
+import './UserCard.css'
 
 type UserCardProps = {
   user: User

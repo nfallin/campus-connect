@@ -1,5 +1,6 @@
 import type { Event } from '../types'
 import EventCard from '../components/EventCard'
+import './EventsPage.css'
 
 type EventsPageProps = {
   events: Event[]
