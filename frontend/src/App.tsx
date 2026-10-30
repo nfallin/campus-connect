@@ -6,6 +6,7 @@ import './App.css'
 import type { Event, EventResponse, User, UserResponse, RSVPResponse, Page } from './types'
 import type { EventFormData } from './components/EventForm'
 
+import UserCard from './components/UserCard'
 import LoginPage from './pages/LoginPage'
 import EventsPage from './pages/EventsPage'
 import CreateEventPage from './pages/CreateEventPage'
@@ -100,6 +101,15 @@ function App() {
     window.location.hash = '#events'
   }
 
+  const handleLogout = () => {
+    setCurrentUser(null)
+    setRsvpedEventIds([])
+    setRsvpLoading([])
+    setWelcomeMessage('')
+
+    window.location.hash = '#login'
+  }
+
   const handleCreate = async (formData: EventFormData) => {
     if (!currentUser) {
       throw new Error('Please log in before creating an event.')
@@ -180,10 +190,34 @@ function App() {
   return (
     <div className="page">
       <header className="page-header">
-        <h1>Campus Connect</h1>
-        <p className="subtitle">
-          {page === 'create' ? 'Create an event' : 'Browse events'}
-        </p>
+        <div className="header-top">
+          <div className="header-title">
+            <h1>Campus Connect</h1>
+            <p className="subtitle">
+              { page === 'login' ? 'Sign in or create an account'
+              : page === 'create' ? 'Create an event'
+              : page === 'rsvps' ? 'See your events'
+              : 'Browse events'}
+            </p>
+          </div>
+
+          {currentUser && (
+            <UserCard
+              user={currentUser}
+              onLogout={handleLogout}
+            />
+          )}
+        </div>
+
+        <div className="welcome-message-slot">
+          <div
+            className="welcome-message"
+          >
+            {currentUser
+              ? welcomeMessage
+              : 'Please sign in to RSVP to events.'}
+          </div>
+        </div>
       </header>
 
       <nav className="page-nav" aria-label="Main navigation">
@@ -219,11 +253,6 @@ function App() {
         />
       ) : (
         <EventsPage
-          welcomeMessage={
-            currentUser
-              ? welcomeMessage
-              : 'Please sign in to RSVP to events.'
-          }
           events={events}
           rsvpedEventIds={rsvpedEventIds}
           rsvpLoading={rsvpLoading}

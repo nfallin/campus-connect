@@ -1,18 +1,66 @@
+
+/* ==============================
+   Global layout
+============================== */
+
+html {
+  scrollbar-gutter: stable;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 .page {
   min-height: 100svh;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 48px 24px;
-  box-sizing: border-box;
+  padding: 24px 20px;
   background: #fff;
   color: #111;
 }
 
-.page-header {
-  text-align: center;
-  margin-bottom: 40px;
+/* ==============================
+   Header and navigation
+============================== */
+
+.page-header,
+.page-nav,
+.card,
+.events-page {
+  width: 100%;
+  max-width: 420px;
 }
+
+.page-header {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 0 16px;
+}
+
+.header-top {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 52px;
+}
+
+.header-title {
+  text-align: center;
+}
+
+.header-title h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+
+
 
 .page-header h1 {
   margin: 0;
@@ -23,16 +71,17 @@
 }
 
 .subtitle {
-  margin: 8px 0 0;
-  font-size: 15px;
+  margin: 4px 0 0;
+  font-size: 14px;
   color: #555;
 }
 
 .page-nav {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  margin: -20px 0 32px;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 24px;
 }
 
 .page-nav a {
@@ -51,16 +100,87 @@
   color: #fff;
 }
 
-.card {
+/* ==============================
+   User card
+============================== */
+
+.user-card-slot {
   width: 100%;
-  max-width: 420px;
+  height: 80px;
+  margin-top: 16px;
+}
+
+.user-card-slot.empty {
+  visibility: hidden;
+}
+
+.user-card {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+  min-height: unset;
+  margin: 0;
+  padding: 6px 8px;
+  gap: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.user-info span {
+  display: none;
+}
+
+.user-info strong {
+  font-size: 12px;
+}
+
+.user-info span {
+  font-size: 13px;
+  color: #666;
+}
+
+.user-card button {
+  padding: 5px 7px;
+  font-size: 11px;
+}
+
+/* ==============================
+   Welcome message
+============================== */
+
+.welcome-message-slot {
+  height: 24px;
+  margin-top: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.welcome-message {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+}
+
+/* ==============================
+   Login and create event forms
+============================== */
+
+.card {
   border: 1px solid #000;
   border-radius: 8px;
   padding: 32px;
   display: flex;
   flex-direction: column;
+}
+
+.card form {
+  display: flex;
+  flex-direction: column;
   gap: 20px;
-  box-sizing: border-box;
 }
 
 .field {
@@ -78,7 +198,9 @@
   color: #333;
 }
 
-.field input {
+.field input,
+.field textarea {
+  width: 100%;
   font: inherit;
   font-size: 15px;
   padding: 10px 12px;
@@ -86,16 +208,21 @@
   border-radius: 4px;
   background: #fff;
   color: #000;
-  box-sizing: border-box;
 }
 
 .field input::placeholder {
   color: #999;
 }
 
-.field input:focus {
+.field input:focus,
+.field textarea:focus,
+.time-row select:focus {
   outline: none;
   box-shadow: 0 0 0 2px #000;
+}
+
+.field textarea {
+  resize: vertical;
 }
 
 .time-row {
@@ -105,6 +232,7 @@
 }
 
 .time-row select {
+  min-width: 0;
   font: inherit;
   font-size: 15px;
   padding: 10px 8px;
@@ -112,12 +240,6 @@
   border-radius: 4px;
   background: #fff;
   color: #000;
-  box-sizing: border-box;
-}
-
-.time-row select:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px #000;
 }
 
 .time-sep {
@@ -194,10 +316,13 @@
   padding-left: 20px;
 }
 
+/* ==============================
+   Events and My Events
+============================== */
+
 .events-page {
-  width: 100%;
-  max-width: 420px;
   text-align: left;
+  flex-shrink: 0;
 }
 
 .events-heading {
@@ -221,13 +346,14 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
 .event-item {
+  list-style: none;
   border: 1px solid #000;
-  border-radius: 6px;
-  padding: 12px 14px;
+  border-radius: 8px;
+  padding: 16px;
 }
 
 .event-heading {
@@ -269,34 +395,22 @@
   font-size: 13px;
 }
 
-.field textarea {
-  font: inherit;
-  font-size: 15px;
-  padding: 10px 12px;
-  border: 1px solid #000;
-  border-radius: 4px;
-  background: #fff;
-  color: #000;
-  box-sizing: border-box;
-  resize: vertical;
+/* ==============================
+   Responsive adjustments
+============================== */
+
+@media (max-width: 480px) {
+  .page {
+    padding: 32px 20px;
+  }
+
+  .card {
+    padding: 24px 20px;
+  }
+
+  .event-heading {
+    flex-wrap: wrap;
+  }
 }
 
-.field textarea:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px #000;
-}
-
-.card form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.welcome-message {
-  padding: 1rem;
-  margin-bottom: 1rem;
-  background-color: #e8f5e9;
-  color: #256b35;
-  border-radius: 8px;
-  border: 1px solid #c8e6c9;
-}
+/* Thank you ChatGPT for having the artistic eye a human could never! */

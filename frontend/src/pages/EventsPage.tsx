@@ -3,7 +3,6 @@ import EventCard from '../components/EventCard'
 
 type EventsPageProps = {
   events: Event[]
-  welcomeMessage: string
   rsvpedEventIds: number[]
   rsvpLoading: number[]
   disabled: boolean
@@ -13,7 +12,6 @@ type EventsPageProps = {
 
 function EventsPage({
   events,
-  welcomeMessage,
   rsvpedEventIds,
   rsvpLoading,
   disabled,
@@ -23,12 +21,6 @@ function EventsPage({
   return (
     <main className="events-page">
       <h2 className="events-heading">Events</h2>
-
-      {welcomeMessage && (
-        <div className="welcome-message" role="status">
-          {welcomeMessage}
-        </div>
-      )}
 
       {events.length === 0 ? (
         <p className="events-empty">No events yet.</p>
