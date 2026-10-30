@@ -3,51 +3,25 @@ import { api } from './lib/api'
 import { getEventDateBounds, getEventInputErrors } from './lib/eventValidation'
 import { fromUtcDateTime, sortEventsChronologically, toUtcDateTime } from './lib/eventDateTime'
 import './App.css'
+import type { Event, EventResponse, User, Page } from './types'
+import EventCard from './components/EventCard'
+
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1))
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
 
-type Event = {
-  id: number
-  title: string
-  dateTime: string
-  date: string
-  time: string
-  location: string
-  clubName: string
-  contactEmail: string
-  website: string
-}
-
-type EventResponse = {
-  id: number
-  name: string
-  dateTime: string
-  location: string
-  clubName: string
-  contactEmail?: string
-  websiteURL?: string
-}
-
-type UserResponse = {
-  id: number
-  name: string
-}
-
-type Page = 'create' | 'events'
 
 function getPageFromHash(): Page {
-  return window.location.hash === '#events' ? 'events' : 'create'
-}
-
-function toWebsiteHref(website: string) {
-  return /^https?:\/\//i.test(website) ? website : `https://${website}`
-}
-
-function formatDate(value: string) {
-  const [year, month, day] = value.split('-')
-  if (!year || !month || !day) return value
-  return `${month}/${day}/${year}`
+  switch (window.location.hash) {
+    case '#login':
+      return 'login'
+    case '#create':
+      return 'create'
+    case '#rsvps':
+      return 'rsvps'
+    default:
+      return 'events'
+  }
 }
 
 function fromEventResponse(event: EventResponse): Event {
@@ -61,6 +35,7 @@ function fromEventResponse(event: EventResponse): Event {
     location: event.location,
     clubName: event.clubName ?? '',
     contactEmail: event.contactEmail ?? '',
+    description: event.description ?? '',
     website: event.websiteURL ?? '',
   }
 }
@@ -154,11 +129,17 @@ function App() {
       </header>
 
       <nav className="page-nav" aria-label="Main navigation">
+        <a href="#login" aria-current={page === 'login' ? 'page' : undefined}>
+          Login
+        </a>
         <a href="#create" aria-current={page === 'create' ? 'page' : undefined}>
           Create event
         </a>
         <a href="#events" aria-current={page === 'events' ? 'page' : undefined}>
           View events
+        </a>
+        <a href="#rsvps" aria-current={page === 'rsvps' ? 'page' : undefined}>
+          My events
         </a>
       </nav>
 
@@ -318,28 +299,7 @@ function App() {
         ) : (
           <ul className="events-list">
             {events.map((event) => (
-              <li key={event.id} className="event-item">
-                <div className="event-heading">
-                  <div className="event-title">{event.title}</div>
-                  <div className="event-club">{event.clubName || 'Club not specified'}</div>
-                </div>
-                <div className="event-meta">
-                  {formatDate(event.date)} &middot; {event.time} &middot; {event.location}
-                </div>
-                {(event.contactEmail || event.website) && (
-                  <div className="event-contact">
-                    {event.contactEmail && (
-                      <a href={`mailto:${event.contactEmail}`}>{event.contactEmail}</a>
-                    )}
-                    {event.contactEmail && event.website && ' · '}
-                    {event.website && (
-                      <a href={toWebsiteHref(event.website)} target="_blank" rel="noreferrer">
-                        {event.website}
-                      </a>
-                    )}
-                  </div>
-                )}
-              </li>
+              <EventCard key={event.id} event={event} />  
             ))}
           </ul>
         )}
