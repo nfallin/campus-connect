@@ -19,6 +19,7 @@ const eventsTable = `
 		date_time TEXT NOT NULL,
 		location TEXT NOT NULL,
 		club_name TEXT NOT NULL,
+		description TEXT NOT NULL,
 		contact_email TEXT,
 		website TEXT,
 		host_user_id INTEGER NOT NULL,

@@ -26,6 +26,9 @@ func (repository *Repository) CreateEvent(request Types.CreateEventRequest) (Typ
 	if request.ClubName == "" {
 		return Types.EventResponse{}, fmt.Errorf("%w: club name is required", ErrInvalidEvent)
 	}
+	if request.Description == "" {
+		return Types.EventResponse{}, fmt.Errorf("%w: description is required", ErrInvalidEvent)
+	}
 	if err := requirePositiveID(*request.HostUserID); err != nil {
 		return Types.EventResponse{}, fmt.Errorf("%w: host user id must be positive", ErrInvalidEvent)
 	}
@@ -36,12 +39,12 @@ func (repository *Repository) CreateEvent(request Types.CreateEventRequest) (Typ
 
 	result, err := repository.db.Exec(`
 		INSERT INTO events (
-			event_name, date_time, location, club_name,
+			event_name, date_time, location, club_name, description,
 			contact_email, website, host_user_id
 		)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`, request.Name, request.DateTime.Format(time.RFC3339), request.Location,
-		request.ClubName, request.ContactEmail, request.WebsiteURL, *request.HostUserID)
+		request.ClubName, request.Description, request.ContactEmail, request.WebsiteURL, *request.HostUserID)
 
 	if err != nil {
 		return Types.EventResponse{}, err
@@ -65,7 +68,7 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 
 	err := repository.db.QueryRow(`
 		SELECT e.event_id, e.event_name, e.date_time, e.location,
-			e.club_name, e.contact_email, e.website,
+			e.club_name, e.description, e.contact_email, e.website,
 			e.host_user_id,
 			u.user_id, u.user_name, u.user_email,
 			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id)
@@ -73,7 +76,7 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 		JOIN users u ON u.user_id = e.host_user_id
 		WHERE e.event_id = ?
 	`, id).Scan(&event.ID, &event.Name, &dateTime, &event.Location,
-		&event.ClubName, &event.ContactEmail, &event.WebsiteURL,
+		&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
 		&event.HostUserID, &host.ID, &host.Name, &host.Email,
 		&event.AttendeeCount)
 
@@ -98,7 +101,7 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.EventResponse, error) {
 	query := `
 		SELECT e.event_id, e.event_name, e.date_time, e.location,
-			e.club_name, e.contact_email, e.website,
+			e.club_name, e.description, e.contact_email, e.website,
 			e.host_user_id, u.user_id, u.user_name, u.user_email,
 			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id)
 		FROM events e
@@ -153,9 +156,8 @@ func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.Eve
 		var host Types.UserResponse
 
 		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &event.Location,
-			&event.ClubName, &event.ContactEmail, &event.WebsiteURL,
-			&event.HostUserID,
-			&host.ID, &host.Name, &host.Email, &event.AttendeeCount); err != nil {
+			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
+			&event.HostUserID, &host.ID, &host.Name, &host.Email, &event.AttendeeCount); err != nil {
 			return nil, err
 		}
 
@@ -209,6 +211,13 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 		current.ClubName = *request.ClubName
 	}
 
+	if request.Description != nil {
+		if *request.Description == "" {
+			return Types.EventResponse{}, fmt.Errorf("%w: description cannot be empty", ErrInvalidEvent)
+		}
+		current.Description = *request.Description
+	}
+
 	if request.ContactEmail != nil {
 		current.ContactEmail = *request.ContactEmail
 	}
@@ -230,11 +239,11 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 
 	_, err = repository.db.Exec(`
 		UPDATE events
-		SET event_name = ?, date_time = ?, location = ?, club_name = ?,
+		SET event_name = ?, date_time = ?, location = ?, club_name = ?, description = ?,
 			contact_email = ?, website = ?, host_user_id = ?
 		WHERE event_id = ?
 	`, current.Name, current.DateTime.Format(time.RFC3339), current.Location,
-		current.ClubName, current.ContactEmail, current.WebsiteURL,
+		current.ClubName, current.Description, current.ContactEmail, current.WebsiteURL,
 		current.HostUserID, id)
 
 	if err != nil {

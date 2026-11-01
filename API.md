@@ -48,6 +48,7 @@ IDs are positive integers.
   "dateTime": "2026-10-25T18:30:00Z",
   "location": "Room 101",
   "clubName": "Game Development Club",
+  "description": "Come play games!",
   "host": {
     "id": 1,
     "name": "Alice",
@@ -91,9 +92,12 @@ Returned when the name/email pair is new.
 
 ```json
 {
-  "id": 1,
-  "name": "Alice",
-  "email": "alice@example.com"
+  "user": {
+    "id": 1,
+    "name": "Alex",
+    "email": "alex@example.com"
+  },
+  "isNewUser": true
 }
 ```
 
@@ -103,9 +107,12 @@ Returned when the name/email pair already exists. The existing user is returned.
 
 ```json
 {
-  "id": 1,
-  "name": "Alice",
-  "email": "alice@example.com"
+  "user": {
+    "id": 1,
+    "name": "Alex",
+    "email": "alex@example.com"
+  },
+  "isNewUser": false
 }
 ```
 
@@ -171,6 +178,7 @@ Returns all events. Results are sorted by `dateTime`, then by `id`.
       "dateTime": "2026-10-25T18:30:00Z",
       "location": "Room 101",
       "clubName": "Game Development Club",
+      "description": "Come play games!",
       "attendeeCount": 12
     }
   ]
@@ -233,6 +241,7 @@ Content-Type: application/json
   "dateTime": "2026-10-25T18:30:00Z",
   "location": "Room 101",
   "clubName": "Game Development Club",
+  "description": "Come play games!",
   "hostUserId": 1,
   "contactEmail": "alice@example.com",
   "websiteURL": "https://example.com/game-night"
@@ -253,6 +262,7 @@ Returns the newly created event:
   "dateTime": "2026-10-25T18:30:00Z",
   "location": "Room 101",
   "clubName": "Game Development Club",
+  "description": "Come play games!",
   "host": {
     "id": 1,
     "name": "Alice",
@@ -355,6 +365,7 @@ Returns complete event objects for every event the user has RSVP'd to.
       "dateTime": "2026-10-25T18:30:00Z",
       "location": "Room 101",
       "clubName": "Game Development Club",
+      "description": "Come play games!",
       "attendeeCount": 12
     }
   ]

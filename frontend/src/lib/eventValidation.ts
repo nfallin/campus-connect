@@ -5,6 +5,7 @@ export type EventInput = {
   minute: string
   location: string
   clubName: string
+  description: string
   contactEmail?: string
   website?: string
 }
@@ -50,24 +51,38 @@ export function getEventInputErrors(input: EventInput, now = new Date()): string
   const website = input.website?.trim() ?? ''
   const errors: string[] = []
 
-  if (input.title.trim() === '') errors.push('Enter an event title.')
+  if (input.title.trim() === '') {
+    errors.push('Enter an event title.')
+  }
 
   if (input.date === '') {
     errors.push('Choose an event date.')
-  } else if (!isWithinEventDateRange(input.date, now)) {
+  } 
+  else if (!isWithinEventDateRange(input.date, now)) {
     const { min, max } = getEventDateBounds(now)
     if (/^\d{4}-\d{2}-\d{2}$/.test(input.date) && input.date < min) {
       errors.push('Choose today or a future date.')
-    } else if (/^\d{4}-\d{2}-\d{2}$/.test(input.date) && input.date > max) {
+    }
+    else if (/^\d{4}-\d{2}-\d{2}$/.test(input.date) && input.date > max) {
       errors.push('Choose a date within the next six months.')
-    } else {
+    }
+    else {
       errors.push('Enter a valid event date.')
     }
   }
 
-  if (input.hour === '' || input.minute === '') errors.push('Choose an event time.')
-  if (input.location.trim() === '') errors.push('Enter a location.')
-  if (input.clubName.trim() === '') errors.push('Enter a club name.')
+  if (input.hour === '' || input.minute === '') {
+    errors.push('Choose an event time.')
+  }
+  if (input.location.trim() === '') {
+    errors.push('Enter a location.')
+  }
+  if (input.clubName.trim() === '') {
+    errors.push('Enter a club name.')
+  }
+  if (input.description.trim() === '') {
+    errors.push('Enter a description.')
+  }
   if (contactEmail !== '' && !EMAIL_PATTERN.test(contactEmail)) {
     errors.push('Enter a valid contact email or leave it blank.')
   }
@@ -79,5 +94,5 @@ export function getEventInputErrors(input: EventInput, now = new Date()): string
 }
 
 export function isValidEventInput(input: EventInput, now = new Date()): boolean {
-  return getEventInputErrors(input, now).length === 0
+  return (getEventInputErrors(input, now).length === 0)
 }

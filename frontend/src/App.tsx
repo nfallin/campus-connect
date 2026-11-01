@@ -1,349 +1,225 @@
 import { useEffect, useState } from 'react'
 import { api } from './lib/api'
-import { getEventDateBounds, getEventInputErrors } from './lib/eventValidation'
-import { fromUtcDateTime, sortEventsChronologically, toUtcDateTime } from './lib/eventDateTime'
+import { sortEventsChronologically, toUtcDateTime } from './lib/eventDateTime'
+import { fromEventResponse } from './lib/eventMappers'
 import './App.css'
 
-const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1))
-const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
+import type { Event, EventResponse, User, UserResponse, RSVPResponse, Page } from './types'
+import type { EventFormData } from './components/EventForm'
 
-type Event = {
-  id: number
-  title: string
-  dateTime: string
-  date: string
-  time: string
-  location: string
-  clubName: string
-  contactEmail: string
-  website: string
-}
+import AppHeader from './components/AppHeader'
+import LoginPage from './pages/LoginPage'
+import EventsPage from './pages/EventsPage'
+import CreateEventPage from './pages/CreateEventPage'
+import MyEventsPage from './pages/MyEventsPage'
 
-type EventResponse = {
-  id: number
-  name: string
-  dateTime: string
-  location: string
-  clubName: string
-  contactEmail?: string
-  websiteURL?: string
-}
-
-type UserResponse = {
-  id: number
-  name: string
-}
-
-type Page = 'create' | 'events'
 
 function getPageFromHash(): Page {
-  return window.location.hash === '#events' ? 'events' : 'create'
-}
-
-function toWebsiteHref(website: string) {
-  return /^https?:\/\//i.test(website) ? website : `https://${website}`
-}
-
-function formatDate(value: string) {
-  const [year, month, day] = value.split('-')
-  if (!year || !month || !day) return value
-  return `${month}/${day}/${year}`
-}
-
-function fromEventResponse(event: EventResponse): Event {
-  const { date, time } = fromUtcDateTime(event.dateTime)
-  return {
-    id: event.id,
-    title: event.name,
-    dateTime: event.dateTime,
-    date,
-    time,
-    location: event.location,
-    clubName: event.clubName ?? '',
-    contactEmail: event.contactEmail ?? '',
-    website: event.websiteURL ?? '',
+  switch (window.location.hash) {
+    case '#login':
+      return 'login'
+    case '#events':
+      return 'events'
+    case '#create':
+      return 'create'
+    case '#rsvps':
+      return 'rsvps'
+    default:
+      return 'login'
   }
 }
 
 function App() {
-  const [page, setPage] = useState<Page>(getPageFromHash)
-  const [title, setTitle] = useState('')
-  const [date, setDate] = useState('')
-  const [hour, setHour] = useState('')
-  const [minute, setMinute] = useState('')
-  const [period, setPeriod] = useState<'AM' | 'PM'>('AM')
-  const [location, setLocation] = useState('')
-  const [clubName, setClubName] = useState('')
-  const [contactEmail, setContactEmail] = useState('')
-  const [website, setWebsite] = useState('')
+  
+  const [page, setPage] = useState<Page>('login')
+
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+
+  const [welcomeMessage, setWelcomeMessage] = useState('')
   const [events, setEvents] = useState<Event[]>([])
-  const [hostUserId, setHostUserId] = useState<number | null>(null)
-  const [hostUserError, setHostUserError] = useState(false)
-  const dateBounds = getEventDateBounds()
+  
+  const [rsvpedEventIds, setRsvpedEventIds] = useState<number[]>([])
+  const [rsvpLoading, setRsvpLoading] = useState<number[]>([])
 
   useEffect(() => {
+    window.location.hash = '#login'
+
     const handleHashChange = () => setPage(getPageFromHash())
+
     window.addEventListener('hashchange', handleHashChange)
 
     api.get<{ events: EventResponse[] }>('/events').then(
-      (data) => setEvents(sortEventsChronologically(data.events.map(fromEventResponse))),
-      (err) => console.error('Failed to load events', err),
-    )
-
-    api.post<UserResponse>('/users', { name: 'Guest', email: 'guest@example.com' }).then(
-      (user) => setHostUserId(user.id),
-      (err) => {
-        console.error('Failed to provision host user', err)
-        setHostUserError(true)
+      (data) => {
+        setEvents(
+          sortEventsChronologically(data.events.map(fromEventResponse))
+        )
       },
+      (err) => console.error('Failed to load events', err),
     )
 
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
-  const eventInput = {
-    title,
-    date,
-    hour,
-    minute,
-    location,
-    clubName,
-    contactEmail,
-    website,
+  const handleLogin = async (name: string, email: string) => {
+    const result = await api.post<UserResponse>('/users', {
+      name,
+      email,
+    })
+
+    const rsvpData = await api.get<RSVPResponse>(
+      `/users/${result.user.id}/rsvps`
+    )
+
+    setRsvpedEventIds(
+      rsvpData.events.map((event) => event.id)
+    )
+
+    setCurrentUser(result.user)
+
+    setWelcomeMessage(
+      result.isNewUser
+        ? `Your account has been created, ${result.user.name}!`
+        : `Welcome back, ${result.user.name}!`
+    )
+
+    window.location.hash = '#events'
   }
-  const inputErrors = getEventInputErrors(eventInput)
-  const canCreate = inputErrors.length === 0
 
-  const handleCreate = () => {
-    if (!canCreate || hostUserId === null) return
+  const handleLogout = () => {
+    setCurrentUser(null)
+    setRsvpedEventIds([])
+    setRsvpLoading([])
+    setWelcomeMessage('')
 
-    api
-      .post<EventResponse>('/events', {
-        name: title.trim(),
-        dateTime: toUtcDateTime(date, hour, minute, period),
-        location: location.trim(),
-        clubName: clubName.trim(),
-        contactEmail: contactEmail.trim(),
-        websiteURL: website.trim(),
-        hostUserId,
-      })
-      .then((created) => {
-        const event = fromEventResponse(created)
-        if (!event.contactEmail) event.contactEmail = contactEmail.trim()
-        if (!event.website) event.website = website.trim()
-        setEvents((prev) => sortEventsChronologically([...prev, event]))
-        window.location.hash = '#events'
-        setTitle('')
-        setDate('')
-        setHour('')
-        setMinute('')
-        setPeriod('AM')
-        setLocation('')
-        setClubName('')
-        setContactEmail('')
-        setWebsite('')
-      })
-      .catch((err) => console.error('Failed to create event', err))
+    window.location.hash = '#login'
+  }
+
+  const handleCreate = async (formData: EventFormData) => {
+    if (!currentUser) {
+      throw new Error('Please log in before creating an event.')
+    }
+
+    const created = await api.post<EventResponse>('/events', {
+      name: formData.title.trim(),
+      dateTime: toUtcDateTime(
+        formData.date,
+        formData.hour,
+        formData.minute,
+        formData.period,
+      ),
+      location: formData.location.trim(),
+      clubName: formData.clubName.trim(),
+      description: formData.description.trim(),
+      contactEmail: formData.contactEmail.trim(),
+      websiteURL: formData.website.trim(),
+      hostUserId: currentUser.id,
+    })
+
+    const event = fromEventResponse(created)
+
+    setEvents((prev) =>
+      sortEventsChronologically([...prev, event])
+    )
+
+    window.location.hash = '#events'
+  }
+
+
+  const handleRSVP = async (eventId: number) => {
+    if (!currentUser || rsvpLoading.includes(eventId)) return
+
+    setRsvpLoading((prev) => [...prev, eventId])
+
+    try {
+      await api.post(
+        `/users/${currentUser.id}/rsvps/${eventId}`
+      )
+
+      setRsvpedEventIds((prev) =>
+        prev.includes(eventId) ? prev : [...prev, eventId]
+      )
+    } catch (err) {
+      console.error('Failed to RSVP', err)
+      alert('Unable to RSVP. Please try again.')
+    } finally {
+      setRsvpLoading((prev) =>
+        prev.filter((id) => id !== eventId)
+      )
+    }
+  }
+
+  const handleRemoveRSVP = async (eventId: number) => {
+    if (!currentUser || rsvpLoading.includes(eventId)) return
+
+    setRsvpLoading((prev) => [...prev, eventId])
+
+    try {
+      await api.delete(
+        `/users/${currentUser.id}/rsvps/${eventId}`
+      )
+
+      setRsvpedEventIds((prev) =>
+        prev.filter((id) => id !== eventId)
+      )
+    } catch (err) {
+      console.error('Failed to remove RSVP', err)
+      alert('Unable to remove RSVP. Please try again.')
+    } finally {
+      setRsvpLoading((prev) =>
+        prev.filter((id) => id !== eventId)
+      )
+    }
   }
 
   return (
     <div className="page">
-      <header className="page-header">
-        <h1>Campus Connect</h1>
-        <p className="subtitle">{page === 'create' ? 'Create an event' : 'Browse events'}</p>
-      </header>
+      <AppHeader
+        page={page}
+        currentUser={currentUser}
+        welcomeMessage={welcomeMessage}
+        onLogout={handleLogout}
+      />
 
       <nav className="page-nav" aria-label="Main navigation">
+        <a href="#login" aria-current={page === 'login' ? 'page' : undefined}>
+          Login
+        </a>
         <a href="#create" aria-current={page === 'create' ? 'page' : undefined}>
           Create event
         </a>
         <a href="#events" aria-current={page === 'events' ? 'page' : undefined}>
           View events
         </a>
+        <a href="#rsvps" aria-current={page === 'rsvps' ? 'page' : undefined}>
+          My events
+        </a>
       </nav>
-
-      {page === 'create' ? (
-      <main className="card">
-        <div className="field">
-          <label htmlFor="title">Event title</label>
-          <input
-            id="title"
-            type="text"
-            placeholder="e.g. Fall Hackathon Kickoff"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-
-        <div className="field">
-          <label htmlFor="date">Date</label>
-          <input
-            id="date"
-            type="date"
-            min={dateBounds.min}
-            max={dateBounds.max}
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </div>
-
-        <div className="field">
-          <label htmlFor="hour">Time</label>
-          <div className="time-row">
-            <select
-              id="hour"
-              aria-label="Hour"
-              value={hour}
-              onChange={(e) => setHour(e.target.value)}
-            >
-              <option value="" disabled>
-                HH
-              </option>
-              {HOURS.map((h) => (
-                <option key={h} value={h}>
-                  {h}
-                </option>
-              ))}
-            </select>
-            <span className="time-sep">:</span>
-            <select
-              aria-label="Minute"
-              value={minute}
-              onChange={(e) => setMinute(e.target.value)}
-            >
-              <option value="" disabled>
-                MM
-              </option>
-              {MINUTES.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-            <div className="period-toggle">
-              <button
-                type="button"
-                className={period === 'AM' ? 'active' : ''}
-                onClick={() => setPeriod('AM')}
-              >
-                AM
-              </button>
-              <button
-                type="button"
-                className={period === 'PM' ? 'active' : ''}
-                onClick={() => setPeriod('PM')}
-              >
-                PM
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="field">
-          <label htmlFor="location">Location</label>
-          <input
-            id="location"
-            type="text"
-            placeholder="e.g. Benson Center, Room 201"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-          />
-        </div>
-
-        <div className="field">
-          <label htmlFor="clubName">Club</label>
-          <input
-            id="clubName"
-            type="text"
-            placeholder="e.g. ACM"
-            value={clubName}
-            onChange={(e) => setClubName(e.target.value)}
-          />
-        </div>
-
-        <div className="field">
-          <label htmlFor="contactEmail">Contact email (optional)</label>
-          <input
-            id="contactEmail"
-            type="email"
-            placeholder="e.g. acm@scu.edu"
-            value={contactEmail}
-            onChange={(e) => setContactEmail(e.target.value)}
-          />
-        </div>
-
-        <div className="field">
-          <label htmlFor="website">Website (optional)</label>
-          <input
-            id="website"
-            type="text"
-            placeholder="e.g. https://acm.scu.edu"
-            value={website}
-            onChange={(e) => setWebsite(e.target.value)}
-          />
-        </div>
-
-        <button
-          type="button"
-          className="create-btn"
-          disabled={!canCreate || hostUserId === null}
-          onClick={handleCreate}
-        >
-          Create event
-        </button>
-        {inputErrors.length > 0 ? (
-          <div className="form-message" role="status" aria-live="polite">
-            <p>Please fix the following before creating the event:</p>
-            <ul>
-              {inputErrors.map((error) => (
-                <li key={error}>{error}</li>
-              ))}
-            </ul>
-          </div>
-        ) : hostUserError ? (
-          <p className="form-message" role="status">
-            The event form could not be prepared. Please refresh the page and try again.
-          </p>
-        ) : hostUserId === null ? (
-          <p className="form-message" role="status" aria-live="polite">
-            Preparing the event form...
-          </p>
-        ) : null}
-      </main>
+      
+      {page === 'login' ? (
+        <LoginPage onLogin={handleLogin} />
+      ) : page === 'create' ? (
+        <CreateEventPage
+          disabled={!currentUser}
+          onSubmit={handleCreate}
+        />
+      ) : page === 'rsvps' ? (
+        <MyEventsPage
+          events={events.filter((event) =>
+            rsvpedEventIds.includes(event.id)
+          )}
+          onRemoveRSVP={handleRemoveRSVP}
+          rsvpLoading={rsvpLoading}
+          disabled={!currentUser}
+        />
       ) : (
-      <main className="events-page">
-        <h2 className="events-heading">Events</h2>
-        {events.length === 0 ? (
-          <p className="events-empty">No events yet.</p>
-        ) : (
-          <ul className="events-list">
-            {events.map((event) => (
-              <li key={event.id} className="event-item">
-                <div className="event-heading">
-                  <div className="event-title">{event.title}</div>
-                  <div className="event-club">{event.clubName || 'Club not specified'}</div>
-                </div>
-                <div className="event-meta">
-                  {formatDate(event.date)} &middot; {event.time} &middot; {event.location}
-                </div>
-                {(event.contactEmail || event.website) && (
-                  <div className="event-contact">
-                    {event.contactEmail && (
-                      <a href={`mailto:${event.contactEmail}`}>{event.contactEmail}</a>
-                    )}
-                    {event.contactEmail && event.website && ' · '}
-                    {event.website && (
-                      <a href={toWebsiteHref(event.website)} target="_blank" rel="noreferrer">
-                        {event.website}
-                      </a>
-                    )}
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </main>
+        <EventsPage
+          events={events}
+          rsvpedEventIds={rsvpedEventIds}
+          rsvpLoading={rsvpLoading}
+          onRSVP={handleRSVP}
+          onRemoveRSVP={handleRemoveRSVP}
+          disabled={!currentUser}
+        />
       )}
     </div>
   )
