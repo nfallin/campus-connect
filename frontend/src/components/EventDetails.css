@@ -23,7 +23,7 @@
   text-align: left;
 }
 
-.event-details-is-editing::before {
+.event-details::before {
   position: absolute;
   z-index: 1;
   top: 0;
@@ -36,10 +36,8 @@
 }
 
 .event-details-close {
-  position: absolute;
+  justify-self: end;
   z-index: 2;
-  top: 16px;
-  right: 16px;
   padding: 8px 12px;
   border: 1px solid #000;
   border-radius: 4px;
@@ -49,17 +47,13 @@
 }
 
 .event-details-content {
-  padding: 56px 40px 32px;
+  padding: 24px 40px 32px;
 }
 
 .event-details-editor-view {
   max-height: 85vh;
   overflow-y: auto;
-  padding: 56px 40px 32px;
-}
-
-.event-details-editor-view h2 {
-  margin: 16px 0 24px;
+  padding: 24px 40px 32px;
 }
 
 .event-details-editor-view .card {
@@ -68,10 +62,8 @@
 }
 
 .event-details-back {
-  position: absolute;
+  justify-self: start;
   z-index: 2;
-  top: 16px;
-  left: 16px;
   padding: 8px 12px;
   border: 1px solid #000;
   border-radius: 4px;
@@ -81,14 +73,20 @@
 }
 
 .event-details h2 {
+  justify-self: start;
   margin: 0;
-  padding-right: 80px;
   font-size: 32px;
   color: #000;
 }
 
-.event-details-editor-view h2 {
-  margin-top: 16px;
+.event-details-header {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 80px 1fr 80px;
+  align-items: center;
+  min-height: 64px;
+  padding: 10px 16px;
 }
 
 .event-details-club {
@@ -150,6 +148,12 @@
   .event-details-editor-view {
     padding-left: 20px;
     padding-right: 20px;
+  }
+
+  .event-details-header {
+    grid-template-columns: 64px 1fr 64px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 
   .event-details-actions {

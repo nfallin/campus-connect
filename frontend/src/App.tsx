@@ -199,27 +199,29 @@ function App() {
 
   return (
     <div className="page">
-      <AppHeader
-        page={page}
-        currentUser={currentUser}
-        welcomeMessage={welcomeMessage}
-        onLogout={handleLogout}
-      />
+      <div className="page-top">
+        <AppHeader
+          page={page}
+          currentUser={currentUser}
+          welcomeMessage={welcomeMessage}
+          onLogout={handleLogout}
+        />
 
-      <nav className="page-nav" aria-label="Main navigation">
-        <a href="#login" aria-current={page === 'login' ? 'page' : undefined}>
-          Login
-        </a>
-        <a href="#create" aria-current={page === 'create' ? 'page' : undefined}>
-          Create event
-        </a>
-        <a href="#events" aria-current={page === 'events' ? 'page' : undefined}>
-          View events
-        </a>
-        <a href="#rsvps" aria-current={page === 'rsvps' ? 'page' : undefined}>
-          My events
-        </a>
-      </nav>
+        <nav className="page-nav" aria-label="Main navigation">
+          <a href="#login" aria-current={page === 'login' ? 'page' : undefined}>
+            Login
+          </a>
+          <a href="#create" aria-current={page === 'create' ? 'page' : undefined}>
+            Create event
+          </a>
+          <a href="#events" aria-current={page === 'events' ? 'page' : undefined}>
+            View events
+          </a>
+          <a href="#rsvps" aria-current={page === 'rsvps' ? 'page' : undefined}>
+            My events
+          </a>
+        </nav>
+      </div>
       
       {page === 'login' ? (
         <LoginPage onLogin={handleLogin} />

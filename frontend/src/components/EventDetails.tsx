@@ -58,12 +58,8 @@ function EventDetails({
         aria-labelledby="event-details-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <button type="button" className="event-details-close" onClick={onClose}>
-          Close
-        </button>
-
-        {isEditing ? (
-          <div className="event-details-editor-view">
+        <div className="event-details-header">
+          {isEditing ? (
             <button
               type="button"
               className="event-details-back"
@@ -71,7 +67,17 @@ function EventDetails({
             >
               Back
             </button>
-            <h2>Edit event</h2>
+          ) : (
+            <span />
+          )}
+          <h2 id="event-details-title">{isEditing ? 'Edit event' : event.title}</h2>
+          <button type="button" className="event-details-close" onClick={onClose}>
+            Close
+          </button>
+        </div>
+
+        {isEditing ? (
+          <div className="event-details-editor-view">
             <EventForm
               key={event.id + event.dateTime}
               initialData={toFormData(event)}
@@ -86,7 +92,6 @@ function EventDetails({
         ) : (
           <>
             <div className="event-details-content">
-              <h2 id="event-details-title">{event.title}</h2>
               <p className="event-details-club">{event.clubName || 'Club not specified'}</p>
               <p className="event-details-meta">
                 {event.date} &middot; {event.time} &middot; {event.location}
