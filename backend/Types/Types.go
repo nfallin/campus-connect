@@ -53,7 +53,7 @@ type EventResponse struct {
 	ContactEmail  string        `json:"contactEmail"`
 	WebsiteURL    string        `json:"websiteURL"`
 	AttendeeCount int           `json:"attendeeCount"`
-	HostUserID    int           `json:"-"`
+	HostUserID    int           `json:"hostUserId"`
 }
 
 type EventFilters struct {

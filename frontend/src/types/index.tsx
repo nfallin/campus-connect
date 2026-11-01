@@ -20,6 +20,7 @@ export type Event = {
   description: string
   contactEmail: string
   website: string
+  hostUserId: number
 }
 
 export type EventResponse = {
@@ -33,6 +34,7 @@ export type EventResponse = {
   contactEmail: string
   websiteURL: string
   attendeeCount: number
+  hostUserId: number
 }
 
 export type RSVPResponse = {

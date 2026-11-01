@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage'
 import EventsPage from './pages/EventsPage'
 import CreateEventPage from './pages/CreateEventPage'
 import MyEventsPage from './pages/MyEventsPage'
+import EventDetails from './components/EventDetails'
 
 
 function getPageFromHash(): Page {
@@ -40,6 +41,7 @@ function App() {
   
   const [rsvpedEventIds, setRsvpedEventIds] = useState<number[]>([])
   const [rsvpLoading, setRsvpLoading] = useState<number[]>([])
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
 
   useEffect(() => {
     window.location.hash = '#login'
@@ -171,6 +173,30 @@ function App() {
     }
   }
 
+  const handleUpdate = async (eventId: number, formData: EventFormData) => {
+    const updated = await api.patch<EventResponse>(`/events/${eventId}`, {
+      name: formData.title.trim(),
+      dateTime: toUtcDateTime(
+        formData.date,
+        formData.hour,
+        formData.minute,
+        formData.period,
+      ),
+      location: formData.location.trim(),
+      clubName: formData.clubName.trim(),
+      description: formData.description.trim(),
+      contactEmail: formData.contactEmail.trim(),
+      websiteURL: formData.website.trim(),
+    })
+    const event = fromEventResponse(updated)
+    setEvents((prev) =>
+      sortEventsChronologically(prev.map((current) =>
+        current.id === event.id ? event : current
+      )),
+    )
+    setSelectedEvent(event)
+  }
+
   return (
     <div className="page">
       <AppHeader
@@ -208,6 +234,7 @@ function App() {
             rsvpedEventIds.includes(event.id)
           )}
           onRemoveRSVP={handleRemoveRSVP}
+          onOpenEvent={setSelectedEvent}
           rsvpLoading={rsvpLoading}
           disabled={!currentUser}
         />
@@ -218,7 +245,22 @@ function App() {
           rsvpLoading={rsvpLoading}
           onRSVP={handleRSVP}
           onRemoveRSVP={handleRemoveRSVP}
+          onOpenEvent={setSelectedEvent}
           disabled={!currentUser}
+        />
+      )}
+
+      {selectedEvent && (
+        <EventDetails
+          event={selectedEvent}
+          hasRSVPed={rsvpedEventIds.includes(selectedEvent.id)}
+          isLoading={rsvpLoading.includes(selectedEvent.id)}
+          disabled={!currentUser}
+          isOwner={currentUser?.id === selectedEvent.hostUserId}
+          onRSVP={() => handleRSVP(selectedEvent.id)}
+          onRemoveRSVP={() => handleRemoveRSVP(selectedEvent.id)}
+          onSave={(data) => handleUpdate(selectedEvent.id, data)}
+          onClose={() => setSelectedEvent(null)}
         />
       )}
     </div>

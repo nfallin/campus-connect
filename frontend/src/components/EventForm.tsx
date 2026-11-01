@@ -21,19 +21,28 @@ export type EventFormData = {
 type EventFormProps = {
   onSubmit: (data: EventFormData) => Promise<void>
   disabled?: boolean
+  initialData?: EventFormData
+  submitLabel?: string
+  submittingLabel?: string
 }
 
-function EventForm({ onSubmit, disabled = false }: EventFormProps) {
-  const [title, setTitle] = useState('')
-  const [date, setDate] = useState('')
-  const [hour, setHour] = useState('')
-  const [minute, setMinute] = useState('')
-  const [period, setPeriod] = useState<'AM' | 'PM'>('AM')
-  const [location, setLocation] = useState('')
-  const [clubName, setClubName] = useState('')
-  const [description, setDescription] = useState('')
-  const [contactEmail, setContactEmail] = useState('')
-  const [website, setWebsite] = useState('')
+function EventForm({
+  onSubmit,
+  disabled = false,
+  initialData,
+  submitLabel = 'Create event',
+  submittingLabel = 'Creating...',
+}: EventFormProps) {
+  const [title, setTitle] = useState(initialData?.title ?? '')
+  const [date, setDate] = useState(initialData?.date ?? '')
+  const [hour, setHour] = useState(initialData?.hour ?? '')
+  const [minute, setMinute] = useState(initialData?.minute ?? '')
+  const [period, setPeriod] = useState<'AM' | 'PM'>(initialData?.period ?? 'AM')
+  const [location, setLocation] = useState(initialData?.location ?? '')
+  const [clubName, setClubName] = useState(initialData?.clubName ?? '')
+  const [description, setDescription] = useState(initialData?.description ?? '')
+  const [contactEmail, setContactEmail] = useState(initialData?.contactEmail ?? '')
+  const [website, setWebsite] = useState(initialData?.website ?? '')
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
@@ -215,7 +224,7 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
       </div>
 
       <button type="submit" className="create-btn" disabled={!canSubmit}>
-        {submitting ? 'Creating...' : 'Create event'}
+        {submitting ? submittingLabel : submitLabel}
       </button>
 
       {(inputErrors.length > 0 || disabled) && (

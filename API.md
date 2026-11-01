@@ -56,7 +56,8 @@ IDs are positive integers.
   },
   "contactEmail": "alice@example.com",
   "websiteURL": "https://example.com/game-night",
-  "attendeeCount": 12
+  "attendeeCount": 12,
+  "hostUserId": 1
 }
 ```
 
@@ -179,7 +180,8 @@ Returns all events. Results are sorted by `dateTime`, then by `id`.
       "location": "Room 101",
       "clubName": "Game Development Club",
       "description": "Come play games!",
-      "attendeeCount": 12
+      "attendeeCount": 12,
+      "hostUserId": 1
     }
   ]
 }
@@ -270,7 +272,8 @@ Returns the newly created event:
   },
   "contactEmail": "alice@example.com",
   "websiteURL": "https://example.com/game-night",
-  "attendeeCount": 0
+  "attendeeCount": 0,
+  "hostUserId": 1
 }
 ```
 
@@ -366,7 +369,8 @@ Returns complete event objects for every event the user has RSVP'd to.
       "location": "Room 101",
       "clubName": "Game Development Club",
       "description": "Come play games!",
-      "attendeeCount": 12
+      "attendeeCount": 12,
+      "hostUserId": 1
     }
   ]
 }

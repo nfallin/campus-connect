@@ -7,6 +7,7 @@ type MyEventsPageProps = {
   rsvpLoading: number[]
   disabled: boolean
   onRemoveRSVP: (eventId: number) => void
+  onOpenEvent: (event: Event) => void
 }
 
 function MyEventsPage({
@@ -14,6 +15,7 @@ function MyEventsPage({
   rsvpLoading,
   disabled,
   onRemoveRSVP,
+  onOpenEvent,
 }: MyEventsPageProps) {
   return (
     <main className="events-page">
@@ -38,6 +40,7 @@ function MyEventsPage({
               disabled={disabled}
               onRSVP={() => {}}
               onRemoveRSVP={() => onRemoveRSVP(event.id)}
+              onOpen={() => onOpenEvent(event)}
             />
           ))}
         </ul>

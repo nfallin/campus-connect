@@ -6,6 +6,17 @@
   padding: 16px;
 }
 
+.event-item-clickable {
+  cursor: pointer;
+}
+
+.event-item-clickable:hover,
+.event-item-clickable:focus-visible {
+  background: #f7f7f7;
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}
+
 .event-heading {
   display: flex;
   justify-content: space-between;
