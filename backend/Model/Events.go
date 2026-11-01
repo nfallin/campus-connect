@@ -20,6 +20,9 @@ func (repository *Repository) CreateEvent(request Types.CreateEventRequest) (Typ
 	if request.DateTime.IsZero() {
 		return Types.EventResponse{}, fmt.Errorf("%w: date time is required", ErrInvalidEvent)
 	}
+	if err := requireEventDateTime(request.DateTime); err != nil {
+		return Types.EventResponse{}, err
+	}
 	if request.Location == "" {
 		return Types.EventResponse{}, fmt.Errorf("%w: location is required", ErrInvalidEvent)
 	}
@@ -193,6 +196,9 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 	if request.DateTime != nil {
 		if request.DateTime.IsZero() {
 			return Types.EventResponse{}, fmt.Errorf("%w: date time cannot be zero", ErrInvalidEvent)
+		}
+		if err := requireEventDateTime(*request.DateTime); err != nil {
+			return Types.EventResponse{}, err
 		}
 		current.DateTime = *request.DateTime
 	}

@@ -3,6 +3,8 @@ package Model
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"time"
 )
 
 var ErrNotFound = errors.New("record not found")
@@ -12,6 +14,17 @@ var ErrInvalidEvent = errors.New("invalid event")
 func requirePositiveID(id int) error {
 	if id <= 0 {
 		return ErrInvalidID
+	}
+	return nil
+}
+
+func requireEventDateTime(dateTime time.Time) error {
+	now := time.Now()
+	if dateTime.Before(now) {
+		return fmt.Errorf("%w: date time cannot be in the past", ErrInvalidEvent)
+	}
+	if dateTime.After(now.AddDate(0, 6, 0)) {
+		return fmt.Errorf("%w: date time cannot be more than six months in the future", ErrInvalidEvent)
 	}
 	return nil
 }
