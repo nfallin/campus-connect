@@ -32,7 +32,7 @@ function getPageFromHash(): Page {
 
 function App() {
   
-  const [page, setPage] = useState<Page>('login')
+  const [page, setPage] = useState<Page>(getPageFromHash)
 
   const [currentUser, setCurrentUser] = useState<User | null>(null)
 
@@ -44,8 +44,6 @@ function App() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
 
   useEffect(() => {
-    window.location.hash = '#login'
-
     const handleHashChange = () => setPage(getPageFromHash())
 
     window.addEventListener('hashchange', handleHashChange)
@@ -61,6 +59,14 @@ function App() {
 
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
+
+  useEffect(() => {
+    if (!currentUser && (page === 'create' || page === 'rsvps')) {
+      window.location.hash = '#login'
+    } else if (currentUser && page === 'login') {
+      window.location.hash = '#events'
+    }
+  }, [currentUser, page])
 
   const handleLogin = async (name: string, email: string) => {
     const result = await api.post<UserResponse>('/users', {
@@ -197,40 +203,53 @@ function App() {
     setSelectedEvent(event)
   }
 
+  const visiblePage =
+    !currentUser && (page === 'create' || page === 'rsvps')
+      ? 'login'
+      : currentUser && page === 'login'
+        ? 'events'
+        : page
+
   return (
     <div className="page">
       <div className="page-top">
         <AppHeader
-          page={page}
+          page={visiblePage}
           currentUser={currentUser}
           welcomeMessage={welcomeMessage}
           onLogout={handleLogout}
         />
 
         <nav className="page-nav" aria-label="Main navigation">
-          <a href="#login" aria-current={page === 'login' ? 'page' : undefined}>
-            Login
-          </a>
-          <a href="#create" aria-current={page === 'create' ? 'page' : undefined}>
-            Create event
-          </a>
-          <a href="#events" aria-current={page === 'events' ? 'page' : undefined}>
+          {!currentUser && (
+            <a href="#login" aria-current={visiblePage === 'login' ? 'page' : undefined}>
+              Login
+            </a>
+          )}
+          {currentUser && (
+            <a href="#create" aria-current={visiblePage === 'create' ? 'page' : undefined}>
+              Create event
+            </a>
+          )}
+          <a href="#events" aria-current={visiblePage === 'events' ? 'page' : undefined}>
             View events
           </a>
-          <a href="#rsvps" aria-current={page === 'rsvps' ? 'page' : undefined}>
-            My events
-          </a>
+          {currentUser && (
+            <a href="#rsvps" aria-current={visiblePage === 'rsvps' ? 'page' : undefined}>
+              My events
+            </a>
+          )}
         </nav>
       </div>
       
-      {page === 'login' ? (
+      {visiblePage === 'login' ? (
         <LoginPage onLogin={handleLogin} />
-      ) : page === 'create' ? (
+      ) : visiblePage === 'create' ? (
         <CreateEventPage
           disabled={!currentUser}
           onSubmit={handleCreate}
         />
-      ) : page === 'rsvps' ? (
+      ) : visiblePage === 'rsvps' ? (
         <MyEventsPage
           events={events.filter((event) =>
             rsvpedEventIds.includes(event.id)
