@@ -23,6 +23,7 @@ const eventsTable = `
 		contact_email TEXT,
 		website TEXT,
 		host_user_id INTEGER NOT NULL,
+		UNIQUE(event_name),
 		FOREIGN KEY(host_user_id) REFERENCES users(user_id) ON DELETE RESTRICT
 	);
 `

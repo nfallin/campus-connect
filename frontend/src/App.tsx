@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage'
 import EventsPage from './pages/EventsPage'
 import CreateEventPage from './pages/CreateEventPage'
 import MyEventsPage from './pages/MyEventsPage'
+import EventDetails from './components/EventDetails'
 
 
 function getPageFromHash(): Page {
@@ -31,7 +32,7 @@ function getPageFromHash(): Page {
 
 function App() {
   
-  const [page, setPage] = useState<Page>('login')
+  const [page, setPage] = useState<Page>(getPageFromHash)
 
   const [currentUser, setCurrentUser] = useState<User | null>(null)
 
@@ -40,10 +41,9 @@ function App() {
   
   const [rsvpedEventIds, setRsvpedEventIds] = useState<number[]>([])
   const [rsvpLoading, setRsvpLoading] = useState<number[]>([])
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
 
   useEffect(() => {
-    window.location.hash = '#login'
-
     const handleHashChange = () => setPage(getPageFromHash())
 
     window.addEventListener('hashchange', handleHashChange)
@@ -59,6 +59,14 @@ function App() {
 
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
+
+  useEffect(() => {
+    if (!currentUser && (page === 'create' || page === 'rsvps')) {
+      window.location.hash = '#login'
+    } else if (currentUser && page === 'login') {
+      window.location.hash = '#events'
+    }
+  }, [currentUser, page])
 
   const handleLogin = async (name: string, email: string) => {
     const result = await api.post<UserResponse>('/users', {
@@ -171,43 +179,83 @@ function App() {
     }
   }
 
+  const handleUpdate = async (eventId: number, formData: EventFormData) => {
+    const updated = await api.patch<EventResponse>(`/events/${eventId}`, {
+      name: formData.title.trim(),
+      dateTime: toUtcDateTime(
+        formData.date,
+        formData.hour,
+        formData.minute,
+        formData.period,
+      ),
+      location: formData.location.trim(),
+      clubName: formData.clubName.trim(),
+      description: formData.description.trim(),
+      contactEmail: formData.contactEmail.trim(),
+      websiteURL: formData.website.trim(),
+    })
+    const event = fromEventResponse(updated)
+    setEvents((prev) =>
+      sortEventsChronologically(prev.map((current) =>
+        current.id === event.id ? event : current
+      )),
+    )
+    setSelectedEvent(event)
+  }
+
+  const visiblePage =
+    !currentUser && (page === 'create' || page === 'rsvps')
+      ? 'login'
+      : currentUser && page === 'login'
+        ? 'events'
+        : page
+
   return (
     <div className="page">
-      <AppHeader
-        page={page}
-        currentUser={currentUser}
-        welcomeMessage={welcomeMessage}
-        onLogout={handleLogout}
-      />
+      <div className="page-top">
+        <AppHeader
+          page={visiblePage}
+          currentUser={currentUser}
+          welcomeMessage={welcomeMessage}
+          onLogout={handleLogout}
+        />
 
-      <nav className="page-nav" aria-label="Main navigation">
-        <a href="#login" aria-current={page === 'login' ? 'page' : undefined}>
-          Login
-        </a>
-        <a href="#create" aria-current={page === 'create' ? 'page' : undefined}>
-          Create event
-        </a>
-        <a href="#events" aria-current={page === 'events' ? 'page' : undefined}>
-          View events
-        </a>
-        <a href="#rsvps" aria-current={page === 'rsvps' ? 'page' : undefined}>
-          My events
-        </a>
-      </nav>
+        <nav className="page-nav" aria-label="Main navigation">
+          {!currentUser && (
+            <a href="#login" aria-current={visiblePage === 'login' ? 'page' : undefined}>
+              Login
+            </a>
+          )}
+          {currentUser && (
+            <a href="#create" aria-current={visiblePage === 'create' ? 'page' : undefined}>
+              Create event
+            </a>
+          )}
+          <a href="#events" aria-current={visiblePage === 'events' ? 'page' : undefined}>
+            View events
+          </a>
+          {currentUser && (
+            <a href="#rsvps" aria-current={visiblePage === 'rsvps' ? 'page' : undefined}>
+              My events
+            </a>
+          )}
+        </nav>
+      </div>
       
-      {page === 'login' ? (
+      {visiblePage === 'login' ? (
         <LoginPage onLogin={handleLogin} />
-      ) : page === 'create' ? (
+      ) : visiblePage === 'create' ? (
         <CreateEventPage
           disabled={!currentUser}
           onSubmit={handleCreate}
         />
-      ) : page === 'rsvps' ? (
+      ) : visiblePage === 'rsvps' ? (
         <MyEventsPage
           events={events.filter((event) =>
             rsvpedEventIds.includes(event.id)
           )}
           onRemoveRSVP={handleRemoveRSVP}
+          onOpenEvent={setSelectedEvent}
           rsvpLoading={rsvpLoading}
           disabled={!currentUser}
         />
@@ -218,7 +266,22 @@ function App() {
           rsvpLoading={rsvpLoading}
           onRSVP={handleRSVP}
           onRemoveRSVP={handleRemoveRSVP}
+          onOpenEvent={setSelectedEvent}
           disabled={!currentUser}
+        />
+      )}
+
+      {selectedEvent && (
+        <EventDetails
+          event={selectedEvent}
+          hasRSVPed={rsvpedEventIds.includes(selectedEvent.id)}
+          isLoading={rsvpLoading.includes(selectedEvent.id)}
+          disabled={!currentUser}
+          isOwner={currentUser?.id === selectedEvent.hostUserId}
+          onRSVP={() => handleRSVP(selectedEvent.id)}
+          onRemoveRSVP={() => handleRemoveRSVP(selectedEvent.id)}
+          onSave={(data) => handleUpdate(selectedEvent.id, data)}
+          onClose={() => setSelectedEvent(null)}
         />
       )}
     </div>

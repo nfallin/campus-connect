@@ -1,4 +1,5 @@
 
+import type { KeyboardEvent } from 'react'
 import type { Event } from '../types'
 import './EventCard.css'
 
@@ -9,6 +10,7 @@ type EventCardProps = {
   disabled: boolean
   onRSVP: () => void
   onRemoveRSVP: () => void
+  onOpen: () => void
 }
 
 function toWebsiteHref(website: string) {
@@ -28,9 +30,25 @@ function EventCard({
   disabled,
   onRSVP,
   onRemoveRSVP,
+  onOpen,
 }: EventCardProps) {
+  function handleKeyDown(e: KeyboardEvent<HTMLLIElement>) {
+    if (e.target !== e.currentTarget) return
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onOpen()
+    }
+  }
+
   return (
-    <li className="event-item">
+    <li
+      className="event-item event-item-clickable"
+      role="button"
+      tabIndex={0}
+      aria-label={`Open details for ${event.title}`}
+      onClick={onOpen}
+      onKeyDown={handleKeyDown}
+    >
       <div className="event-heading">
         <div className="event-title">{event.title}</div>
         <div className="event-club">
@@ -49,7 +67,7 @@ function EventCard({
       {(event.contactEmail || event.website) && (
         <div className="event-contact">
           {event.contactEmail && (
-            <a href={`mailto:${event.contactEmail}`}>
+            <a href={`mailto:${event.contactEmail}`} onClick={(e) => e.stopPropagation()}>
               {event.contactEmail}
             </a>
           )}
@@ -61,6 +79,7 @@ function EventCard({
               href={toWebsiteHref(event.website)}
               target="_blank"
               rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
             >
               {event.website}
             </a>
@@ -70,7 +89,14 @@ function EventCard({
 
       <button
         type="button"
-        onClick={hasRSVPed ? onRemoveRSVP : onRSVP}
+        onClick={(e) => {
+          e.stopPropagation()
+          if (hasRSVPed) {
+            onRemoveRSVP()
+          } else {
+            onRSVP()
+          }
+        }}
         disabled={disabled || isLoading}
       >
         {isLoading

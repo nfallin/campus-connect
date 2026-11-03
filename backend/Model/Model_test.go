@@ -89,13 +89,20 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	}
 
 	// attempt to create a valid event
-	when := time.Date(2026, 10, 28, 18, 0, 0, 0, time.UTC)
+	when := time.Now().UTC().Add(24 * time.Hour)
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
 		Name: "Meeting", DateTime: when, Location: "Room 1", ClubName: "Club A", Description: "Description",
 		HostUserID: &host.ID,
 	})
 	if err != nil || event.Host == nil || event.AttendeeCount != 0 {
 		t.Fatalf("create event = %+v, %v", event, err)
+	}
+	duplicate := Types.CreateEventRequest{
+		Name: "Meeting", DateTime: when.Add(time.Hour), Location: "Room 2",
+		ClubName: "Club B", Description: "Another meeting", HostUserID: &host.ID,
+	}
+	if _, err := repository.CreateEvent(duplicate); !errors.Is(err, ErrDuplicateEventName) {
+		t.Fatalf("duplicate event name error = %v", err)
 	}
 
 	// attempt to get an event
@@ -131,6 +138,16 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	updated, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{Name: &name, Location: &location})
 	if err != nil || updated.Name != name || updated.Location != location {
 		t.Fatalf("update event = %+v, %v", updated, err)
+	}
+	otherEvent, err := repository.CreateEvent(Types.CreateEventRequest{
+		Name: "Another event", DateTime: when.Add(2 * time.Hour), Location: "Room 3",
+		ClubName: "Club C", Description: "Another event", HostUserID: &host.ID,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := repository.UpdateEvent(otherEvent.ID, Types.UpdateEventRequest{Name: &updated.Name}); !errors.Is(err, ErrDuplicateEventName) {
+		t.Fatalf("duplicate event update error = %v", err)
 	}
 
 	// attempt to get a nonexistent event
@@ -175,6 +192,27 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{HostUserID: intPointer(0)}); !errors.Is(err, ErrInvalidEvent) {
 		t.Fatalf("non-positive replacement host error = %v", err)
 	}
+	// attempt to create or update an event with a past or far future date
+	if _, err := repository.CreateEvent(Types.CreateEventRequest{
+		Name: "Past event", DateTime: time.Now().Add(-time.Minute), Location: "Room", ClubName: "Club",
+		Description: "Description", HostUserID: &host.ID,
+	}); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("past event error = %v", err)
+	}
+	if _, err := repository.CreateEvent(Types.CreateEventRequest{
+		Name: "Far future event", DateTime: time.Now().AddDate(0, 7, 0), Location: "Room", ClubName: "Club",
+		Description: "Description", HostUserID: &host.ID,
+	}); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("far future event error = %v", err)
+	}
+	past := time.Now().Add(-time.Minute)
+	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{DateTime: &past}); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("past update error = %v", err)
+	}
+	farFuture := time.Now().AddDate(0, 7, 0)
+	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{DateTime: &farFuture}); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("far future update error = %v", err)
+	}
 	// attempt to delete an event
 	if err := repository.DeleteEvent(event.ID); err != nil {
 		t.Fatal(err)
@@ -190,7 +228,7 @@ func TestRepositoryRSVPs(t *testing.T) {
 	host, _, _ := repository.CreateUser(Types.CreateUserRequest{Name: "Host", Email: "host@example.com"})
 	attendee, _, _ := repository.CreateUser(Types.CreateUserRequest{Name: "Attendee", Email: "attendee@example.com"})
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
-		Name: "Meeting", DateTime: time.Now().UTC(), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
+		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -231,7 +269,7 @@ func TestRepositoryDeleteRelationships(t *testing.T) {
 		t.Fatal(err)
 	}
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
-		Name: "Meeting", DateTime: time.Now().UTC(), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
+		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
 	})
 	if err != nil {
 		t.Fatal(err)

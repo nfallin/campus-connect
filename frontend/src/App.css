@@ -30,6 +30,18 @@ html {
   max-width: 420px;
 }
 
+.page-top {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  width: 100%;
+  max-width: 420px;
+  margin-top: -24px;
+  background: #fff;
+  padding-top: 24px;
+  padding-bottom: 4px;
+}
+
 /* Navigation */
 
 .page-nav {

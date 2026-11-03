@@ -2,7 +2,7 @@
 
 Campus Connect is a web application designed to help Santa Clara University students discover campus events in one place. The goal is to make it easier for students to find events, explore campus activities, and get involved without having to search through multiple platforms.
 
-This repository contains the React frontend and Go API for Campus Connect. The backend must be running for the frontend to work properly.
+This repository contains the React frontend and Go API/Database for Campus Connect. The backend must be running for the frontend to work properly.
 
 ## 1. Prerequisites
 - Node.js 22 or newer (`node -v` to check)
@@ -21,6 +21,14 @@ To install frontend dependencies:
 cd frontend
 npm install
 ```
+
+## 2.5. Database Management
+If you've previously ran a version of the backend software that contained outdated database table formats, delete the previous database file before running the backend to re-initialize it with the new format.
+```bash
+cd backend
+rm campus_connect.db
+```
+You can verify difference in database structures by looking for modifications to `Tables.go`. 
 
 ## 3. Launch the backend
 Open a dedicated terminal for the backend and run:
@@ -65,10 +73,13 @@ npm test
 - `API.md`: Developer communication contract for sending information between the backend and frontend
 - `REQUIREMENTS.md` Current list of system user requirements
 - `SPECIFICATIONS.md` Current list of system user specifications
+- `MVP ER Diagram.png` MVP ER Diagram
+- `MVP CRC Diagram.png` MVP CRC Diagram
 
 ## Tech Stack
 - **React and TypeScript:** Frontend development
 - **Vite:** Development server and build tool
 - **Go:** Backend API
+- **SQLite** Backend Database
 - **Vitest:** Frontend unit testing
 - **GitHub Actions:** Automated testing and build checks

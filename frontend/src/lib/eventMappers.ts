@@ -15,5 +15,6 @@ export function fromEventResponse(event: EventResponse): Event {
     contactEmail: event.contactEmail ?? '',
     description: event.description ?? '',
     website: event.websiteURL ?? '',
+    hostUserId: event.hostUserId,
   }
 }

@@ -103,7 +103,7 @@ func TestEventRoutes(t *testing.T) {
 	}
 
 	body := Types.CreateEventRequest{
-		Name: "Meeting", DateTime: time.Now().UTC(), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
+		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
 	}
 
 	// attempt to list an empty events list
@@ -113,6 +113,9 @@ func TestEventRoutes(t *testing.T) {
 	// attempt to create a valid event
 	if response := request(t, controllerBackend.router, http.MethodPost, "/events", body); response.Code != http.StatusCreated {
 		t.Fatalf("create event status = %d", response.Code)
+	}
+	if response := request(t, controllerBackend.router, http.MethodPost, "/events", body); response.Code != http.StatusConflict {
+		t.Fatalf("duplicate event status = %d", response.Code)
 	}
 	// attempt to get that event
 	if response := request(t, controllerBackend.router, http.MethodGet, "/events/1", nil); response.Code != http.StatusOK {
@@ -173,7 +176,7 @@ func TestControllerDatabaseErrors(t *testing.T) {
 	controllerBackend.db.Close()
 
 	validUser := Types.CreateUserRequest{Name: "Alice", Email: "alice@example.com"}
-	validEvent := Types.CreateEventRequest{Name: "Meeting", DateTime: time.Now().UTC(), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: intPointer(1)}
+	validEvent := Types.CreateEventRequest{Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: intPointer(1)}
 
 	for _, test := range []struct {
 		name   string
@@ -213,7 +216,7 @@ func TestRSVPRoutes(t *testing.T) {
 		t.Fatal(err)
 	}
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
-		Name: "Meeting", DateTime: time.Now().UTC(), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
+		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
 	})
 	if err != nil {
 		t.Fatal(err)
