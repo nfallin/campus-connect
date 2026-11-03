@@ -9,11 +9,12 @@
 
 # Inspect:
 - A user should be able to see any event's title, date, time, location, description, hosting club, and optionally provided contact email and website link.
+- A user should be able to open an event's full details from the event list to see all of its information in one place.
 - A user should be able to see a message indicating no events exist when the event list is empty.
 - A user should be able to see contact information and website link link for an event when it was provided by its host.
 
 # Manage:
-- A user should be able to RSVP to an event.
+- A user should be able to RSVP to an event once they have signed into an account.
 - A user should be able to remove their RSVP to any event they registered for.
 - A user should be able to see a list of only events they’ve RSVP’d to
 - A user should be able to see a message indicating no RSVP'd events when their RSVP list is empty.
@@ -28,4 +29,5 @@
 - A user should be able to create a new event by entering a title, date, time, location, description, and hosting club.
 - A user should be able to optionally provide a contact email and/or website when creating an event.
 - A user should be able to see a list of all missing requirements if they haven't filled every condition for creating an event
-- A user should be able to edit the details of an event that they created.
+- A user should be able to see an error message if they try to create an event whose name is already in use.
+- A user should be able to edit the details of an event that they created, but not an event created by another user.
