@@ -15,6 +15,7 @@
 - The frontend must display all events successfully retrieved from the backend, including their title, date, time, location, club name, contact email, and event website.
 
 ## Non-Functional Specifications
-- The frontend must obtain the list of stored events within 3 seconds of initialization as long as the backend is running and reachable. 
+- The frontend must obtain the list of stored events within 3 seconds of initialization as long as the backend is running and reachable.
+- The frontend UI layout must be accessable and usable on a mobile device 
 - The backend must create and store event objects when supplied with a valid request as outlined in `API.md` within 3 seconds.
 - The backend must return the appropriate response to any valid request as outlined in `API.md` within 3 seconds.

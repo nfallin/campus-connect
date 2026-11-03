@@ -4,6 +4,7 @@
 - A user should be able to view the list of all existing campus events.
 - A user should be able to see a newly created event appear in the event list immediately after creation.
 - A user should be able to view events within the app without creating an account first.
+- A user should be able to scroll through the list of events like a mobile app.
 
 
 # Inspect:
