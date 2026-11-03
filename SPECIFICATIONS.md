@@ -10,6 +10,8 @@
 - The frontend must refuse to allow the user to create an event whose website link does not match a valid URL.
 - The frontend must provide functional hyperlinks for events containing website links.
 - The frontend must refuse to allow the user to create an event unless they have signed into an account
+- Event names must be unique.
+- User name/email pairs must be unique.
 - The API must reject any requests that do not match the request formats outlined in `API.md`.
 - The API must reject event creation requests that do not contain a host ID identifying an existing user.
 - The frontend must display all events successfully retrieved from the backend, including their title, date, time, location, club name, contact email, and event website.
