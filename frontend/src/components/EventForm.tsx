@@ -90,7 +90,9 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
       resetForm()
     } catch (err) {
       console.error('Failed to create event', err)
-      setSubmitError('Failed to create event. Please try again.')
+      setSubmitError(
+        err instanceof Error ? err.message : 'Failed to create event. Please try again.',
+      )
     } finally {
       setSubmitting(false)
     }

@@ -252,6 +252,7 @@ Content-Type: application/json
 
 `hostUserId` is required and must identify an existing user.
 `contactEmail` and `websiteURL` are optional and may be empty.
+requests that re-use existing event names will be rejected
 
 #### Response: `201 Created`
 
@@ -282,6 +283,16 @@ Returns the newly created event:
 Returned when the JSON is malformed, a required field is missing, or
 `dateTime` is not a valid timestamp.
 
+#### Response: `409 Conflict`
+
+Returned when another event already has the requested name.
+
+```json
+{
+  "message": "event name already exists"
+}
+```
+
 ### Edit an event
 
 ```http
@@ -302,7 +313,8 @@ All fields are optional. Omitted fields keep their existing values, while provid
 
 The response is the updated event object with status `200 OK`. The endpoint
 returns `404 Not Found` when the event does not exist and `400 Bad Request`
-when the event ID, JSON, or host user ID is invalid.
+when the event ID, JSON, or host user ID is invalid. It returns `409 Conflict`
+when the updated name is already used by another event.
 
 ## RSVPs
 

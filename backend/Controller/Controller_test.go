@@ -114,6 +114,9 @@ func TestEventRoutes(t *testing.T) {
 	if response := request(t, controllerBackend.router, http.MethodPost, "/events", body); response.Code != http.StatusCreated {
 		t.Fatalf("create event status = %d", response.Code)
 	}
+	if response := request(t, controllerBackend.router, http.MethodPost, "/events", body); response.Code != http.StatusConflict {
+		t.Fatalf("duplicate event status = %d", response.Code)
+	}
 	// attempt to get that event
 	if response := request(t, controllerBackend.router, http.MethodGet, "/events/1", nil); response.Code != http.StatusOK {
 		t.Fatalf("get event status = %d", response.Code)

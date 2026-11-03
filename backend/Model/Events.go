@@ -50,7 +50,7 @@ func (repository *Repository) CreateEvent(request Types.CreateEventRequest) (Typ
 		request.ClubName, request.Description, request.ContactEmail, request.WebsiteURL, *request.HostUserID)
 
 	if err != nil {
-		return Types.EventResponse{}, err
+		return Types.EventResponse{}, translateEventWriteError(err)
 	}
 
 	id, err := result.LastInsertId()
@@ -253,7 +253,7 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 		current.HostUserID, id)
 
 	if err != nil {
-		return Types.EventResponse{}, err
+		return Types.EventResponse{}, translateEventWriteError(err)
 	}
 
 	return repository.GetEvent(id)

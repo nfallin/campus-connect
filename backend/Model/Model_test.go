@@ -97,6 +97,13 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	if err != nil || event.Host == nil || event.AttendeeCount != 0 {
 		t.Fatalf("create event = %+v, %v", event, err)
 	}
+	duplicate := Types.CreateEventRequest{
+		Name: "Meeting", DateTime: when.Add(time.Hour), Location: "Room 2",
+		ClubName: "Club B", Description: "Another meeting", HostUserID: &host.ID,
+	}
+	if _, err := repository.CreateEvent(duplicate); !errors.Is(err, ErrDuplicateEventName) {
+		t.Fatalf("duplicate event name error = %v", err)
+	}
 
 	// attempt to get an event
 	all, err := repository.GetEvents(Types.EventFilters{})
@@ -131,6 +138,16 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	updated, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{Name: &name, Location: &location})
 	if err != nil || updated.Name != name || updated.Location != location {
 		t.Fatalf("update event = %+v, %v", updated, err)
+	}
+	otherEvent, err := repository.CreateEvent(Types.CreateEventRequest{
+		Name: "Another event", DateTime: when.Add(2 * time.Hour), Location: "Room 3",
+		ClubName: "Club C", Description: "Another event", HostUserID: &host.ID,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := repository.UpdateEvent(otherEvent.ID, Types.UpdateEventRequest{Name: &updated.Name}); !errors.Is(err, ErrDuplicateEventName) {
+		t.Fatalf("duplicate event update error = %v", err)
 	}
 
 	// attempt to get a nonexistent event

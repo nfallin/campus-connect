@@ -5,11 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"modernc.org/sqlite"
+	sqlite3 "modernc.org/sqlite/lib"
 )
 
 var ErrNotFound = errors.New("record not found")
 var ErrInvalidID = errors.New("id must be a positive integer")
 var ErrInvalidEvent = errors.New("invalid event")
+var ErrDuplicateEventName = errors.New("Event name must be unique.")
 
 func requirePositiveID(id int) error {
 	if id <= 0 {
@@ -41,4 +45,12 @@ func requireAffected(result sql.Result) error {
 	}
 
 	return nil
+}
+
+func translateEventWriteError(err error) error {
+	var sqliteError *sqlite.Error
+	if errors.As(err, &sqliteError) && sqliteError.Code() == sqlite3.SQLITE_CONSTRAINT_UNIQUE {
+		return ErrDuplicateEventName
+	}
+	return err
 }

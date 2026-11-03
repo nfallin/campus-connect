@@ -18,7 +18,14 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!res.ok) {
     const body = await res.text().catch(() => '')
-    throw new ApiError(res.status, body || res.statusText)
+    let message = body || res.statusText
+    try {
+      const parsed = JSON.parse(body) as { message?: string }
+      if (parsed.message) message = parsed.message
+    } catch {
+      // Keep the response body when it is not a JSON error response.
+    }
+    throw new ApiError(res.status, message)
   }
 
   const text = await res.text()
