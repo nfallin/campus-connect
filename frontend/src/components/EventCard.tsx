@@ -13,11 +13,11 @@ type EventCardProps = {
   onOpen: () => void
 }
 
-function toWebsiteHref(website: string) {
+export function toWebsiteHref(website: string) {
   return /^https?:\/\//i.test(website) ? website : `https://${website}`
 }
 
-function formatDate(value: string) {
+export function formatDate(value: string) {
   const [year, month, day] = value.split('-')
   if (!year || !month || !day) return value
   return `${month}/${day}/${year}`

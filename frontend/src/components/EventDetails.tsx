@@ -15,7 +15,7 @@ type EventDetailsProps = {
   onClose: () => void
 }
 
-function toFormData(event: Event): EventFormData {
+export function toFormData(event: Event): EventFormData {
   const dateTime = new Date(event.dateTime)
   const hours = dateTime.getHours()
   return {
