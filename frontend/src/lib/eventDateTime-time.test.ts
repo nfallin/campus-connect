@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   toUtcDateTime,
   fromUtcDateTime,
-} from './lib/eventDateTime'
+} from './eventDateTime'
 
 describe('Event date and time conversion', () => {
   it('preserves the selected date when scheduling an event at 8:00 PM', () => {
