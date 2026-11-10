@@ -8,13 +8,13 @@
 .header-top {
   position: relative;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  min-height: 52px;
+  min-height: 40px;
 }
 
 .header-title {
-  text-align: center;
+  text-align: left;
 }
 
 .header-title h1 {
@@ -34,10 +34,10 @@
 /* Welcome message */
 
 .welcome-message-slot {
-  height: 24px;
-  margin-top: 6px;
+  min-height: 16px;
+  margin-top: 2px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
 }
 
@@ -46,4 +46,9 @@
   font-size: 12px;
   color: rgb(2, 164, 2);
   text-align: center;
+}
+
+.page-header .user-card {
+  position: static;
+  transform: none;
 }

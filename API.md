@@ -46,6 +46,7 @@ IDs are positive integers.
   "id": 1,
   "name": "Game Night",
   "dateTime": "2026-10-25T18:30:00Z",
+  "endDateTime": "2026-10-25T20:30:00Z",
   "location": "Room 101",
   "clubName": "Game Development Club",
   "description": "Come play games!",
@@ -251,6 +252,7 @@ Content-Type: application/json
 ```
 
 `hostUserId` is required and must identify an existing user.
+`endDateTime` is optional and, when provided, must be later than `dateTime`.
 `contactEmail` and `websiteURL` are optional and may be empty.
 requests that re-use existing event names will be rejected
 

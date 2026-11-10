@@ -10,6 +10,20 @@ import (
 )
 
 // Events
+func formatOptionalDateTime(value *time.Time) any {
+	if value == nil {
+		return nil
+	}
+	return value.Format(time.RFC3339)
+}
+
+func validateEventEndDateTime(start, end time.Time) error {
+	if end.Sub(start) < 30*time.Minute {
+		return fmt.Errorf("%w: end date time must be at least 30 minutes after start date time", ErrInvalidEvent)
+	}
+	return nil
+}
+
 func (repository *Repository) CreateEvent(request Types.CreateEventRequest) (Types.EventResponse, error) {
 	if request.HostUserID == nil {
 		return Types.EventResponse{}, fmt.Errorf("%w: host user id is required", ErrInvalidEvent)
@@ -22,6 +36,14 @@ func (repository *Repository) CreateEvent(request Types.CreateEventRequest) (Typ
 	}
 	if err := requireEventDateTime(request.DateTime); err != nil {
 		return Types.EventResponse{}, err
+	}
+	if request.EndDateTime != nil {
+		if err := validateEventEndDateTime(request.DateTime, *request.EndDateTime); err != nil {
+			return Types.EventResponse{}, err
+		}
+		if err := requireEventDateTime(*request.EndDateTime); err != nil {
+			return Types.EventResponse{}, err
+		}
 	}
 	if request.Location == "" {
 		return Types.EventResponse{}, fmt.Errorf("%w: location is required", ErrInvalidEvent)
@@ -42,12 +64,12 @@ func (repository *Repository) CreateEvent(request Types.CreateEventRequest) (Typ
 
 	result, err := repository.db.Exec(`
 		INSERT INTO events (
-			event_name, date_time, location, club_name, description,
+			event_name, date_time, end_date_time, location, club_name, description,
 			contact_email, website, host_user_id
 		)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-	`, request.Name, request.DateTime.Format(time.RFC3339), request.Location,
-		request.ClubName, request.Description, request.ContactEmail, request.WebsiteURL, *request.HostUserID)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`, request.Name, request.DateTime.Format(time.RFC3339), formatOptionalDateTime(request.EndDateTime),
+		request.Location, request.ClubName, request.Description, request.ContactEmail, request.WebsiteURL, *request.HostUserID)
 
 	if err != nil {
 		return Types.EventResponse{}, translateEventWriteError(err)
@@ -67,10 +89,11 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 	}
 	var event Types.EventResponse
 	var dateTime string
+	var endDateTime sql.NullString
 	var host Types.UserResponse
 
 	err := repository.db.QueryRow(`
-		SELECT e.event_id, e.event_name, e.date_time, e.location,
+		SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
 			e.club_name, e.description, e.contact_email, e.website,
 			e.host_user_id,
 			u.user_id, u.user_name, u.user_email,
@@ -78,7 +101,7 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 		FROM events e
 		JOIN users u ON u.user_id = e.host_user_id
 		WHERE e.event_id = ?
-	`, id).Scan(&event.ID, &event.Name, &dateTime, &event.Location,
+	`, id).Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
 		&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
 		&event.HostUserID, &host.ID, &host.Name, &host.Email,
 		&event.AttendeeCount)
@@ -95,6 +118,13 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 	if err != nil {
 		return Types.EventResponse{}, err
 	}
+	if endDateTime.Valid {
+		parsedEndDateTime, parseErr := time.Parse(time.RFC3339, endDateTime.String)
+		if parseErr != nil {
+			return Types.EventResponse{}, parseErr
+		}
+		event.EndDateTime = &parsedEndDateTime
+	}
 
 	event.Host = &host
 
@@ -103,7 +133,7 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 
 func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.EventResponse, error) {
 	query := `
-		SELECT e.event_id, e.event_name, e.date_time, e.location,
+		SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
 			e.club_name, e.description, e.contact_email, e.website,
 			e.host_user_id, u.user_id, u.user_name, u.user_email,
 			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id)
@@ -156,9 +186,10 @@ func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.Eve
 	for rows.Next() {
 		var event Types.EventResponse
 		var dateTime string
+		var endDateTime sql.NullString
 		var host Types.UserResponse
 
-		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &event.Location,
+		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
 			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
 			&event.HostUserID, &host.ID, &host.Name, &host.Email, &event.AttendeeCount); err != nil {
 			return nil, err
@@ -167,6 +198,13 @@ func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.Eve
 		event.DateTime, err = time.Parse(time.RFC3339, dateTime)
 		if err != nil {
 			return nil, err
+		}
+		if endDateTime.Valid {
+			parsedEndDateTime, parseErr := time.Parse(time.RFC3339, endDateTime.String)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			event.EndDateTime = &parsedEndDateTime
 		}
 
 		event.Host = &host
@@ -201,6 +239,25 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 			return Types.EventResponse{}, err
 		}
 		current.DateTime = *request.DateTime
+	}
+	if request.EndDateTime != nil && request.EndDateTime.Set {
+		if request.EndDateTime.Value == nil {
+			current.EndDateTime = nil
+		} else {
+			requestedEndDateTime := request.EndDateTime.Value
+			if err := validateEventEndDateTime(current.DateTime, *requestedEndDateTime); err != nil {
+				return Types.EventResponse{}, err
+			}
+			if err := requireEventDateTime(*requestedEndDateTime); err != nil {
+				return Types.EventResponse{}, err
+			}
+			current.EndDateTime = requestedEndDateTime
+		}
+	}
+	if current.EndDateTime != nil {
+		if err := validateEventEndDateTime(current.DateTime, *current.EndDateTime); err != nil {
+			return Types.EventResponse{}, err
+		}
 	}
 
 	if request.Location != nil {
@@ -245,10 +302,10 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 
 	_, err = repository.db.Exec(`
 		UPDATE events
-		SET event_name = ?, date_time = ?, location = ?, club_name = ?, description = ?,
+		SET event_name = ?, date_time = ?, end_date_time = ?, location = ?, club_name = ?, description = ?,
 			contact_email = ?, website = ?, host_user_id = ?
 		WHERE event_id = ?
-	`, current.Name, current.DateTime.Format(time.RFC3339), current.Location,
+	`, current.Name, current.DateTime.Format(time.RFC3339), formatOptionalDateTime(current.EndDateTime), current.Location,
 		current.ClubName, current.Description, current.ContactEmail, current.WebsiteURL,
 		current.HostUserID, id)
 

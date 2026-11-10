@@ -2,6 +2,7 @@ package Model
 
 import (
 	"campus_connect/Types"
+	"database/sql"
 	"time"
 )
 
@@ -62,8 +63,8 @@ func (repository *Repository) GetUserRSVPs(userID int) ([]Types.EventResponse, e
 	}
 
 	rows, err := repository.db.Query(`
-		SELECT e.event_id, e.event_name, e.date_time, e.location,
-			e.club_name, e.contact_email, e.website, e.host_user_id,
+		SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
+			e.club_name, e.description, e.contact_email, e.website, e.host_user_id,
 			u.user_id, u.user_name, u.user_email,
 			(SELECT COUNT(*) FROM rsvps all_rsvps WHERE all_rsvps.event_id = e.event_id)
 		FROM events e
@@ -84,10 +85,11 @@ func (repository *Repository) GetUserRSVPs(userID int) ([]Types.EventResponse, e
 	for rows.Next() {
 		var event Types.EventResponse
 		var dateTime string
+		var endDateTime sql.NullString
 		var host Types.UserResponse
 
-		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &event.Location,
-			&event.ClubName, &event.ContactEmail, &event.WebsiteURL,
+		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
+			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
 			&event.HostUserID, &host.ID, &host.Name, &host.Email,
 			&event.AttendeeCount); err != nil {
 			return nil, err
@@ -97,6 +99,13 @@ func (repository *Repository) GetUserRSVPs(userID int) ([]Types.EventResponse, e
 
 		if err != nil {
 			return nil, err
+		}
+		if endDateTime.Valid {
+			parsedEndDateTime, parseErr := time.Parse(time.RFC3339, endDateTime.String)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			event.EndDateTime = &parsedEndDateTime
 		}
 
 		event.Host = &host

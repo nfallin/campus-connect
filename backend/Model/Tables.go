@@ -17,6 +17,7 @@ const eventsTable = `
 		event_id INTEGER PRIMARY KEY AUTOINCREMENT,
 		event_name TEXT NOT NULL,
 		date_time TEXT NOT NULL,
+		end_date_time TEXT,
 		location TEXT NOT NULL,
 		club_name TEXT NOT NULL,
 		description TEXT NOT NULL,

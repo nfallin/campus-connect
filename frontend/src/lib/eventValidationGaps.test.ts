@@ -10,6 +10,8 @@ describe('event validation gaps (Kaavya Jethwa)', () => {
     date: '2026-11-15',
     hour: '10',
     minute: '30',
+    period: 'AM',
+    endTime: '',
     location: 'Student Center',
     clubName: 'ACM',
     description: 'Join us for a day of coding and fun!',

@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { api } from './lib/api'
-import { sortEventsChronologically, toUtcDateTime } from './lib/eventDateTime'
+import {
+  sortEventsChronologically,
+  toUtcDateTime,
+  toUtcDateTimeFromLocalTime,
+} from './lib/eventDateTime'
 import { fromEventResponse } from './lib/eventMappers'
 import './App.css'
 
@@ -115,6 +119,9 @@ function App() {
         formData.minute,
         formData.period,
       ),
+      endDateTime: formData.endTime
+        ? toUtcDateTimeFromLocalTime(formData.date, formData.endTime)
+        : null,
       location: formData.location.trim(),
       clubName: formData.clubName.trim(),
       description: formData.description.trim(),
@@ -188,6 +195,9 @@ function App() {
         formData.minute,
         formData.period,
       ),
+      endDateTime: formData.endTime
+        ? toUtcDateTimeFromLocalTime(formData.date, formData.endTime)
+        : '',
       location: formData.location.trim(),
       clubName: formData.clubName.trim(),
       description: formData.description.trim(),

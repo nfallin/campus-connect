@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { fromUtcDateTime, sortEventsChronologically, toUtcDateTime } from './eventDateTime'
+import {
+  fromUtcDateTime,
+  fromUtcDateTimeToLocalDisplayTime,
+  sortEventsChronologically,
+  toUtcDateTime,
+} from './eventDateTime'
 
 describe('event date/time conversion', () => {
   it('converts the selected local date and time to a UTC timestamp', () => {
@@ -20,6 +25,14 @@ describe('event date/time conversion', () => {
       date: localDate,
       time: dateTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
     })
+  })
+
+  it('formats the displayed end time the same way as the start time', () => {
+    const dateTime = new Date('2026-01-15T02:30:00.000Z')
+
+    expect(fromUtcDateTimeToLocalDisplayTime(dateTime.toISOString())).toBe(
+      dateTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+    )
   })
 
   it('sorts events by UTC date and time, with ID as a deterministic tie-breaker', () => {
