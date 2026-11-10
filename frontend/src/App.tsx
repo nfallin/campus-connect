@@ -147,8 +147,8 @@ function App() {
         prev.includes(eventId) ? prev : [...prev, eventId]
       )
     } catch (err) {
-      console.error('Failed to RSVP', err)
-      alert('Unable to RSVP. Please try again.')
+      console.error('Failed to register for event', err)
+      alert('Unable to register. Please try again.')
     } finally {
       setRsvpLoading((prev) =>
         prev.filter((id) => id !== eventId)
@@ -170,8 +170,8 @@ function App() {
         prev.filter((id) => id !== eventId)
       )
     } catch (err) {
-      console.error('Failed to remove RSVP', err)
-      alert('Unable to remove RSVP. Please try again.')
+      console.error('Failed to cancel event registration', err)
+      alert('Unable to cancel registration. Please try again.')
     } finally {
       setRsvpLoading((prev) =>
         prev.filter((id) => id !== eventId)

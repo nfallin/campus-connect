@@ -124,10 +124,10 @@ function EventDetails({
                   {isLoading
                     ? 'Please wait...'
                     : disabled
-                      ? 'Sign in to RSVP'
+                      ? 'Sign in to register'
                       : hasRSVPed
-                        ? 'Remove RSVP'
-                        : 'RSVP'}
+                        ? 'Cancel registration'
+                        : 'Register'}
                 </button>
                 {isOwner && (
                   <button

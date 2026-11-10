@@ -27,7 +27,7 @@ function MyEventsPage({
         </p>
       ) : events.length === 0 ? (
         <p className="events-empty">
-          You haven't RSVP'd to any events yet.
+          You haven't registered for any events yet.
         </p>
       ) : (
         <ul className="events-list">
