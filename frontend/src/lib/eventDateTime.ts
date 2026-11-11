@@ -9,6 +9,24 @@ export function toUtcDateTime(
   return new Date(`${date}T${String(hour24).padStart(2, '0')}:${minute}:00`).toISOString()
 }
 
+export function toUtcDateTimeFromLocalTime(date: string, time: string): string {
+  return new Date(`${date}T${time}:00`).toISOString()
+}
+
+export function fromUtcDateTimeToLocalTime(value?: string | null): string {
+  if (!value) return ''
+  const dateTime = new Date(value)
+  return `${String(dateTime.getHours()).padStart(2, '0')}:${String(dateTime.getMinutes()).padStart(2, '0')}`
+}
+
+export function fromUtcDateTimeToLocalDisplayTime(value?: string | null): string {
+  if (!value) return ''
+  return new Date(value).toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
 export function fromUtcDateTime(value: string): { date: string; time: string } {
   const dateTime = new Date(value)
   const date = [
@@ -19,7 +37,7 @@ export function fromUtcDateTime(value: string): { date: string; time: string } {
 
   return {
     date,
-    time: dateTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+    time: fromUtcDateTimeToLocalDisplayTime(value),
   }
 }
 

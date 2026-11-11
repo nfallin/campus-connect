@@ -1,6 +1,7 @@
 
 import type { KeyboardEvent } from 'react'
 import type { Event } from '../types'
+import { fromUtcDateTimeToLocalDisplayTime } from '../lib/eventDateTime'
 import './EventCard.css'
 
 type EventCardProps = {
@@ -57,7 +58,8 @@ function EventCard({
       </div>
 
       <div className="event-meta">
-        {formatDate(event.date)} &middot; {event.time} &middot; {event.location}
+        {formatDate(event.date)} &middot; {event.time}
+        {event.endDateTime && ` - ${fromUtcDateTimeToLocalDisplayTime(event.endDateTime)}`} &middot; {event.location}
       </div>
 
       {event.description && (
@@ -102,10 +104,10 @@ function EventCard({
         {isLoading
           ? 'Please wait...'
           : disabled
-            ? 'Sign in to RSVP'
+            ? 'Sign in to register'
             : hasRSVPed
-              ? 'Remove RSVP'
-              : 'RSVP'}
+              ? 'Cancel registration'
+              : 'Register'}
       </button>
     </li>
   )

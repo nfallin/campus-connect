@@ -46,6 +46,7 @@ IDs are positive integers.
   "id": 1,
   "name": "Game Night",
   "dateTime": "2026-10-25T18:30:00Z",
+  "endDateTime": "2026-10-25T20:30:00Z",
   "location": "Room 101",
   "clubName": "Game Development Club",
   "description": "Come play games!",
@@ -251,7 +252,12 @@ Content-Type: application/json
 ```
 
 `hostUserId` is required and must identify an existing user.
+`endDateTime` is optional and, when provided, must be at least 30 minutes after `dateTime`.
 `contactEmail` and `websiteURL` are optional and may be empty.
+The event name is limited to 75 characters. The organization name (`clubName`)
+and location are limited to 50 characters each. The description is limited to
+500 characters, the contact email to 30 characters, and the website URL to
+60 characters.
 requests that re-use existing event names will be rejected
 
 #### Response: `201 Created`

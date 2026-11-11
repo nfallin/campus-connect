@@ -15,6 +15,8 @@ describe('event validation (Sabrina Codipilly)', () => {
     date: '2026-11-15',
     hour: '10',
     minute: '30',
+    period: 'AM',
+    endTime: '',
     location: 'Student Center',
     clubName: 'ACM',
     description: 'Join us for a day of coding and fun!',
@@ -70,8 +72,24 @@ describe('event validation (Sabrina Codipilly)', () => {
     ).toEqual([
       'Enter an event title.',
       'Choose today or a future date.',
-      'Choose an event time.',
+      'Choose a start time.',
       'Enter a valid contact email or leave it blank.',
     ])
+  })
+
+  it('accepts an empty optional end time and requires a 30-minute duration', () => {
+    expect(isValidEventInput(validEvent, today)).toBe(true)
+    expect(
+      getEventInputErrors({ ...validEvent, endTime: 'incomplete' }, today),
+    ).toContain('Choose both an hour and minute for the end time.')
+    expect(
+      getEventInputErrors({ ...validEvent, endTime: '10:59' }, today),
+    ).toContain('Choose an end time at least 30 minutes after the start time.')
+    expect(
+      getEventInputErrors({ ...validEvent, endTime: '10:30' }, today),
+    ).toContain('Choose an end time at least 30 minutes after the start time.')
+    expect(
+      getEventInputErrors({ ...validEvent, endTime: '11:00' }, today),
+    ).toEqual([])
   })
 })

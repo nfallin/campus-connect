@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import EventForm, { type EventFormData } from './EventForm'
 import type { Event } from '../types'
+import {
+  fromUtcDateTimeToLocalDisplayTime,
+  fromUtcDateTimeToLocalTime,
+} from '../lib/eventDateTime'
 import './EventDetails.css'
 
 type EventDetailsProps = {
@@ -24,6 +28,7 @@ export function toFormData(event: Event): EventFormData {
     hour: String(hours % 12 || 12),
     minute: String(dateTime.getMinutes()).padStart(2, '0'),
     period: hours >= 12 ? 'PM' : 'AM',
+    endTime: fromUtcDateTimeToLocalTime(event.endDateTime),
     location: event.location,
     clubName: event.clubName,
     description: event.description,
@@ -94,7 +99,8 @@ function EventDetails({
             <div className="event-details-content">
               <p className="event-details-club">{event.clubName || 'Club not specified'}</p>
               <p className="event-details-meta">
-                {event.date} &middot; {event.time} &middot; {event.location}
+                {event.date} &middot; {event.time}
+                {event.endDateTime && ` - ${fromUtcDateTimeToLocalDisplayTime(event.endDateTime)}`} &middot; {event.location}
               </p>
               <p className="event-details-description">
                 {event.description || 'No description provided.'}
@@ -124,10 +130,10 @@ function EventDetails({
                   {isLoading
                     ? 'Please wait...'
                     : disabled
-                      ? 'Sign in to RSVP'
+                      ? 'Sign in to register'
                       : hasRSVPed
-                        ? 'Remove RSVP'
-                        : 'RSVP'}
+                        ? 'Cancel registration'
+                        : 'Register'}
                 </button>
                 {isOwner && (
                   <button

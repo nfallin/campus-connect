@@ -1,5 +1,5 @@
 import type { Event, EventResponse } from '../types'
-import { fromUtcDateTime } from './eventDateTime'
+import { fromUtcDateTime, fromUtcDateTimeToLocalTime } from './eventDateTime'
 
 export function fromEventResponse(event: EventResponse): Event {
   const { date, time } = fromUtcDateTime(event.dateTime)
@@ -8,6 +8,8 @@ export function fromEventResponse(event: EventResponse): Event {
     id: event.id,
     title: event.name,
     dateTime: event.dateTime,
+    endDateTime: event.endDateTime,
+    endTime: fromUtcDateTimeToLocalTime(event.endDateTime),
     date,
     time,
     location: event.location,

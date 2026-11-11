@@ -13,6 +13,8 @@ export type Event = {
   id: number
   title: string
   dateTime: string
+  endDateTime?: string | null
+  endTime?: string
   date: string
   time: string
   location: string
@@ -27,6 +29,7 @@ export type EventResponse = {
   id: number
   name: string
   dateTime: string
+  endDateTime?: string | null
   location: string
   clubName: string
   description: string

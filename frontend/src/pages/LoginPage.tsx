@@ -36,6 +36,12 @@ function LoginPage({ onLogin }: LoginPageProps) {
   return (
     <main className="card">
       <form onSubmit={handleSubmit}>
+        <div className="login-intro">
+          <h2>Log in or create an account</h2>
+          <p>New here? Create your account with this form.</p>
+          <p>Already a member? Use the same form to log in.</p>
+        </div>
+
         <div className="field">
           <label htmlFor="name">Name</label>
           <input
@@ -71,6 +77,8 @@ function LoginPage({ onLogin }: LoginPageProps) {
             {error}
           </p>
         )}
+
+        <p className="login-note">One form for new and returning members.</p>
       </form>
     </main>
   )

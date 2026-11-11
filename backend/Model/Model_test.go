@@ -2,7 +2,10 @@ package Model
 
 import (
 	"campus_connect/Types"
+	"database/sql"
 	"errors"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -16,6 +19,49 @@ func testRepository(t *testing.T) *Repository {
 	}
 	t.Cleanup(func() { db.Close() })
 	return NewRepository(db)
+}
+
+func TestInitMigratesExistingDatabaseForOptionalEndTime(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "existing.db")
+	db, err := open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(usersTable); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`
+		CREATE TABLE events (
+			event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+			event_name TEXT NOT NULL,
+			date_time TEXT NOT NULL,
+			location TEXT NOT NULL,
+			club_name TEXT NOT NULL,
+			description TEXT NOT NULL,
+			contact_email TEXT,
+			website TEXT,
+			host_user_id INTEGER NOT NULL,
+			UNIQUE(event_name),
+			FOREIGN KEY(host_user_id) REFERENCES users(user_id) ON DELETE RESTRICT
+		)
+	`); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	migratedDB, err := Init(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer migratedDB.Close()
+
+	var endDateTime sql.NullString
+	err = migratedDB.QueryRow(`SELECT end_date_time FROM events LIMIT 1`).Scan(&endDateTime)
+	if err != nil && err != sql.ErrNoRows {
+		t.Fatalf("read migrated end time column: %v", err)
+	}
 }
 
 func TestRepositoryUsers(t *testing.T) {
@@ -90,12 +136,31 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 
 	// attempt to create a valid event
 	when := time.Now().UTC().Add(24 * time.Hour)
+	endWhen := when.Add(time.Hour)
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
 		Name: "Meeting", DateTime: when, Location: "Room 1", ClubName: "Club A", Description: "Description",
-		HostUserID: &host.ID,
+		HostUserID: &host.ID, EndDateTime: &endWhen,
 	})
-	if err != nil || event.Host == nil || event.AttendeeCount != 0 {
+	if err != nil || event.Host == nil || event.AttendeeCount != 0 ||
+		event.EndDateTime == nil || !event.EndDateTime.Equal(endWhen.Truncate(time.Second)) {
 		t.Fatalf("create event = %+v, %v", event, err)
+	}
+	pastEnd := when.Add(-time.Minute)
+	if _, err := repository.CreateEvent(Types.CreateEventRequest{
+		Name: "Invalid end time", DateTime: when, EndDateTime: &pastEnd,
+		Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
+	}); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("create event with end time before start error = %v", err)
+	}
+	tooSoonEnd := when.Add(29 * time.Minute)
+	if _, err := repository.CreateEvent(Types.CreateEventRequest{
+		Name: "End time too soon", DateTime: when, EndDateTime: &tooSoonEnd,
+		Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
+	}); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("create event with end time less than 30 minutes after start error = %v", err)
+	}
+	if err := validateEventEndDateTime(when, when.Add(30*time.Minute)); err != nil {
+		t.Fatalf("validate event with a 30-minute duration error = %v", err)
 	}
 	duplicate := Types.CreateEventRequest{
 		Name: "Meeting", DateTime: when.Add(time.Hour), Location: "Room 2",
@@ -139,6 +204,26 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	if err != nil || updated.Name != name || updated.Location != location {
 		t.Fatalf("update event = %+v, %v", updated, err)
 	}
+	updatedEnd := when.Add(2 * time.Hour)
+	updated, err = repository.UpdateEvent(event.ID, Types.UpdateEventRequest{
+		EndDateTime: &Types.OptionalDateTime{Set: true, Value: &updatedEnd},
+	})
+	if err != nil || updated.EndDateTime == nil ||
+		!updated.EndDateTime.Equal(updatedEnd.Truncate(time.Second)) {
+		t.Fatalf("update event end time = %+v, %v", updated, err)
+	}
+	tooSoonEnd = when.Add(29 * time.Minute)
+	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{
+		EndDateTime: &Types.OptionalDateTime{Set: true, Value: &tooSoonEnd},
+	}); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("update event with end time less than 30 minutes after start error = %v", err)
+	}
+	updated, err = repository.UpdateEvent(event.ID, Types.UpdateEventRequest{
+		EndDateTime: &Types.OptionalDateTime{Set: true},
+	})
+	if err != nil || updated.EndDateTime != nil {
+		t.Fatalf("clear event end time = %+v, %v", updated, err)
+	}
 	otherEvent, err := repository.CreateEvent(Types.CreateEventRequest{
 		Name: "Another event", DateTime: when.Add(2 * time.Hour), Location: "Room 3",
 		ClubName: "Club C", Description: "Another event", HostUserID: &host.ID,
@@ -157,6 +242,49 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	validRequest := Types.CreateEventRequest{
 		Name: "Valid event", DateTime: when, Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
 	}
+	maxLengthRequest := validRequest
+	maxLengthRequest.Name = strings.Repeat("T", maxEventTitleLength)
+	maxLengthRequest.ClubName = strings.Repeat("O", maxEventOrganizationLength)
+	maxLengthRequest.Location = strings.Repeat("L", maxEventLocationLength)
+	maxLengthRequest.Description = strings.Repeat("D", maxEventDescriptionLength)
+	maxLengthRequest.ContactEmail = strings.Repeat("e", maxEventEmailLength)
+	maxLengthRequest.WebsiteURL = strings.Repeat("w", maxEventWebsiteLength)
+	if _, err := repository.CreateEvent(maxLengthRequest); err != nil {
+		t.Fatalf("create event at text field limits: %v", err)
+	}
+
+	for _, test := range []struct {
+		name   string
+		update func(*Types.CreateEventRequest)
+	}{
+		{"title", func(request *Types.CreateEventRequest) {
+			request.Name = strings.Repeat("T", maxEventTitleLength+1)
+		}},
+		{"organization", func(request *Types.CreateEventRequest) {
+			request.ClubName = strings.Repeat("O", maxEventOrganizationLength+1)
+		}},
+		{"location", func(request *Types.CreateEventRequest) {
+			request.Location = strings.Repeat("L", maxEventLocationLength+1)
+		}},
+		{"description", func(request *Types.CreateEventRequest) {
+			request.Description = strings.Repeat("D", maxEventDescriptionLength+1)
+		}},
+		{"email", func(request *Types.CreateEventRequest) {
+			request.ContactEmail = strings.Repeat("e", maxEventEmailLength+1)
+		}},
+		{"website", func(request *Types.CreateEventRequest) {
+			request.WebsiteURL = strings.Repeat("w", maxEventWebsiteLength+1)
+		}},
+	} {
+		t.Run("event text limit "+test.name, func(t *testing.T) {
+			request := validRequest
+			test.update(&request)
+			if _, err := repository.CreateEvent(request); !errors.Is(err, ErrInvalidEvent) {
+				t.Fatalf("create event with overlong %s error = %v", test.name, err)
+			}
+		})
+	}
+
 	for name, request := range map[string]Types.CreateEventRequest{
 		"missing name":        {DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
 		"missing date":        {Name: validRequest.Name, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
@@ -188,6 +316,11 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	}
 	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{Name: stringPointer("")}); !errors.Is(err, ErrInvalidEvent) {
 		t.Fatalf("empty replacement name error = %v", err)
+	}
+	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{
+		Name: stringPointer(strings.Repeat("T", maxEventTitleLength+1)),
+	}); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("overlong replacement name error = %v", err)
 	}
 	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{HostUserID: intPointer(0)}); !errors.Is(err, ErrInvalidEvent) {
 		t.Fatalf("non-positive replacement host error = %v", err)
