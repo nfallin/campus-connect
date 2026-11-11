@@ -53,6 +53,15 @@
   gap: 20px;
 }
 
+.login-intro h2 {
+  color: #111;
+}
+
+.login-intro p,
+.login-note {
+  font-size: 14px;
+}
+
 /* Fields */
 
 .field {
