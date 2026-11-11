@@ -7,9 +7,51 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf16"
+)
+
+const (
+	maxEventTitleLength        = 75
+	maxEventOrganizationLength = 50
+	maxEventLocationLength     = 50
+	maxEventDescriptionLength  = 500
+	maxEventEmailLength        = 30
+	maxEventWebsiteLength      = 60
 )
 
 // Events
+func validateEventFieldLength(value, field string, maxLength int) error {
+	length := 0
+	for _, character := range value {
+		length += utf16.RuneLen(character)
+	}
+	if length > maxLength {
+		return fmt.Errorf("%w: %s must be %d characters or fewer", ErrInvalidEvent, field, maxLength)
+	}
+	return nil
+}
+
+func validateEventFieldLengths(event Types.EventResponse) error {
+	fields := []struct {
+		value string
+		name  string
+		limit int
+	}{
+		{event.Name, "event title", maxEventTitleLength},
+		{event.ClubName, "organization name", maxEventOrganizationLength},
+		{event.Location, "location", maxEventLocationLength},
+		{event.Description, "description", maxEventDescriptionLength},
+		{event.ContactEmail, "email", maxEventEmailLength},
+		{event.WebsiteURL, "website", maxEventWebsiteLength},
+	}
+	for _, field := range fields {
+		if err := validateEventFieldLength(field.value, field.name, field.limit); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func formatOptionalDateTime(value *time.Time) any {
 	if value == nil {
 		return nil
@@ -53,6 +95,13 @@ func (repository *Repository) CreateEvent(request Types.CreateEventRequest) (Typ
 	}
 	if request.Description == "" {
 		return Types.EventResponse{}, fmt.Errorf("%w: description is required", ErrInvalidEvent)
+	}
+	if err := validateEventFieldLengths(Types.EventResponse{
+		Name: request.Name, ClubName: request.ClubName, Location: request.Location,
+		Description: request.Description, ContactEmail: request.ContactEmail,
+		WebsiteURL: request.WebsiteURL,
+	}); err != nil {
+		return Types.EventResponse{}, err
 	}
 	if err := requirePositiveID(*request.HostUserID); err != nil {
 		return Types.EventResponse{}, fmt.Errorf("%w: host user id must be positive", ErrInvalidEvent)
@@ -298,6 +347,9 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 		}
 
 		current.HostUserID = *request.HostUserID
+	}
+	if err := validateEventFieldLengths(current); err != nil {
+		return Types.EventResponse{}, err
 	}
 
 	_, err = repository.db.Exec(`

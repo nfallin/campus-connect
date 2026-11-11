@@ -1,5 +1,10 @@
 import { useState } from 'react'
-import { getEventDateBounds, getEventInputErrorMap } from '../lib/eventValidation'
+import {
+  getEventDateBounds,
+  getEventInputErrorMap,
+  MAX_DESCRIPTION_LENGTH,
+  MAX_EVENT_FIELD_LENGTHS,
+} from '../lib/eventValidation'
 import './Form.css'
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1))
@@ -151,6 +156,7 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
           type="text"
           placeholder="e.g. Fall Hackathon Kickoff"
           value={title}
+          maxLength={MAX_EVENT_FIELD_LENGTHS.title}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={() => markTouched('title')}
           aria-invalid={Boolean(getVisibleError('title'))}
@@ -298,6 +304,7 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
           type="text"
           placeholder="e.g. Benson Center, Room 201"
           value={location}
+          maxLength={MAX_EVENT_FIELD_LENGTHS.location}
           onChange={(e) => setLocation(e.target.value)}
           onBlur={() => markTouched('location')}
           aria-invalid={Boolean(getVisibleError('location'))}
@@ -313,6 +320,7 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
           type="text"
           placeholder="e.g. ACM"
           value={clubName}
+          maxLength={MAX_EVENT_FIELD_LENGTHS.clubName}
           onChange={(e) => setClubName(e.target.value)}
           onBlur={() => markTouched('clubName')}
           aria-invalid={Boolean(getVisibleError('clubName'))}
@@ -328,12 +336,16 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
           placeholder="Tell people what your event is about..."
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          maxLength={MAX_DESCRIPTION_LENGTH}
           rows={3}
           onBlur={() => markTouched('description')}
           aria-invalid={Boolean(getVisibleError('description'))}
-          aria-describedby={getVisibleError('description') ? 'description-error' : undefined}
+          aria-describedby={`description-count${getVisibleError('description') ? ' description-error' : ''}`}
         />
         {getVisibleError('description') && <p className="field-error" id="description-error">{getVisibleError('description')}</p>}
+        <p className="description-count" id="description-count" aria-live="polite">
+          {description.length}/{MAX_DESCRIPTION_LENGTH} characters
+        </p>
       </div>
 
       <div className={`field${getVisibleError('contactEmail') ? ' field-invalid' : ''}`}>
@@ -343,6 +355,7 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
           type="email"
           placeholder="e.g. acm@scu.edu"
           value={contactEmail}
+          maxLength={MAX_EVENT_FIELD_LENGTHS.contactEmail}
           onChange={(e) => setContactEmail(e.target.value)}
           onBlur={() => markTouched('contactEmail')}
           aria-invalid={Boolean(getVisibleError('contactEmail'))}
@@ -358,6 +371,7 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
           type="text"
           placeholder="e.g. https://acm.scu.edu"
           value={website}
+          maxLength={MAX_EVENT_FIELD_LENGTHS.website}
           onChange={(e) => setWebsite(e.target.value)}
           onBlur={() => markTouched('website')}
           aria-invalid={Boolean(getVisibleError('website'))}

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -241,6 +242,49 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	validRequest := Types.CreateEventRequest{
 		Name: "Valid event", DateTime: when, Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
 	}
+	maxLengthRequest := validRequest
+	maxLengthRequest.Name = strings.Repeat("T", maxEventTitleLength)
+	maxLengthRequest.ClubName = strings.Repeat("O", maxEventOrganizationLength)
+	maxLengthRequest.Location = strings.Repeat("L", maxEventLocationLength)
+	maxLengthRequest.Description = strings.Repeat("D", maxEventDescriptionLength)
+	maxLengthRequest.ContactEmail = strings.Repeat("e", maxEventEmailLength)
+	maxLengthRequest.WebsiteURL = strings.Repeat("w", maxEventWebsiteLength)
+	if _, err := repository.CreateEvent(maxLengthRequest); err != nil {
+		t.Fatalf("create event at text field limits: %v", err)
+	}
+
+	for _, test := range []struct {
+		name   string
+		update func(*Types.CreateEventRequest)
+	}{
+		{"title", func(request *Types.CreateEventRequest) {
+			request.Name = strings.Repeat("T", maxEventTitleLength+1)
+		}},
+		{"organization", func(request *Types.CreateEventRequest) {
+			request.ClubName = strings.Repeat("O", maxEventOrganizationLength+1)
+		}},
+		{"location", func(request *Types.CreateEventRequest) {
+			request.Location = strings.Repeat("L", maxEventLocationLength+1)
+		}},
+		{"description", func(request *Types.CreateEventRequest) {
+			request.Description = strings.Repeat("D", maxEventDescriptionLength+1)
+		}},
+		{"email", func(request *Types.CreateEventRequest) {
+			request.ContactEmail = strings.Repeat("e", maxEventEmailLength+1)
+		}},
+		{"website", func(request *Types.CreateEventRequest) {
+			request.WebsiteURL = strings.Repeat("w", maxEventWebsiteLength+1)
+		}},
+	} {
+		t.Run("event text limit "+test.name, func(t *testing.T) {
+			request := validRequest
+			test.update(&request)
+			if _, err := repository.CreateEvent(request); !errors.Is(err, ErrInvalidEvent) {
+				t.Fatalf("create event with overlong %s error = %v", test.name, err)
+			}
+		})
+	}
+
 	for name, request := range map[string]Types.CreateEventRequest{
 		"missing name":        {DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
 		"missing date":        {Name: validRequest.Name, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
@@ -272,6 +316,11 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	}
 	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{Name: stringPointer("")}); !errors.Is(err, ErrInvalidEvent) {
 		t.Fatalf("empty replacement name error = %v", err)
+	}
+	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{
+		Name: stringPointer(strings.Repeat("T", maxEventTitleLength+1)),
+	}); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("overlong replacement name error = %v", err)
 	}
 	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{HostUserID: intPointer(0)}); !errors.Is(err, ErrInvalidEvent) {
 		t.Fatalf("non-positive replacement host error = %v", err)

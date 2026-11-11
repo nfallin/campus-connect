@@ -14,6 +14,14 @@ export type EventInput = {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const WEBSITE_PATTERN = /^(https?:\/\/)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+(\/\S*)?$/
+export const MAX_DESCRIPTION_LENGTH = 500
+export const MAX_EVENT_FIELD_LENGTHS = {
+  title: 75,
+  clubName: 50,
+  location: 50,
+  contactEmail: 30,
+  website: 60,
+} as const
 
 function formatLocalDate(date: Date): string {
   return [
@@ -56,7 +64,11 @@ export function getEventInputErrorMap(
   const website = input.website?.trim() ?? ''
   const errors: Partial<Record<keyof EventInput, string>> = {}
 
-  if (input.title.trim() === '') errors.title = 'Enter an event title.'
+  if (input.title.trim() === '') {
+    errors.title = 'Enter an event title.'
+  } else if (input.title.length > MAX_EVENT_FIELD_LENGTHS.title) {
+    errors.title = `Keep the event title to ${MAX_EVENT_FIELD_LENGTHS.title} characters or fewer.`
+  }
 
   if (input.date === '') {
     errors.date = 'Choose a date.'
@@ -108,17 +120,27 @@ export function getEventInputErrorMap(
 
   if (input.location.trim() === '') {
     errors.location = 'Enter a location.'
+  } else if (input.location.length > MAX_EVENT_FIELD_LENGTHS.location) {
+    errors.location = `Keep the location to ${MAX_EVENT_FIELD_LENGTHS.location} characters or fewer.`
   }
   if (input.clubName.trim() === '') {
     errors.clubName = 'Enter a club name.'
+  } else if (input.clubName.length > MAX_EVENT_FIELD_LENGTHS.clubName) {
+    errors.clubName = `Keep the organization name to ${MAX_EVENT_FIELD_LENGTHS.clubName} characters or fewer.`
   }
   if (input.description.trim() === '') {
     errors.description = 'Enter a description.'
+  } else if (input.description.length > MAX_DESCRIPTION_LENGTH) {
+    errors.description = `Keep the description to ${MAX_DESCRIPTION_LENGTH} characters or fewer.`
   }
-  if (contactEmail !== '' && !EMAIL_PATTERN.test(contactEmail)) {
+  if (contactEmail.length > MAX_EVENT_FIELD_LENGTHS.contactEmail) {
+    errors.contactEmail = `Keep the email to ${MAX_EVENT_FIELD_LENGTHS.contactEmail} characters or fewer.`
+  } else if (contactEmail !== '' && !EMAIL_PATTERN.test(contactEmail)) {
     errors.contactEmail = 'Enter a valid contact email or leave it blank.'
   }
-  if (website !== '' && !WEBSITE_PATTERN.test(website)) {
+  if (website.length > MAX_EVENT_FIELD_LENGTHS.website) {
+    errors.website = `Keep the website to ${MAX_EVENT_FIELD_LENGTHS.website} characters or fewer.`
+  } else if (website !== '' && !WEBSITE_PATTERN.test(website)) {
     errors.website = 'Enter a valid website URL or leave it blank.'
   }
 

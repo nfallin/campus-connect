@@ -107,6 +107,12 @@
   text-align: left;
 }
 
+.description-count {
+  color: #666;
+  font-size: 12px;
+  text-align: right;
+}
+
 .field input::placeholder {
   color: #999;
 }
