@@ -48,6 +48,7 @@ type EventFormProps = {
   initialData?: EventFormData
   submitLabel?: string
   submittingLabel?: string
+  onCancel?: () => void
 }
 
 function EventForm({
@@ -56,6 +57,7 @@ function EventForm({
   initialData,
   submitLabel = 'Create event',
   submittingLabel = 'Creating...',
+  onCancel,
 }: EventFormProps) {
   const [title, setTitle] = useState(initialData?.title ?? '')
   const [date, setDate] = useState(initialData?.date ?? '')
@@ -380,9 +382,21 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
         {getVisibleError('website') && <p className="field-error" id="website-error">{getVisibleError('website')}</p>}
       </div>
 
-      <button type="submit" className="create-btn field-wide" disabled={!canSubmit}>
-        {submitting ? submittingLabel : submitLabel}
-      </button>
+      <div className="event-form-actions">
+        <button type="submit" className="create-btn" disabled={!canSubmit}>
+          {submitting ? submittingLabel : submitLabel}
+        </button>
+        {onCancel && (
+          <button
+            type="button"
+            className="event-form-cancel"
+            onClick={onCancel}
+            disabled={submitting}
+          >
+            Cancel
+          </button>
+        )}
+      </div>
 
       {submitAttempted && Object.keys(inputErrors).length > 0 && (
         <p className="form-message field-wide" role="status">

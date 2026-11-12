@@ -217,6 +217,35 @@
   cursor: not-allowed;
 }
 
+.event-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 12px;
+}
+
+.event-form-actions .create-btn {
+  flex: 1;
+}
+
+.event-form-cancel {
+  margin-top: 2px;
+  padding: 10px 16px;
+  border: 1px solid #000;
+  border-radius: 4px;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.event-form-cancel:disabled {
+  color: #999;
+  border-color: #ccc;
+  cursor: not-allowed;
+}
+
 /* Validation messages */
 
 .form-message {
