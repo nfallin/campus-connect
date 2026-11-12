@@ -66,18 +66,17 @@ func TestInitMigratesExistingDatabaseForOptionalEndTime(t *testing.T) {
 
 func TestRepositoryUsers(t *testing.T) {
 	repository := testRepository(t)
-	request := Types.CreateUserRequest{Name: "Alice", Email: "alice@example.com"}
+	request := Types.RegisterUserRequest{Username: "Alice", Email: "alice@example.com", Password: "password123"}
 
 	// attempt to create a valid user
-	user, created, err := repository.CreateUser(request)
-	if err != nil || !created || user.ID == 0 {
-		t.Fatalf("create user = %+v, %v, %v", user, created, err)
+	user, err := repository.RegisterUser(request)
+	if err != nil || user.ID == 0 {
+		t.Fatalf("register user = %+v, %v", user, err)
 	}
 
 	// attempt to create a duplicate user
-	existing, created, err := repository.CreateUser(request)
-	if err != nil || created || existing.ID != user.ID {
-		t.Fatalf("duplicate user = %+v, %v, %v", existing, created, err)
+	if _, err := repository.RegisterUser(request); err == nil {
+		t.Fatal("duplicate user should fail")
 	}
 
 	// attempt to get the user
@@ -95,7 +94,7 @@ func TestRepositoryUsers(t *testing.T) {
 	name := "Updated Alice"
 	email := "updated@example.com"
 	// attempt to update a user with new information
-	updated, err := repository.UpdateUser(user.ID, Types.UpdateUserRequest{Name: &name, Email: &email})
+	updated, err := repository.UpdateUser(user.ID, Types.UpdateUserRequest{Username: &name, Email: &email})
 	if err != nil || updated.Name != name || updated.Email != email {
 		t.Fatalf("update user = %+v, %v", updated, err)
 	}
@@ -114,22 +113,22 @@ func TestRepositoryUsers(t *testing.T) {
 	}
 
 	// attempt to update a user to match the name and email of an existing user
-	duplicateA, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "A", Email: "a@example.com"})
+	duplicateA, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "A", Email: "a@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	duplicateB, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "B", Email: "b@example.com"})
+	duplicateB, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "B", Email: "b@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := repository.UpdateUser(duplicateB.ID, Types.UpdateUserRequest{Name: stringPointer("A"), Email: stringPointer(duplicateA.Email)}); err == nil {
+	if _, err := repository.UpdateUser(duplicateB.ID, Types.UpdateUserRequest{Username: stringPointer("A"), Email: stringPointer(duplicateA.Email)}); err == nil {
 		t.Fatal("expected duplicate user update error")
 	}
 }
 
 func TestRepositoryEventsAndFilters(t *testing.T) {
 	repository := testRepository(t)
-	host, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "Host", Email: "host@example.com"})
+	host, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "Host", Email: "host@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -358,8 +357,8 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 
 func TestRepositoryRSVPs(t *testing.T) {
 	repository := testRepository(t)
-	host, _, _ := repository.CreateUser(Types.CreateUserRequest{Name: "Host", Email: "host@example.com"})
-	attendee, _, _ := repository.CreateUser(Types.CreateUserRequest{Name: "Attendee", Email: "attendee@example.com"})
+	host, _ := repository.RegisterUser(Types.RegisterUserRequest{Username: "Host", Email: "host@example.com", Password: "password123"})
+	attendee, _ := repository.RegisterUser(Types.RegisterUserRequest{Username: "Attendee", Email: "attendee@example.com", Password: "password123"})
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
 		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
 	})
@@ -393,11 +392,11 @@ func TestRepositoryRSVPs(t *testing.T) {
 
 func TestRepositoryDeleteRelationships(t *testing.T) {
 	repository := testRepository(t)
-	host, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "Host", Email: "host@example.com"})
+	host, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "Host", Email: "host@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	attendee, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "Attendee", Email: "attendee@example.com"})
+	attendee, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "Attendee", Email: "attendee@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -429,7 +428,7 @@ func TestRepositoryDeleteRelationships(t *testing.T) {
 	}
 
 	// attempt to add another RSVP
-	anotherAttendee, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "Another", Email: "another@example.com"})
+	anotherAttendee, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "Another", Email: "another@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -480,7 +479,7 @@ func TestRepositoryDatabaseErrors(t *testing.T) {
 	repository := testRepository(t)
 	repository.db.Close()
 
-	if _, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "A", Email: "a@example.com"}); err == nil {
+	if _, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "A", Email: "a@example.com", Password: "password123"}); err == nil {
 		t.Fatal("expected create user database error")
 	}
 	if _, err := repository.GetUser(1); err == nil {
@@ -524,7 +523,7 @@ func TestRepositoryDatabaseErrors(t *testing.T) {
 // confirm that the database rejects malformed dates for events
 func TestRepositoryMalformedDate(t *testing.T) {
 	repository := testRepository(t)
-	host, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "Host", Email: "host@example.com"})
+	host, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "Host", Email: "host@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}

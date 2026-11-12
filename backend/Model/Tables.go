@@ -1,13 +1,13 @@
 package Model
 
-// users cannot have the same name and email address, but they can have the same name.
-// they are differentiated by the PAIR of values.
 const usersTable = `
 	CREATE TABLE IF NOT EXISTS users (
 		user_id INTEGER PRIMARY KEY AUTOINCREMENT,
 		user_name TEXT NOT NULL,
 		user_email TEXT NOT NULL,
-		UNIQUE(user_name, user_email)
+		password_hash TEXT NOT NULL,
+		UNIQUE(user_name),
+		UNIQUE(user_email)
 	);
 `
 

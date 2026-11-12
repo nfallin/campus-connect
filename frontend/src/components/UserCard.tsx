@@ -11,7 +11,7 @@ function UserCard({ user, onLogout }: UserCardProps) {
   return (
     <div className="user-card">
       <div className="user-info">
-        <strong>{user.name}</strong>
+        <strong>{user.username}</strong>
         <span>{user.email}</span>
       </div>
 

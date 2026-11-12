@@ -6,20 +6,32 @@ import (
 	"time"
 )
 
-type CreateUserRequest struct {
-	Name  string `json:"name" binding:"required"`
-	Email string `json:"email" binding:"required,email"`
+type RegisterUserRequest struct {
+	Username string `json:"username" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=8"`
 }
 
 type UpdateUserRequest struct {
-	Name  *string `json:"name"`
-	Email *string `json:"email"`
+	Username *string `json:"username"`
+	Email    *string `json:"email"`
+}
+
+type LoginUserRequest struct {
+	Identifier string `json:"identifier" binding:"required"`
+	Password   string `json:"password" binding:"required,min=8"`
 }
 
 type UserResponse struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	ID       int    `json:"id"`
+	Username string `json:"username"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+}
+
+type AuthResponse struct {
+	User  UserResponse `json:"user"`
+	Token string       `json:"token"`
 }
 
 type CreateEventRequest struct {
@@ -29,7 +41,7 @@ type CreateEventRequest struct {
 	Location     string     `json:"location" binding:"required"`
 	ClubName     string     `json:"clubName" binding:"required"`
 	Description  string     `json:"description" binding:"required"`
-	HostUserID   *int       `json:"hostUserId" binding:"required"`
+	HostUserID   *int       `json:"hostUserId"`
 	ContactEmail string     `json:"contactEmail"`
 	WebsiteURL   string     `json:"websiteURL"`
 }

@@ -1,12 +1,12 @@
 export type User = {
   id: number
-  name: string
+  username: string
   email: string
 }
 
-export type UserResponse = {
+export type AuthResponse = {
   user: User
-  isNewUser: boolean
+  token: string
 }
 
 export type Event = {

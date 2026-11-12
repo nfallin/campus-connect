@@ -3,20 +3,25 @@ import { useState } from 'react'
 import '../components/Form.css'
 
 type LoginPageProps = {
-  onLogin: (name: string, email: string) => Promise<void>
+  onLogin: (identifier: string, password: string) => Promise<void>
+  onRegister: (username: string, email: string, password: string) => Promise<void>
 }
 
-function LoginPage({ onLogin }: LoginPageProps) {
-  const [name, setName] = useState('')
+function LoginPage({ onLogin, onRegister }: LoginPageProps) {
+  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
 
-    if (!name.trim() || !email.trim()) {
-      setError('Please enter your name and email.')
+    if (!password || password.length < 8 || (mode === 'login' ? !username.trim() : !username.trim() || !email.trim())) {
+      setError(mode === 'login'
+        ? 'Enter a username or email and a password of at least 8 characters.'
+        : 'Enter a username, email, and a password of at least 8 characters.')
       return
     }
 
@@ -24,10 +29,14 @@ function LoginPage({ onLogin }: LoginPageProps) {
     setError('')
 
     try {
-      await onLogin(name.trim(), email.trim())
+      if (mode === 'login') {
+        await onLogin(username.trim(), password)
+      } else {
+        await onRegister(username.trim(), email.trim(), password)
+      }
     } catch (err) {
-      console.error('Login failed', err)
-      setError('Unable to log in. Please check your information and try again.')
+      console.error('Authentication failed', err)
+      setError(err instanceof Error ? err.message : 'Authentication failed. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -37,23 +46,21 @@ function LoginPage({ onLogin }: LoginPageProps) {
     <main className="card">
       <form onSubmit={handleSubmit}>
         <div className="login-intro">
-          <h2>Log in or create an account</h2>
-          <p>New here? Create your account with this form.</p>
-          <p>Already a member? Use the same form to log in.</p>
+          <h2>{mode === 'login' ? 'Log in' : 'Create an account'}</h2>
         </div>
 
         <div className="field">
-          <label htmlFor="name">Name</label>
+          <label htmlFor="username">{mode === 'login' ? 'Username or email' : 'Username'}</label>
           <input
-            id="name"
+            id="username"
             type="text"
-            placeholder="Your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            placeholder={mode === 'login' ? 'Username or email' : 'Your username'}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
           />
         </div>
 
-        <div className="field">
+        {mode === 'register' && <div className="field">
           <label htmlFor="email">Email</label>
           <input
             id="email"
@@ -62,6 +69,17 @@ function LoginPage({ onLogin }: LoginPageProps) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
+        </div>}
+
+        <div className="field">
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            minLength={8}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </div>
 
         <button
@@ -69,7 +87,7 @@ function LoginPage({ onLogin }: LoginPageProps) {
           className="create-btn"
           disabled={submitting}
         >
-          {submitting ? 'Logging in...' : 'Continue'}
+          {submitting ? 'Please wait...' : mode === 'login' ? 'Log in' : 'Register'}
         </button>
 
         {error && (
@@ -78,7 +96,9 @@ function LoginPage({ onLogin }: LoginPageProps) {
           </p>
         )}
 
-        <p className="login-note">One form for new and returning members.</p>
+        <button type="button" className="login-toggle" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
+          {mode === 'login' ? 'Create a new account' : 'I already have an account'}
+        </button>
       </form>
     </main>
   )

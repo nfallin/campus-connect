@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"modernc.org/sqlite"
@@ -14,6 +15,25 @@ var ErrNotFound = errors.New("record not found")
 var ErrInvalidID = errors.New("id must be a positive integer")
 var ErrInvalidEvent = errors.New("invalid event")
 var ErrDuplicateEventName = errors.New("Event name must be unique.")
+var ErrDuplicateUsername = errors.New("username already exists")
+var ErrDuplicateEmail = errors.New("email already exists")
+var ErrInvalidCredentials = errors.New("invalid credentials")
+var ErrUnauthorized = errors.New("authentication required")
+
+func translateUserWriteError(err error) error {
+	var sqliteError *sqlite.Error
+	if !errors.As(err, &sqliteError) || sqliteError.Code() != sqlite3.SQLITE_CONSTRAINT_UNIQUE {
+		return err
+	}
+	message := strings.ToLower(sqliteError.Error())
+	if strings.Contains(message, "user_name") {
+		return ErrDuplicateUsername
+	}
+	if strings.Contains(message, "user_email") {
+		return ErrDuplicateEmail
+	}
+	return err
+}
 
 func requirePositiveID(id int) error {
 	if id <= 0 {

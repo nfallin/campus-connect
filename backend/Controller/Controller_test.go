@@ -33,6 +33,10 @@ func newControllerBackend(t *testing.T) controllerBackend {
 
 // helper function to make an HTTP request to the router and return the response
 func request(t *testing.T, router http.Handler, method, path string, body any) *httptest.ResponseRecorder {
+	return requestWithToken(t, router, method, path, body, "")
+}
+
+func requestWithToken(t *testing.T, router http.Handler, method, path string, body any, token string) *httptest.ResponseRecorder {
 	t.Helper()
 	var content *bytes.Reader
 	if body == nil {
@@ -48,6 +52,9 @@ func request(t *testing.T, router http.Handler, method, path string, body any) *
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)
 	return recorder
@@ -55,22 +62,27 @@ func request(t *testing.T, router http.Handler, method, path string, body any) *
 
 func TestUserRoutes(t *testing.T) {
 	controllerBackend := newControllerBackend(t)
-	body := Types.CreateUserRequest{Name: "Alice", Email: "alice@example.com"}
+	body := Types.RegisterUserRequest{Username: "Alice", Email: "alice@example.com", Password: "password123"}
 
 	// attempt to create a valid user
-	if response := request(t, controllerBackend.router, http.MethodPost, "/users", body); response.Code != http.StatusCreated {
+	response := request(t, controllerBackend.router, http.MethodPost, "/users/register", body)
+	if response.Code != http.StatusCreated {
 		t.Fatalf("create user status = %d", response.Code)
 	}
+	var auth Types.AuthResponse
+	if err := json.NewDecoder(response.Body).Decode(&auth); err != nil {
+		t.Fatal(err)
+	}
 	// attempt to create a duplicate user
-	if response := request(t, controllerBackend.router, http.MethodPost, "/users", body); response.Code != http.StatusOK {
+	if response := request(t, controllerBackend.router, http.MethodPost, "/users/register", body); response.Code != http.StatusConflict {
 		t.Fatalf("duplicate user status = %d", response.Code)
 	}
 	// attempt to create a user with invalid JSON
-	if response := request(t, controllerBackend.router, http.MethodPost, "/users", "{"); response.Code != http.StatusBadRequest {
+	if response := request(t, controllerBackend.router, http.MethodPost, "/users/register", "{"); response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid user JSON status = %d", response.Code)
 	}
 	// confirm the invalid JSON user was not created
-	if response := request(t, controllerBackend.router, http.MethodPost, "/users", "{"); response.Code != http.StatusBadRequest {
+	if response := request(t, controllerBackend.router, http.MethodPost, "/users/register", "{"); response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid user JSON status = %d", response.Code)
 	}
 	// attempt to get a string user ID
@@ -97,7 +109,14 @@ func TestUserRoutes(t *testing.T) {
 
 func TestEventRoutes(t *testing.T) {
 	controllerBackend := newControllerBackend(t)
-	host, _, err := Model.NewRepository(controllerBackend.db).CreateUser(Types.CreateUserRequest{Name: "Host", Email: "host@example.com"})
+	host, err := Model.NewRepository(controllerBackend.db).RegisterUser(Types.RegisterUserRequest{Username: "Host", Email: "host@example.com", Password: "password123"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	auth, err := Model.NewRepository(controllerBackend.db).LoginUser(Types.LoginUserRequest{
+		Identifier: "Host",
+		Password:   "password123",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -111,10 +130,10 @@ func TestEventRoutes(t *testing.T) {
 		t.Fatalf("list events status = %d", response.Code)
 	}
 	// attempt to create a valid event
-	if response := request(t, controllerBackend.router, http.MethodPost, "/events", body); response.Code != http.StatusCreated {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/events", body, auth.Token); response.Code != http.StatusCreated {
 		t.Fatalf("create event status = %d", response.Code)
 	}
-	if response := request(t, controllerBackend.router, http.MethodPost, "/events", body); response.Code != http.StatusConflict {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/events", body, auth.Token); response.Code != http.StatusConflict {
 		t.Fatalf("duplicate event status = %d", response.Code)
 	}
 	// attempt to get that event
@@ -138,34 +157,28 @@ func TestEventRoutes(t *testing.T) {
 		t.Fatalf("missing event status = %d", response.Code)
 	}
 	// attempt to create an event with missing required fields
-	if response := request(t, controllerBackend.router, http.MethodPost, "/events", Types.CreateEventRequest{Name: "bad"}); response.Code != http.StatusBadRequest {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/events", Types.CreateEventRequest{Name: "bad"}, auth.Token); response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid event status = %d", response.Code)
 	}
-	// attempt to create an event with a nonexistent host user ID
-	nonexistentHostEvent := body
-	nonexistentHostEvent.HostUserID = intPointer(999)
-	if response := request(t, controllerBackend.router, http.MethodPost, "/events", nonexistentHostEvent); response.Code != http.StatusBadRequest {
-		t.Fatalf("missing host event status = %d", response.Code)
-	}
 	// attempt to create an event with invalid JSON
-	if response := request(t, controllerBackend.router, http.MethodPost, "/events", "{"); response.Code != http.StatusBadRequest {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/events", "{", auth.Token); response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid event JSON status = %d", response.Code)
 	}
 
 	// attempt to update an event with a string ID
-	if response := request(t, controllerBackend.router, http.MethodPatch, "/events/nope", Types.UpdateEventRequest{}); response.Code != http.StatusBadRequest {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPatch, "/events/nope", Types.UpdateEventRequest{}, auth.Token); response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid update ID status = %d", response.Code)
 	}
 	// attempt to update an event with a nonexistent ID
-	if response := request(t, controllerBackend.router, http.MethodPatch, "/events/999", Types.UpdateEventRequest{}); response.Code != http.StatusNotFound {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPatch, "/events/999", Types.UpdateEventRequest{}, auth.Token); response.Code != http.StatusNotFound {
 		t.Fatalf("missing update event status = %d", response.Code)
 	}
 	// attempt to update an event with a bad JSON
-	if response := request(t, controllerBackend.router, http.MethodPatch, "/events/1", "{"); response.Code != http.StatusBadRequest {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPatch, "/events/1", "{", auth.Token); response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid update JSON status = %d", response.Code)
 	}
 	// attempt to update an event with valid data
-	if response := request(t, controllerBackend.router, http.MethodPatch, "/events/1", Types.UpdateEventRequest{}); response.Code != http.StatusOK {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPatch, "/events/1", Types.UpdateEventRequest{}, auth.Token); response.Code != http.StatusOK {
 		t.Fatalf("update event status = %d", response.Code)
 	}
 }
@@ -175,7 +188,7 @@ func TestControllerDatabaseErrors(t *testing.T) {
 	controllerBackend := newControllerBackend(t)
 	controllerBackend.db.Close()
 
-	validUser := Types.CreateUserRequest{Name: "Alice", Email: "alice@example.com"}
+	validUser := Types.RegisterUserRequest{Username: "Alice", Email: "alice@example.com", Password: "password123"}
 	validEvent := Types.CreateEventRequest{Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: intPointer(1)}
 
 	for _, test := range []struct {
@@ -185,15 +198,15 @@ func TestControllerDatabaseErrors(t *testing.T) {
 		body   any
 		want   int
 	}{
-		{"create user", http.MethodPost, "/users", validUser, http.StatusInternalServerError},
+		{"create user", http.MethodPost, "/users/register", validUser, http.StatusInternalServerError},
 		{"get user", http.MethodGet, "/users/1", nil, http.StatusInternalServerError},
 		{"list events", http.MethodGet, "/events", nil, http.StatusInternalServerError},
-		{"create event", http.MethodPost, "/events", validEvent, http.StatusInternalServerError},
+		{"create event", http.MethodPost, "/events", validEvent, http.StatusUnauthorized},
 		{"get event", http.MethodGet, "/events/1", nil, http.StatusInternalServerError},
-		{"update event", http.MethodPatch, "/events/1", Types.UpdateEventRequest{}, http.StatusInternalServerError},
-		{"add RSVP", http.MethodPost, "/users/1/rsvps/1", nil, http.StatusInternalServerError},
-		{"remove RSVP", http.MethodDelete, "/users/1/rsvps/1", nil, http.StatusInternalServerError},
-		{"list RSVPs", http.MethodGet, "/users/1/rsvps", nil, http.StatusInternalServerError},
+		{"update event", http.MethodPatch, "/events/1", Types.UpdateEventRequest{}, http.StatusUnauthorized},
+		{"add RSVP", http.MethodPost, "/users/1/rsvps/1", nil, http.StatusUnauthorized},
+		{"remove RSVP", http.MethodDelete, "/users/1/rsvps/1", nil, http.StatusUnauthorized},
+		{"list RSVPs", http.MethodGet, "/users/1/rsvps", nil, http.StatusUnauthorized},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			response := request(t, controllerBackend.router, test.method, test.path, test.body)
@@ -207,11 +220,11 @@ func TestControllerDatabaseErrors(t *testing.T) {
 func TestRSVPRoutes(t *testing.T) {
 	controllerBackend := newControllerBackend(t)
 	repository := Model.NewRepository(controllerBackend.db)
-	host, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "Host", Email: "host@example.com"})
+	host, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "Host", Email: "host@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	attendee, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "Attendee", Email: "attendee@example.com"})
+	attendee, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "Attendee", Email: "attendee@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -221,45 +234,49 @@ func TestRSVPRoutes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	auth, err := repository.LoginUser(Types.LoginUserRequest{Identifier: "Attendee", Password: "password123"})
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// attempt to add and remove RSVPs with various invalid and valid inputs
-	if response := request(t, controllerBackend.router, http.MethodPost, "/users/nope/rsvps/1", nil); response.Code != http.StatusBadRequest {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/nope/rsvps/1", nil, auth.Token); response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid RSVP user ID status = %d", response.Code)
 	}
-	if response := request(t, controllerBackend.router, http.MethodPost, "/users/1/rsvps/nope", nil); response.Code != http.StatusBadRequest {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/1/rsvps/nope", nil, auth.Token); response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid RSVP event ID status = %d", response.Code)
 	}
-	if response := request(t, controllerBackend.router, http.MethodPost, "/users/999/rsvps/1", nil); response.Code != http.StatusNotFound {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/999/rsvps/1", nil, auth.Token); response.Code != http.StatusNotFound {
 		t.Fatalf("missing RSVP user status = %d", response.Code)
 	}
-	if response := request(t, controllerBackend.router, http.MethodPost, "/users/0/rsvps/1", nil); response.Code != http.StatusBadRequest {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/0/rsvps/1", nil, auth.Token); response.Code != http.StatusBadRequest {
 		t.Fatalf("zero RSVP user status = %d", response.Code)
 	}
-	if response := request(t, controllerBackend.router, http.MethodPost, "/users/1/rsvps/-1", nil); response.Code != http.StatusBadRequest {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/1/rsvps/-1", nil, auth.Token); response.Code != http.StatusBadRequest {
 		t.Fatalf("negative RSVP event status = %d", response.Code)
 	}
-	if response := request(t, controllerBackend.router, http.MethodPost, "/users/1/rsvps/999", nil); response.Code != http.StatusNotFound {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/1/rsvps/999", nil, auth.Token); response.Code != http.StatusNotFound {
 		t.Fatalf("missing RSVP event status = %d", response.Code)
 	}
-	if response := request(t, controllerBackend.router, http.MethodPost, "/users/2/rsvps/1", nil); response.Code != http.StatusOK {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/2/rsvps/1", nil, auth.Token); response.Code != http.StatusOK {
 		t.Fatalf("add RSVP status = %d", response.Code)
 	}
-	if response := request(t, controllerBackend.router, http.MethodPost, "/users/2/rsvps/1", nil); response.Code != http.StatusOK {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/2/rsvps/1", nil, auth.Token); response.Code != http.StatusOK {
 		t.Fatalf("duplicate RSVP status = %d", response.Code)
 	}
-	if response := request(t, controllerBackend.router, http.MethodGet, "/users/nope/rsvps", nil); response.Code != http.StatusBadRequest {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodGet, "/users/nope/rsvps", nil, auth.Token); response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid RSVP list user ID status = %d", response.Code)
 	}
-	if response := request(t, controllerBackend.router, http.MethodGet, "/users/999/rsvps", nil); response.Code != http.StatusNotFound {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodGet, "/users/999/rsvps", nil, auth.Token); response.Code != http.StatusNotFound {
 		t.Fatalf("missing RSVP list user status = %d", response.Code)
 	}
-	if response := request(t, controllerBackend.router, http.MethodGet, "/users/2/rsvps", nil); response.Code != http.StatusOK {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodGet, "/users/2/rsvps", nil, auth.Token); response.Code != http.StatusOK {
 		t.Fatalf("get RSVPs status = %d", response.Code)
 	}
-	if response := request(t, controllerBackend.router, http.MethodDelete, "/users/2/rsvps/1", nil); response.Code != http.StatusOK {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodDelete, "/users/2/rsvps/1", nil, auth.Token); response.Code != http.StatusOK {
 		t.Fatalf("remove RSVP status = %d", response.Code)
 	}
-	if response := request(t, controllerBackend.router, http.MethodDelete, "/users/2/rsvps/1", nil); response.Code != http.StatusOK {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodDelete, "/users/2/rsvps/1", nil, auth.Token); response.Code != http.StatusOK {
 		t.Fatalf("remove missing RSVP status = %d", response.Code)
 	}
 	_ = attendee
