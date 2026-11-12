@@ -18,10 +18,20 @@ function LoginPage({ onLogin, onRegister }: LoginPageProps) {
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
 
-    if (!password || password.length < 8 || (mode === 'login' ? !username.trim() : !username.trim() || !email.trim())) {
+    if (!username.trim() || (mode === 'register' && !email.trim())) {
       setError(mode === 'login'
-        ? 'Enter a username or email and a password of at least 8 characters.'
-        : 'Enter a username, email, and a password of at least 8 characters.')
+        ? 'Enter a username or email.'
+        : 'Enter a username and email.')
+      return
+    }
+
+    if (!password) {
+      setError('Enter a password.')
+      return
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.')
       return
     }
 
@@ -76,7 +86,6 @@ function LoginPage({ onLogin, onRegister }: LoginPageProps) {
           <input
             id="password"
             type="password"
-            minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -92,7 +101,11 @@ function LoginPage({ onLogin, onRegister }: LoginPageProps) {
 
         {error && (
           <p className="form-message" role="alert">
-            {error}
+            {error.includes('\n') ? (
+              <ul>
+                {error.split('\n').map((message) => <li key={message}>{message}</li>)}
+              </ul>
+            ) : error}
           </p>
         )}
 
