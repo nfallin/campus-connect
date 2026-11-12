@@ -71,6 +71,10 @@ func (api *API) getCurrentUser(c *gin.Context) {
 	c.JSON(http.StatusOK, c.MustGet(authenticatedUserKey))
 }
 
+func authenticatedUserID(c *gin.Context) int {
+	return c.MustGet(authenticatedUserKey).(Types.UserResponse).ID
+}
+
 func (api *API) requireAuth(c *gin.Context) {
 	user, err := api.repository.AuthenticateToken(bearerToken(c))
 	if errors.Is(err, Model.ErrUnauthorized) {

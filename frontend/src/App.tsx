@@ -146,7 +146,6 @@ function App() {
       description: formData.description.trim(),
       contactEmail: formData.contactEmail.trim(),
       websiteURL: formData.website.trim(),
-      hostUserId: currentUser.id,
     })
 
     const event = fromEventResponse(created)

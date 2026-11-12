@@ -113,6 +113,7 @@ func TestEventRoutes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	_ = host
 	auth, err := Model.NewRepository(controllerBackend.db).LoginUser(Types.LoginUserRequest{
 		Identifier: "Host",
 		Password:   "password123",
@@ -122,7 +123,7 @@ func TestEventRoutes(t *testing.T) {
 	}
 
 	body := Types.CreateEventRequest{
-		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
+		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description",
 	}
 
 	// attempt to list an empty events list
@@ -189,7 +190,7 @@ func TestControllerDatabaseErrors(t *testing.T) {
 	controllerBackend.db.Close()
 
 	validUser := Types.RegisterUserRequest{Username: "Alice", Email: "alice@example.com", Password: "password123"}
-	validEvent := Types.CreateEventRequest{Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: intPointer(1)}
+	validEvent := Types.CreateEventRequest{Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description"}
 
 	for _, test := range []struct {
 		name   string
@@ -229,8 +230,8 @@ func TestRSVPRoutes(t *testing.T) {
 		t.Fatal(err)
 	}
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
-		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
-	})
+		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description",
+	}, host.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -243,19 +244,19 @@ func TestRSVPRoutes(t *testing.T) {
 	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/nope/rsvps/1", nil, auth.Token); response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid RSVP user ID status = %d", response.Code)
 	}
-	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/1/rsvps/nope", nil, auth.Token); response.Code != http.StatusBadRequest {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/2/rsvps/nope", nil, auth.Token); response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid RSVP event ID status = %d", response.Code)
 	}
-	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/999/rsvps/1", nil, auth.Token); response.Code != http.StatusNotFound {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/999/rsvps/1", nil, auth.Token); response.Code != http.StatusForbidden {
 		t.Fatalf("missing RSVP user status = %d", response.Code)
 	}
-	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/0/rsvps/1", nil, auth.Token); response.Code != http.StatusBadRequest {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/0/rsvps/1", nil, auth.Token); response.Code != http.StatusForbidden {
 		t.Fatalf("zero RSVP user status = %d", response.Code)
 	}
-	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/1/rsvps/-1", nil, auth.Token); response.Code != http.StatusBadRequest {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/2/rsvps/-1", nil, auth.Token); response.Code != http.StatusBadRequest {
 		t.Fatalf("negative RSVP event status = %d", response.Code)
 	}
-	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/1/rsvps/999", nil, auth.Token); response.Code != http.StatusNotFound {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/2/rsvps/999", nil, auth.Token); response.Code != http.StatusNotFound {
 		t.Fatalf("missing RSVP event status = %d", response.Code)
 	}
 	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/users/2/rsvps/1", nil, auth.Token); response.Code != http.StatusOK {
@@ -267,7 +268,7 @@ func TestRSVPRoutes(t *testing.T) {
 	if response := requestWithToken(t, controllerBackend.router, http.MethodGet, "/users/nope/rsvps", nil, auth.Token); response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid RSVP list user ID status = %d", response.Code)
 	}
-	if response := requestWithToken(t, controllerBackend.router, http.MethodGet, "/users/999/rsvps", nil, auth.Token); response.Code != http.StatusNotFound {
+	if response := requestWithToken(t, controllerBackend.router, http.MethodGet, "/users/999/rsvps", nil, auth.Token); response.Code != http.StatusForbidden {
 		t.Fatalf("missing RSVP list user status = %d", response.Code)
 	}
 	if response := requestWithToken(t, controllerBackend.router, http.MethodGet, "/users/2/rsvps", nil, auth.Token); response.Code != http.StatusOK {

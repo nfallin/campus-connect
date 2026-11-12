@@ -25,8 +25,7 @@ func (api *API) createEvent(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
 		return
 	}
-
-	event, err := api.repository.CreateEvent(request)
+	event, err := api.repository.CreateEvent(request, authenticatedUserID(c))
 	if errors.Is(err, Model.ErrInvalidEvent) {
 		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
 		return
@@ -53,13 +52,26 @@ func (api *API) updateEvent(c *gin.Context) {
 		return
 	}
 
+	event, err := api.repository.GetEvent(eventID)
+	if errors.Is(err, Model.ErrNotFound) {
+		c.JSON(http.StatusNotFound, Types.ErrorResponse{Message: "event not found"})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
+		return
+	}
+	if event.HostUserID != authenticatedUserID(c) {
+		c.JSON(http.StatusForbidden, Types.ErrorResponse{Message: "only the event host can update this event"})
+		return
+	}
+
 	var request Types.UpdateEventRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
 		return
 	}
-
-	event, err := api.repository.UpdateEvent(eventID, request)
+	event, err = api.repository.UpdateEvent(eventID, request)
 	if errors.Is(err, Model.ErrInvalidID) {
 		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
 		return
