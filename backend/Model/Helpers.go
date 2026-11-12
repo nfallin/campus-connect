@@ -20,6 +20,14 @@ var ErrDuplicateEmail = errors.New("email already exists")
 var ErrInvalidCredentials = errors.New("invalid credentials")
 var ErrUnauthorized = errors.New("authentication required")
 
+func normalizeUsername(username string) string {
+	return strings.ToLower(strings.TrimSpace(username))
+}
+
+func normalizeEmail(email string) string {
+	return strings.ToLower(strings.TrimSpace(email))
+}
+
 func translateUserWriteError(err error) error {
 	var sqliteError *sqlite.Error
 	if !errors.As(err, &sqliteError) || sqliteError.Code() != sqlite3.SQLITE_CONSTRAINT_UNIQUE {

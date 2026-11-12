@@ -4,6 +4,7 @@ import (
 	"campus_connect/Types"
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -30,6 +31,9 @@ func (repository *Repository) RegisterUserWithToken(request Types.RegisterUserRe
 }
 
 func (repository *Repository) insertUser(request Types.RegisterUserRequest) (Types.UserResponse, error) {
+	request.Username = normalizeUsername(request.Username)
+	request.Email = normalizeEmail(request.Email)
+
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return Types.UserResponse{}, err
@@ -56,13 +60,14 @@ func (repository *Repository) insertUser(request Types.RegisterUserRequest) (Typ
 }
 
 func (repository *Repository) LoginUser(request Types.LoginUserRequest) (Types.AuthResponse, error) {
+	identifier := strings.ToLower(strings.TrimSpace(request.Identifier))
 	var user Types.UserResponse
 	var passwordHash string
 	err := repository.db.QueryRow(`
 		SELECT user_id, user_name, user_email, password_hash
 		FROM users
 		WHERE user_name = ? OR user_email = ?
-	`, request.Identifier, request.Identifier).Scan(
+	`, identifier, identifier).Scan(
 		&user.ID, &user.Username, &user.Email, &passwordHash,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -158,10 +163,10 @@ func (repository *Repository) UpdateUser(id int, request Types.UpdateUserRequest
 		return Types.UserResponse{}, err
 	}
 	if request.Username != nil {
-		current.Username = *request.Username
+		current.Username = normalizeUsername(*request.Username)
 	}
 	if request.Email != nil {
-		current.Email = *request.Email
+		current.Email = normalizeEmail(*request.Email)
 	}
 	_, err = repository.db.Exec(`
 		UPDATE users SET user_name = ?, user_email = ? WHERE user_id = ?

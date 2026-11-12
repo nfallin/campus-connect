@@ -21,12 +21,23 @@ func testRepository(t *testing.T) *Repository {
 
 func TestRepositoryUsers(t *testing.T) {
 	repository := testRepository(t)
-	request := Types.RegisterUserRequest{Username: "Alice", Email: "alice@example.com", Password: "password123"}
+	request := Types.RegisterUserRequest{Username: " Alice ", Email: " ALICE@EXAMPLE.COM ", Password: "password123"}
 
 	// attempt to create a valid user
 	user, err := repository.RegisterUser(request)
 	if err != nil || user.ID == 0 {
 		t.Fatalf("register user = %+v, %v", user, err)
+	}
+	if user.Username != "alice" || user.Email != "alice@example.com" {
+		t.Fatalf("normalized user = %+v", user)
+	}
+
+	auth, err := repository.LoginUser(Types.LoginUserRequest{
+		Identifier: " ALICE ",
+		Password:   "password123",
+	})
+	if err != nil || auth.User != user {
+		t.Fatalf("normalized login = %+v, %v", auth, err)
 	}
 
 	// attempt to create a duplicate user
@@ -46,11 +57,11 @@ func TestRepositoryUsers(t *testing.T) {
 		t.Fatalf("get all users = %+v, %v", users, err)
 	}
 
-	name := "Updated Alice"
-	email := "updated@example.com"
+	name := " Updated Alice "
+	email := " UPDATED@example.com "
 	// attempt to update a user with new information
 	updated, err := repository.UpdateUser(user.ID, Types.UpdateUserRequest{Username: &name, Email: &email})
-	if err != nil || updated.Username != name || updated.Email != email {
+	if err != nil || updated.Username != "updated alice" || updated.Email != "updated@example.com" {
 		t.Fatalf("update user = %+v, %v", updated, err)
 	}
 
