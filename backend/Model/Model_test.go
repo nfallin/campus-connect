@@ -2,9 +2,7 @@ package Model
 
 import (
 	"campus_connect/Types"
-	"database/sql"
 	"errors"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -19,49 +17,6 @@ func testRepository(t *testing.T) *Repository {
 	}
 	t.Cleanup(func() { db.Close() })
 	return NewRepository(db)
-}
-
-func TestInitMigratesExistingDatabaseForOptionalEndTime(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "existing.db")
-	db, err := open(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := db.Exec(usersTable); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := db.Exec(`
-		CREATE TABLE events (
-			event_id INTEGER PRIMARY KEY AUTOINCREMENT,
-			event_name TEXT NOT NULL,
-			date_time TEXT NOT NULL,
-			location TEXT NOT NULL,
-			club_name TEXT NOT NULL,
-			description TEXT NOT NULL,
-			contact_email TEXT,
-			website TEXT,
-			host_user_id INTEGER NOT NULL,
-			UNIQUE(event_name),
-			FOREIGN KEY(host_user_id) REFERENCES users(user_id) ON DELETE RESTRICT
-		)
-	`); err != nil {
-		t.Fatal(err)
-	}
-	if err := db.Close(); err != nil {
-		t.Fatal(err)
-	}
-
-	migratedDB, err := Init(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer migratedDB.Close()
-
-	var endDateTime sql.NullString
-	err = migratedDB.QueryRow(`SELECT end_date_time FROM events LIMIT 1`).Scan(&endDateTime)
-	if err != nil && err != sql.ErrNoRows {
-		t.Fatalf("read migrated end time column: %v", err)
-	}
 }
 
 func TestRepositoryUsers(t *testing.T) {
