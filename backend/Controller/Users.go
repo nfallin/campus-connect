@@ -23,7 +23,7 @@ func (api *API) registerUser(c *gin.Context) {
 		return
 	}
 
-	_, err := api.repository.RegisterUser(request)
+	auth, err := api.repository.RegisterUserWithToken(request)
 	if errors.Is(err, Model.ErrDuplicateUsername) {
 		c.JSON(http.StatusConflict, Types.ErrorResponse{Message: err.Error()})
 		return
@@ -32,15 +32,6 @@ func (api *API) registerUser(c *gin.Context) {
 		c.JSON(http.StatusConflict, Types.ErrorResponse{Message: err.Error()})
 		return
 	}
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
-		return
-	}
-
-	auth, err := api.repository.LoginUser(Types.LoginUserRequest{
-		Identifier: request.Username,
-		Password:   request.Password,
-	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
 		return

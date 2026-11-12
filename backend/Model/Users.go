@@ -12,6 +12,24 @@ import (
 const tokenLifetime = 24 * time.Hour
 
 func (repository *Repository) RegisterUser(request Types.RegisterUserRequest) (Types.UserResponse, error) {
+	user, err := repository.insertUser(request)
+	return user, err
+}
+
+func (repository *Repository) RegisterUserWithToken(request Types.RegisterUserRequest) (Types.AuthResponse, error) {
+	user, err := repository.insertUser(request)
+	if err != nil {
+		return Types.AuthResponse{}, err
+	}
+
+	expiresAt := time.Now().Add(tokenLifetime).UTC()
+	return Types.AuthResponse{
+		User:  user,
+		Token: newToken(user.ID, expiresAt),
+	}, nil
+}
+
+func (repository *Repository) insertUser(request Types.RegisterUserRequest) (Types.UserResponse, error) {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return Types.UserResponse{}, err
