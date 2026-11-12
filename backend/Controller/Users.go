@@ -67,10 +67,6 @@ func (api *API) loginUser(c *gin.Context) {
 	c.JSON(http.StatusOK, auth)
 }
 
-func (api *API) logoutUser(c *gin.Context) {
-	c.Status(http.StatusNoContent)
-}
-
 func (api *API) getCurrentUser(c *gin.Context) {
 	c.JSON(http.StatusOK, c.MustGet(authenticatedUserKey))
 }
@@ -98,11 +94,6 @@ func bearerToken(c *gin.Context) string {
 		return ""
 	}
 	return strings.TrimSpace(strings.TrimPrefix(header, prefix))
-}
-
-func authenticatedUser(c *gin.Context) Types.UserResponse {
-	user, _ := c.Get(authenticatedUserKey)
-	return user.(Types.UserResponse)
 }
 
 func (api *API) getUser(c *gin.Context) {

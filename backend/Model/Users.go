@@ -33,7 +33,6 @@ func (repository *Repository) RegisterUser(request Types.RegisterUserRequest) (T
 	return Types.UserResponse{
 		ID:       int(id),
 		Username: request.Username,
-		Name:     request.Username,
 		Email:    request.Email,
 	}, nil
 }
@@ -61,7 +60,6 @@ func (repository *Repository) LoginUser(request Types.LoginUserRequest) (Types.A
 	expiresAt := time.Now().Add(tokenLifetime).UTC()
 	token := newToken(user.ID, expiresAt)
 
-	user.Name = user.Username
 	return Types.AuthResponse{User: user, Token: token}, nil
 }
 
@@ -88,7 +86,6 @@ func (repository *Repository) AuthenticateToken(token string) (Types.UserRespons
 		return Types.UserResponse{}, err
 	}
 
-	user.Name = user.Username
 	return user, nil
 }
 
@@ -108,7 +105,6 @@ func (repository *Repository) GetUser(id int) (Types.UserResponse, error) {
 	if err != nil {
 		return Types.UserResponse{}, err
 	}
-	user.Name = user.Username
 	return user, nil
 }
 
@@ -130,7 +126,6 @@ func (repository *Repository) GetAllUsers() ([]Types.UserResponse, error) {
 		if err := rows.Scan(&user.ID, &user.Username, &user.Email); err != nil {
 			return nil, err
 		}
-		user.Name = user.Username
 		users = append(users, user)
 	}
 	return users, rows.Err()
@@ -146,7 +141,6 @@ func (repository *Repository) UpdateUser(id int, request Types.UpdateUserRequest
 	}
 	if request.Username != nil {
 		current.Username = *request.Username
-		current.Name = *request.Username
 	}
 	if request.Email != nil {
 		current.Email = *request.Email

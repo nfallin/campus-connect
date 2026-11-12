@@ -31,7 +31,6 @@ func defineRoutes(r *gin.Engine, api *API) {
 
 	r.POST("/users/register", api.registerUser)
 	r.POST("/users/login", api.loginUser)
-	r.POST("/users/logout", api.requireAuth, api.logoutUser)
 	r.GET("/users/me", api.requireAuth, api.getCurrentUser)
 	r.GET("/users/:userId", api.getUser)
 

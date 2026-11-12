@@ -152,7 +152,7 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 		WHERE e.event_id = ?
 	`, id).Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
 		&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
-		&event.HostUserID, &host.ID, &host.Name, &host.Email,
+		&event.HostUserID, &host.ID, &host.Username, &host.Email,
 		&event.AttendeeCount)
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -240,7 +240,7 @@ func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.Eve
 
 		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
 			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
-			&event.HostUserID, &host.ID, &host.Name, &host.Email, &event.AttendeeCount); err != nil {
+			&event.HostUserID, &host.ID, &host.Username, &host.Email, &event.AttendeeCount); err != nil {
 			return nil, err
 		}
 

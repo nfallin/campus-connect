@@ -116,7 +116,6 @@ function App() {
   }
 
   const handleLogout = () => {
-    api.post('/users/logout').catch((err) => console.error('Logout failed', err))
     clearAuthToken()
     setCurrentUser(null)
     setRsvpedEventIds([])

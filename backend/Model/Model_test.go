@@ -95,7 +95,7 @@ func TestRepositoryUsers(t *testing.T) {
 	email := "updated@example.com"
 	// attempt to update a user with new information
 	updated, err := repository.UpdateUser(user.ID, Types.UpdateUserRequest{Username: &name, Email: &email})
-	if err != nil || updated.Name != name || updated.Email != email {
+	if err != nil || updated.Username != name || updated.Email != email {
 		t.Fatalf("update user = %+v, %v", updated, err)
 	}
 
