@@ -6,12 +6,15 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-func (api *API) createUser(c *gin.Context) {
-	var request Types.CreateUserRequest
+const authenticatedUserKey = "authenticatedUser"
+
+func (api *API) registerUser(c *gin.Context) {
+	var request Types.RegisterUserRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, Types.ErrorResponse{
@@ -20,21 +23,72 @@ func (api *API) createUser(c *gin.Context) {
 		return
 	}
 
-	user, created, err := api.repository.CreateUser(request)
+	auth, err := api.repository.RegisterUserWithToken(request)
+	if errors.Is(err, Model.ErrDuplicateUsername) {
+		c.JSON(http.StatusConflict, Types.ErrorResponse{Message: err.Error()})
+		return
+	}
+	if errors.Is(err, Model.ErrDuplicateEmail) {
+		c.JSON(http.StatusConflict, Types.ErrorResponse{Message: err.Error()})
+		return
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
 		return
 	}
+	c.JSON(http.StatusCreated, auth)
+}
 
-	status := http.StatusOK
-	if created {
-		status = http.StatusCreated
+func (api *API) loginUser(c *gin.Context) {
+	var request Types.LoginUserRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
+		return
 	}
 
-	c.JSON(status, gin.H{
-		"user":      user,
-		"isNewUser": created,
-	})
+	auth, err := api.repository.LoginUser(request)
+	if errors.Is(err, Model.ErrInvalidCredentials) {
+		c.JSON(http.StatusUnauthorized, Types.ErrorResponse{Message: err.Error()})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, auth)
+}
+
+func (api *API) getCurrentUser(c *gin.Context) {
+	c.JSON(http.StatusOK, c.MustGet(authenticatedUserKey))
+}
+
+func authenticatedUserID(c *gin.Context) int {
+	return c.MustGet(authenticatedUserKey).(Types.UserResponse).ID
+}
+
+func (api *API) requireAuth(c *gin.Context) {
+	user, err := api.repository.AuthenticateToken(bearerToken(c))
+	if errors.Is(err, Model.ErrUnauthorized) {
+		c.JSON(http.StatusUnauthorized, Types.ErrorResponse{Message: err.Error()})
+		c.Abort()
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
+		c.Abort()
+		return
+	}
+	c.Set(authenticatedUserKey, user)
+	c.Next()
+}
+
+func bearerToken(c *gin.Context) string {
+	const prefix = "Bearer "
+	header := c.GetHeader("Authorization")
+	if !strings.HasPrefix(header, prefix) {
+		return ""
+	}
+	return strings.TrimSpace(strings.TrimPrefix(header, prefix))
 }
 
 func (api *API) getUser(c *gin.Context) {

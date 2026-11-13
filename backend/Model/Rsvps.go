@@ -90,7 +90,7 @@ func (repository *Repository) GetUserRSVPs(userID int) ([]Types.EventResponse, e
 
 		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
 			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
-			&event.HostUserID, &host.ID, &host.Name, &host.Email,
+			&event.HostUserID, &host.ID, &host.Username, &host.Email,
 			&event.AttendeeCount); err != nil {
 			return nil, err
 		}

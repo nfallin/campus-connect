@@ -1,4 +1,17 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
+const TOKEN_KEY = 'campus-connect-token'
+
+function getStoredToken() {
+  return typeof localStorage === 'undefined' ? null : localStorage.getItem(TOKEN_KEY)
+}
+
+export function setAuthToken(token: string) {
+  if (typeof localStorage !== 'undefined') localStorage.setItem(TOKEN_KEY, token)
+}
+
+export function clearAuthToken() {
+  if (typeof localStorage !== 'undefined') localStorage.removeItem(TOKEN_KEY)
+}
 
 export class ApiError extends Error {
   status: number
@@ -12,7 +25,13 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(getStoredToken()
+        ? { Authorization: `Bearer ${getStoredToken()}` }
+        : {}),
+      ...options.headers,
+    },
     ...options,
   })
 

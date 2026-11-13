@@ -66,10 +66,7 @@ func validateEventEndDateTime(start, end time.Time) error {
 	return nil
 }
 
-func (repository *Repository) CreateEvent(request Types.CreateEventRequest) (Types.EventResponse, error) {
-	if request.HostUserID == nil {
-		return Types.EventResponse{}, fmt.Errorf("%w: host user id is required", ErrInvalidEvent)
-	}
+func (repository *Repository) CreateEvent(request Types.CreateEventRequest, hostUserID int) (Types.EventResponse, error) {
 	if request.Name == "" {
 		return Types.EventResponse{}, fmt.Errorf("%w: name is required", ErrInvalidEvent)
 	}
@@ -103,11 +100,11 @@ func (repository *Repository) CreateEvent(request Types.CreateEventRequest) (Typ
 	}); err != nil {
 		return Types.EventResponse{}, err
 	}
-	if err := requirePositiveID(*request.HostUserID); err != nil {
+	if err := requirePositiveID(hostUserID); err != nil {
 		return Types.EventResponse{}, fmt.Errorf("%w: host user id must be positive", ErrInvalidEvent)
 	}
 
-	if _, err := repository.GetUser(*request.HostUserID); err != nil {
+	if _, err := repository.GetUser(hostUserID); err != nil {
 		return Types.EventResponse{}, err
 	}
 
@@ -118,7 +115,7 @@ func (repository *Repository) CreateEvent(request Types.CreateEventRequest) (Typ
 		)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`, request.Name, request.DateTime.Format(time.RFC3339), formatOptionalDateTime(request.EndDateTime),
-		request.Location, request.ClubName, request.Description, request.ContactEmail, request.WebsiteURL, *request.HostUserID)
+		request.Location, request.ClubName, request.Description, request.ContactEmail, request.WebsiteURL, hostUserID)
 
 	if err != nil {
 		return Types.EventResponse{}, translateEventWriteError(err)
@@ -152,7 +149,7 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 		WHERE e.event_id = ?
 	`, id).Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
 		&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
-		&event.HostUserID, &host.ID, &host.Name, &host.Email,
+		&event.HostUserID, &host.ID, &host.Username, &host.Email,
 		&event.AttendeeCount)
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -240,7 +237,7 @@ func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.Eve
 
 		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
 			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
-			&event.HostUserID, &host.ID, &host.Name, &host.Email, &event.AttendeeCount); err != nil {
+			&event.HostUserID, &host.ID, &host.Username, &host.Email, &event.AttendeeCount); err != nil {
 			return nil, err
 		}
 
@@ -338,16 +335,6 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 		current.WebsiteURL = *request.WebsiteURL
 	}
 
-	if request.HostUserID != nil {
-		if err := requirePositiveID(*request.HostUserID); err != nil {
-			return Types.EventResponse{}, fmt.Errorf("%w: host user id must be positive", ErrInvalidEvent)
-		}
-		if _, err := repository.GetUser(*request.HostUserID); err != nil {
-			return Types.EventResponse{}, err
-		}
-
-		current.HostUserID = *request.HostUserID
-	}
 	if err := validateEventFieldLengths(current); err != nil {
 		return Types.EventResponse{}, err
 	}

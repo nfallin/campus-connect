@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api } from './lib/api'
+import { api, clearAuthToken, setAuthToken } from './lib/api'
 import {
   sortEventsChronologically,
   toUtcDateTime,
@@ -8,7 +8,7 @@ import {
 import { fromEventResponse } from './lib/eventMappers'
 import './App.css'
 
-import type { Event, EventResponse, User, UserResponse, RSVPResponse, Page } from './types'
+import type { Event, EventResponse, User, AuthResponse, RSVPResponse, Page } from './types'
 import type { EventFormData } from './components/EventForm'
 
 import AppHeader from './components/AppHeader'
@@ -57,6 +57,16 @@ function App() {
         setEvents(
           sortEventsChronologically(data.events.map(fromEventResponse))
         )
+
+        api.get<User>('/users/me').then(
+          (user) => {
+            setCurrentUser(user)
+            return api.get<RSVPResponse>(`/users/${user.id}/rsvps`)
+          },
+        ).then(
+          (data) => data && setRsvpedEventIds(data.events.map((event) => event.id)),
+          () => clearAuthToken(),
+        )
       },
       (err) => console.error('Failed to load events', err),
     )
@@ -72,11 +82,12 @@ function App() {
     }
   }, [currentUser, page])
 
-  const handleLogin = async (name: string, email: string) => {
-    const result = await api.post<UserResponse>('/users', {
-      name,
-      email,
+  const handleLogin = async (identifier: string, password: string) => {
+    const result = await api.post<AuthResponse>('/users/login', {
+      identifier,
+      password,
     })
+    setAuthToken(result.token)
 
     const rsvpData = await api.get<RSVPResponse>(
       `/users/${result.user.id}/rsvps`
@@ -87,17 +98,25 @@ function App() {
     )
 
     setCurrentUser(result.user)
-
-    setWelcomeMessage(
-      result.isNewUser
-        ? `Your account has been created, ${result.user.name}!`
-        : `Welcome back, ${result.user.name}!`
-    )
+    setWelcomeMessage(`Welcome back, ${result.user.username}!`)
 
     window.location.hash = '#events'
   }
 
+  const handleRegister = async (username: string, email: string, password: string) => {
+    const result = await api.post<AuthResponse>('/users/register', {
+      username,
+      email,
+      password,
+    })
+    setAuthToken(result.token)
+    setCurrentUser(result.user)
+    setWelcomeMessage(`Your account has been created, ${result.user.username}!`)
+    window.location.hash = '#events'
+  }
+
   const handleLogout = () => {
+    clearAuthToken()
     setCurrentUser(null)
     setRsvpedEventIds([])
     setRsvpLoading([])
@@ -127,7 +146,6 @@ function App() {
       description: formData.description.trim(),
       contactEmail: formData.contactEmail.trim(),
       websiteURL: formData.website.trim(),
-      hostUserId: currentUser.id,
     })
 
     const event = fromEventResponse(created)
@@ -253,7 +271,7 @@ function App() {
       </div>
       
       {visiblePage === 'login' ? (
-        <LoginPage onLogin={handleLogin} />
+        <LoginPage onLogin={handleLogin} onRegister={handleRegister} />
       ) : visiblePage === 'create' ? (
         <CreateEventPage
           disabled={!currentUser}

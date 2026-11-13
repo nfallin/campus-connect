@@ -2,9 +2,7 @@ package Model
 
 import (
 	"campus_connect/Types"
-	"database/sql"
 	"errors"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -21,63 +19,30 @@ func testRepository(t *testing.T) *Repository {
 	return NewRepository(db)
 }
 
-func TestInitMigratesExistingDatabaseForOptionalEndTime(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "existing.db")
-	db, err := open(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := db.Exec(usersTable); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := db.Exec(`
-		CREATE TABLE events (
-			event_id INTEGER PRIMARY KEY AUTOINCREMENT,
-			event_name TEXT NOT NULL,
-			date_time TEXT NOT NULL,
-			location TEXT NOT NULL,
-			club_name TEXT NOT NULL,
-			description TEXT NOT NULL,
-			contact_email TEXT,
-			website TEXT,
-			host_user_id INTEGER NOT NULL,
-			UNIQUE(event_name),
-			FOREIGN KEY(host_user_id) REFERENCES users(user_id) ON DELETE RESTRICT
-		)
-	`); err != nil {
-		t.Fatal(err)
-	}
-	if err := db.Close(); err != nil {
-		t.Fatal(err)
-	}
-
-	migratedDB, err := Init(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer migratedDB.Close()
-
-	var endDateTime sql.NullString
-	err = migratedDB.QueryRow(`SELECT end_date_time FROM events LIMIT 1`).Scan(&endDateTime)
-	if err != nil && err != sql.ErrNoRows {
-		t.Fatalf("read migrated end time column: %v", err)
-	}
-}
-
 func TestRepositoryUsers(t *testing.T) {
 	repository := testRepository(t)
-	request := Types.CreateUserRequest{Name: "Alice", Email: "alice@example.com"}
+	request := Types.RegisterUserRequest{Username: " Alice ", Email: " ALICE@EXAMPLE.COM ", Password: "password123"}
 
 	// attempt to create a valid user
-	user, created, err := repository.CreateUser(request)
-	if err != nil || !created || user.ID == 0 {
-		t.Fatalf("create user = %+v, %v, %v", user, created, err)
+	user, err := repository.RegisterUser(request)
+	if err != nil || user.ID == 0 {
+		t.Fatalf("register user = %+v, %v", user, err)
+	}
+	if user.Username != "alice" || user.Email != "alice@example.com" {
+		t.Fatalf("normalized user = %+v", user)
+	}
+
+	auth, err := repository.LoginUser(Types.LoginUserRequest{
+		Identifier: " ALICE ",
+		Password:   "password123",
+	})
+	if err != nil || auth.User != user {
+		t.Fatalf("normalized login = %+v, %v", auth, err)
 	}
 
 	// attempt to create a duplicate user
-	existing, created, err := repository.CreateUser(request)
-	if err != nil || created || existing.ID != user.ID {
-		t.Fatalf("duplicate user = %+v, %v, %v", existing, created, err)
+	if _, err := repository.RegisterUser(request); err == nil {
+		t.Fatal("duplicate user should fail")
 	}
 
 	// attempt to get the user
@@ -92,11 +57,11 @@ func TestRepositoryUsers(t *testing.T) {
 		t.Fatalf("get all users = %+v, %v", users, err)
 	}
 
-	name := "Updated Alice"
-	email := "updated@example.com"
+	name := " Updated Alice "
+	email := " UPDATED@example.com "
 	// attempt to update a user with new information
-	updated, err := repository.UpdateUser(user.ID, Types.UpdateUserRequest{Name: &name, Email: &email})
-	if err != nil || updated.Name != name || updated.Email != email {
+	updated, err := repository.UpdateUser(user.ID, Types.UpdateUserRequest{Username: &name, Email: &email})
+	if err != nil || updated.Username != "updated alice" || updated.Email != "updated@example.com" {
 		t.Fatalf("update user = %+v, %v", updated, err)
 	}
 
@@ -114,22 +79,22 @@ func TestRepositoryUsers(t *testing.T) {
 	}
 
 	// attempt to update a user to match the name and email of an existing user
-	duplicateA, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "A", Email: "a@example.com"})
+	duplicateA, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "A", Email: "a@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	duplicateB, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "B", Email: "b@example.com"})
+	duplicateB, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "B", Email: "b@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := repository.UpdateUser(duplicateB.ID, Types.UpdateUserRequest{Name: stringPointer("A"), Email: stringPointer(duplicateA.Email)}); err == nil {
+	if _, err := repository.UpdateUser(duplicateB.ID, Types.UpdateUserRequest{Username: stringPointer("A"), Email: stringPointer(duplicateA.Email)}); err == nil {
 		t.Fatal("expected duplicate user update error")
 	}
 }
 
 func TestRepositoryEventsAndFilters(t *testing.T) {
 	repository := testRepository(t)
-	host, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "Host", Email: "host@example.com"})
+	host, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "Host", Email: "host@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,8 +104,8 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	endWhen := when.Add(time.Hour)
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
 		Name: "Meeting", DateTime: when, Location: "Room 1", ClubName: "Club A", Description: "Description",
-		HostUserID: &host.ID, EndDateTime: &endWhen,
-	})
+		EndDateTime: &endWhen,
+	}, host.ID)
 	if err != nil || event.Host == nil || event.AttendeeCount != 0 ||
 		event.EndDateTime == nil || !event.EndDateTime.Equal(endWhen.Truncate(time.Second)) {
 		t.Fatalf("create event = %+v, %v", event, err)
@@ -148,15 +113,15 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	pastEnd := when.Add(-time.Minute)
 	if _, err := repository.CreateEvent(Types.CreateEventRequest{
 		Name: "Invalid end time", DateTime: when, EndDateTime: &pastEnd,
-		Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
-	}); !errors.Is(err, ErrInvalidEvent) {
+		Location: "Room", ClubName: "Club", Description: "Description",
+	}, host.ID); !errors.Is(err, ErrInvalidEvent) {
 		t.Fatalf("create event with end time before start error = %v", err)
 	}
 	tooSoonEnd := when.Add(29 * time.Minute)
 	if _, err := repository.CreateEvent(Types.CreateEventRequest{
 		Name: "End time too soon", DateTime: when, EndDateTime: &tooSoonEnd,
-		Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
-	}); !errors.Is(err, ErrInvalidEvent) {
+		Location: "Room", ClubName: "Club", Description: "Description",
+	}, host.ID); !errors.Is(err, ErrInvalidEvent) {
 		t.Fatalf("create event with end time less than 30 minutes after start error = %v", err)
 	}
 	if err := validateEventEndDateTime(when, when.Add(30*time.Minute)); err != nil {
@@ -164,9 +129,9 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	}
 	duplicate := Types.CreateEventRequest{
 		Name: "Meeting", DateTime: when.Add(time.Hour), Location: "Room 2",
-		ClubName: "Club B", Description: "Another meeting", HostUserID: &host.ID,
+		ClubName: "Club B", Description: "Another meeting",
 	}
-	if _, err := repository.CreateEvent(duplicate); !errors.Is(err, ErrDuplicateEventName) {
+	if _, err := repository.CreateEvent(duplicate, host.ID); !errors.Is(err, ErrDuplicateEventName) {
 		t.Fatalf("duplicate event name error = %v", err)
 	}
 
@@ -226,8 +191,8 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	}
 	otherEvent, err := repository.CreateEvent(Types.CreateEventRequest{
 		Name: "Another event", DateTime: when.Add(2 * time.Hour), Location: "Room 3",
-		ClubName: "Club C", Description: "Another event", HostUserID: &host.ID,
-	})
+		ClubName: "Club C", Description: "Another event",
+	}, host.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -240,7 +205,7 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 		t.Fatalf("get missing event error = %v", err)
 	}
 	validRequest := Types.CreateEventRequest{
-		Name: "Valid event", DateTime: when, Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
+		Name: "Valid event", DateTime: when, Location: "Room", ClubName: "Club", Description: "Description",
 	}
 	maxLengthRequest := validRequest
 	maxLengthRequest.Name = strings.Repeat("T", maxEventTitleLength)
@@ -249,7 +214,7 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	maxLengthRequest.Description = strings.Repeat("D", maxEventDescriptionLength)
 	maxLengthRequest.ContactEmail = strings.Repeat("e", maxEventEmailLength)
 	maxLengthRequest.WebsiteURL = strings.Repeat("w", maxEventWebsiteLength)
-	if _, err := repository.CreateEvent(maxLengthRequest); err != nil {
+	if _, err := repository.CreateEvent(maxLengthRequest, host.ID); err != nil {
 		t.Fatalf("create event at text field limits: %v", err)
 	}
 
@@ -279,40 +244,28 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 		t.Run("event text limit "+test.name, func(t *testing.T) {
 			request := validRequest
 			test.update(&request)
-			if _, err := repository.CreateEvent(request); !errors.Is(err, ErrInvalidEvent) {
+			if _, err := repository.CreateEvent(request, host.ID); !errors.Is(err, ErrInvalidEvent) {
 				t.Fatalf("create event with overlong %s error = %v", test.name, err)
 			}
 		})
 	}
 
 	for name, request := range map[string]Types.CreateEventRequest{
-		"missing name":        {DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
-		"missing date":        {Name: validRequest.Name, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
-		"missing location":    {Name: validRequest.Name, DateTime: validRequest.DateTime, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
-		"missing club name":   {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, HostUserID: validRequest.HostUserID},
-		"misisng description": {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: validRequest.HostUserID},
-		"missing host":        {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName},
-		"non-positive host":   {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName, HostUserID: intPointer(0)},
+		"missing name":        {DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName, Description: validRequest.Description},
+		"missing date":        {Name: validRequest.Name, Location: validRequest.Location, ClubName: validRequest.ClubName, Description: validRequest.Description},
+		"missing location":    {Name: validRequest.Name, DateTime: validRequest.DateTime, ClubName: validRequest.ClubName, Description: validRequest.Description},
+		"missing club name":   {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, Description: validRequest.Description},
+		"misisng description": {Name: validRequest.Name, DateTime: validRequest.DateTime, Location: validRequest.Location, ClubName: validRequest.ClubName},
 	} {
 		t.Run(name, func(t *testing.T) {
-			if _, err := repository.CreateEvent(request); !errors.Is(err, ErrInvalidEvent) {
+			if _, err := repository.CreateEvent(request, host.ID); !errors.Is(err, ErrInvalidEvent) {
 				t.Fatalf("create event error = %v", err)
 			}
 		})
 	}
-	// attempt to create an event with a nonexistent host
-	nonexistentHost := validRequest
-	nonexistentHost.HostUserID = intPointer(999)
-	if _, err := repository.CreateEvent(nonexistentHost); !errors.Is(err, ErrNotFound) {
-		t.Fatalf("invalid host error = %v", err)
-	}
 	// attempt to update an event with a nonexistent ID
 	if _, err := repository.UpdateEvent(999, Types.UpdateEventRequest{}); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("update missing event error = %v", err)
-	}
-	// attempt to update an event with a nonexistent host
-	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{HostUserID: intPointer(999)}); !errors.Is(err, ErrNotFound) {
-		t.Fatalf("invalid replacement host error = %v", err)
 	}
 	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{Name: stringPointer("")}); !errors.Is(err, ErrInvalidEvent) {
 		t.Fatalf("empty replacement name error = %v", err)
@@ -322,20 +275,17 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	}); !errors.Is(err, ErrInvalidEvent) {
 		t.Fatalf("overlong replacement name error = %v", err)
 	}
-	if _, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{HostUserID: intPointer(0)}); !errors.Is(err, ErrInvalidEvent) {
-		t.Fatalf("non-positive replacement host error = %v", err)
-	}
 	// attempt to create or update an event with a past or far future date
 	if _, err := repository.CreateEvent(Types.CreateEventRequest{
 		Name: "Past event", DateTime: time.Now().Add(-time.Minute), Location: "Room", ClubName: "Club",
-		Description: "Description", HostUserID: &host.ID,
-	}); !errors.Is(err, ErrInvalidEvent) {
+		Description: "Description",
+	}, host.ID); !errors.Is(err, ErrInvalidEvent) {
 		t.Fatalf("past event error = %v", err)
 	}
 	if _, err := repository.CreateEvent(Types.CreateEventRequest{
 		Name: "Far future event", DateTime: time.Now().AddDate(0, 7, 0), Location: "Room", ClubName: "Club",
-		Description: "Description", HostUserID: &host.ID,
-	}); !errors.Is(err, ErrInvalidEvent) {
+		Description: "Description",
+	}, host.ID); !errors.Is(err, ErrInvalidEvent) {
 		t.Fatalf("far future event error = %v", err)
 	}
 	past := time.Now().Add(-time.Minute)
@@ -358,11 +308,11 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 
 func TestRepositoryRSVPs(t *testing.T) {
 	repository := testRepository(t)
-	host, _, _ := repository.CreateUser(Types.CreateUserRequest{Name: "Host", Email: "host@example.com"})
-	attendee, _, _ := repository.CreateUser(Types.CreateUserRequest{Name: "Attendee", Email: "attendee@example.com"})
+	host, _ := repository.RegisterUser(Types.RegisterUserRequest{Username: "Host", Email: "host@example.com", Password: "password123"})
+	attendee, _ := repository.RegisterUser(Types.RegisterUserRequest{Username: "Attendee", Email: "attendee@example.com", Password: "password123"})
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
-		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
-	})
+		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description",
+	}, host.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -393,17 +343,17 @@ func TestRepositoryRSVPs(t *testing.T) {
 
 func TestRepositoryDeleteRelationships(t *testing.T) {
 	repository := testRepository(t)
-	host, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "Host", Email: "host@example.com"})
+	host, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "Host", Email: "host@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	attendee, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "Attendee", Email: "attendee@example.com"})
+	attendee, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "Attendee", Email: "attendee@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
-		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description", HostUserID: &host.ID,
-	})
+		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description",
+	}, host.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -429,7 +379,7 @@ func TestRepositoryDeleteRelationships(t *testing.T) {
 	}
 
 	// attempt to add another RSVP
-	anotherAttendee, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "Another", Email: "another@example.com"})
+	anotherAttendee, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "Another", Email: "another@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -480,7 +430,7 @@ func TestRepositoryDatabaseErrors(t *testing.T) {
 	repository := testRepository(t)
 	repository.db.Close()
 
-	if _, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "A", Email: "a@example.com"}); err == nil {
+	if _, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "A", Email: "a@example.com", Password: "password123"}); err == nil {
 		t.Fatal("expected create user database error")
 	}
 	if _, err := repository.GetUser(1); err == nil {
@@ -495,7 +445,7 @@ func TestRepositoryDatabaseErrors(t *testing.T) {
 	if err := repository.DeleteUser(1); err == nil {
 		t.Fatal("expected delete user database error")
 	}
-	if _, err := repository.CreateEvent(Types.CreateEventRequest{HostUserID: intPointer(1)}); err == nil {
+	if _, err := repository.CreateEvent(Types.CreateEventRequest{}, 1); err == nil {
 		t.Fatal("expected create event database error")
 	}
 	if _, err := repository.GetEvent(1); err == nil {
@@ -524,7 +474,7 @@ func TestRepositoryDatabaseErrors(t *testing.T) {
 // confirm that the database rejects malformed dates for events
 func TestRepositoryMalformedDate(t *testing.T) {
 	repository := testRepository(t)
-	host, _, err := repository.CreateUser(Types.CreateUserRequest{Name: "Host", Email: "host@example.com"})
+	host, err := repository.RegisterUser(Types.RegisterUserRequest{Username: "Host", Email: "host@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)
 	}

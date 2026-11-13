@@ -29,6 +29,10 @@ func (api *API) rsvpAdd(c *gin.Context) {
 	if !ok {
 		return
 	}
+	if userID != authenticatedUserID(c) {
+		c.JSON(http.StatusForbidden, Types.ErrorResponse{Message: "you can only manage your own RSVPs"})
+		return
+	}
 	err := api.repository.AddRSVP(userID, eventID)
 	if errors.Is(err, Model.ErrInvalidID) {
 		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
@@ -48,6 +52,10 @@ func (api *API) rsvpAdd(c *gin.Context) {
 func (api *API) rsvpRemove(c *gin.Context) {
 	userID, eventID, ok := parseRSVPIDs(c)
 	if !ok {
+		return
+	}
+	if userID != authenticatedUserID(c) {
+		c.JSON(http.StatusForbidden, Types.ErrorResponse{Message: "you can only manage your own RSVPs"})
 		return
 	}
 	err := api.repository.RemoveRSVP(userID, eventID)
@@ -70,6 +78,10 @@ func (api *API) getRSVPs(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("userId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: "user id must be an integer"})
+		return
+	}
+	if userID != authenticatedUserID(c) {
+		c.JSON(http.StatusForbidden, Types.ErrorResponse{Message: "you can only view your own RSVPs"})
 		return
 	}
 	events, err := api.repository.GetUserRSVPs(userID)
