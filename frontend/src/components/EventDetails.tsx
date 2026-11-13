@@ -55,7 +55,7 @@ function EventDetails({
   const [isEditing, setIsEditing] = useState(false)
 
   return (
-    <div className="event-details-backdrop">
+    <div className="event-details-backdrop" onClick={onClose}>
       <section
         className={`event-details${isEditing ? ' event-details-is-editing' : ''}`}
         role="dialog"
@@ -64,17 +64,7 @@ function EventDetails({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="event-details-header">
-          {isEditing ? (
-            <button
-              type="button"
-              className="event-details-back"
-              onClick={() => setIsEditing(false)}
-            >
-              Back
-            </button>
-          ) : (
-            <span />
-          )}
+          <span />
           <h2 id="event-details-title">{isEditing ? 'Edit event' : event.title}</h2>
           <button type="button" className="event-details-close" onClick={onClose}>
             Close
@@ -90,6 +80,7 @@ function EventDetails({
                 await onSave(data)
                 setIsEditing(false)
               }}
+              onCancel={() => setIsEditing(false)}
               submitLabel="Save changes"
               submittingLabel="Saving..."
             />
@@ -119,32 +110,31 @@ function EventDetails({
                   )}
                 </div>
               )}
-
-              <div className="event-details-actions">
+            </div>
+            <div className="event-details-actions">
+              <button
+                type="button"
+                className="create-btn event-details-rsvp"
+                onClick={hasRSVPed ? onRemoveRSVP : onRSVP}
+                disabled={disabled || isLoading}
+              >
+                {isLoading
+                  ? 'Please wait...'
+                  : disabled
+                    ? 'Sign in to register'
+                    : hasRSVPed
+                      ? 'Cancel registration'
+                      : 'Register'}
+              </button>
+              {isOwner && (
                 <button
                   type="button"
-                  className="create-btn event-details-rsvp"
-                  onClick={hasRSVPed ? onRemoveRSVP : onRSVP}
-                  disabled={disabled || isLoading}
+                  className="event-details-edit-toggle"
+                  onClick={() => setIsEditing(true)}
                 >
-                  {isLoading
-                    ? 'Please wait...'
-                    : disabled
-                      ? 'Sign in to register'
-                      : hasRSVPed
-                        ? 'Cancel registration'
-                        : 'Register'}
+                  Edit event
                 </button>
-                {isOwner && (
-                  <button
-                    type="button"
-                    className="event-details-edit-toggle"
-                    onClick={() => setIsEditing(true)}
-                  >
-                    Edit event
-                  </button>
-                )}
-              </div>
+              )}
             </div>
           </>
         )}
