@@ -1,5 +1,7 @@
 
-/* Form container */
+/* =================================
+   FORM CONTAINER
+================================= */
 
 .card {
   border: 1px solid #000;
@@ -67,7 +69,9 @@
   white-space: nowrap;
 }
 
-/* Fields */
+/* =================================
+   FORM FIELDS
+================================= */
 
 .field {
   display: flex;
@@ -142,7 +146,9 @@
   resize: vertical;
 }
 
-/* Time selection */
+/* =================================
+   TIME SELECTION
+================================= */
 
 .time-row {
   display: flex;
@@ -166,12 +172,15 @@
   color: #000;
 }
 
+/* AM / PM Toggle */
+
 .period-toggle {
   display: flex;
   margin-left: 4px;
-  border: 1px solid #000;
-  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
   overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .period-toggle button {
@@ -180,47 +189,84 @@
   font-weight: 600;
   padding: 8px 10px;
   border: none;
-  background: #fff;
-  color: #000;
+  background: #f8fafc;
+  color: #334155;
   cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
 }
 
 .period-toggle button + button {
-  border-left: 1px solid #000;
+  border-left: 1px solid #cbd5e1;
+}
+
+.period-toggle button:hover {
+  background: #e2e8f0;
 }
 
 .period-toggle button.active {
-  background: #000;
+  background: #2563eb;
   color: #fff;
 }
 
-/* Submit button */
+/* =================================
+   PRIMARY BUTTONS
+================================= */
 
 .create-btn {
   margin-top: 2px;
-  padding: 10px 16px;
+  padding: 11px 18px;
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.3px;
-  border: 1px solid #000;
-  border-radius: 4px;
-  background: #000;
+
+  border: 1px solid #1d4ed8;
+  border-bottom: 4px solid #1e40af;
+  border-radius: 7px;
+
+  background: #2563eb;
   color: #fff;
+
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.14);
+
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
+
   flex-shrink: 0;
 }
 
 .create-btn:hover:not(:disabled) {
-  opacity: 0.85;
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 9px rgba(37, 99, 235, 0.25);
+}
+
+.create-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  box-shadow: none;
+}
+
+.create-btn:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 3px;
 }
 
 .create-btn:disabled {
-  background: #fff;
-  color: #999;
-  border-color: #ccc;
+  background: #cbd5e1;
+  color: #64748b;
+  border-color: #cbd5e1;
+  border-bottom-color: #94a3b8;
   cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
+
+/* =================================
+   EVENT FORM ACTIONS
+================================= */
 
 .event-form-actions {
   grid-column: 1 / -1;
@@ -234,24 +280,57 @@
 
 .event-form-cancel {
   margin-top: 2px;
-  padding: 10px 16px;
-  border: 1px solid #000;
-  border-radius: 4px;
-  background: #fff;
-  color: #000;
+  padding: 11px 18px;
+
+  border: 1px solid #cbd5e1;
+  border-bottom: 3px solid #94a3b8;
+  border-radius: 7px;
+
+  background: #f8fafc;
+  color: #334155;
+
   font: inherit;
   font-size: 15px;
   font-weight: 600;
+
   cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
+}
+
+.event-form-cancel:hover:not(:disabled) {
+  background: #e2e8f0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 7px rgba(0, 0, 0, 0.12);
+}
+
+.event-form-cancel:active:not(:disabled) {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  box-shadow: none;
+}
+
+.event-form-cancel:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 3px;
 }
 
 .event-form-cancel:disabled {
-  color: #999;
-  border-color: #ccc;
+  color: #64748b;
+  background: #cbd5e1;
+  border-color: #cbd5e1;
+  border-bottom-color: #94a3b8;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
-/* Validation messages */
+/* =================================
+   VALIDATION MESSAGES
+================================= */
 
 .form-message {
   margin: 0;
@@ -272,18 +351,54 @@
   padding-left: 20px;
 }
 
+/* =================================
+   LOGIN / REGISTER TOGGLE
+================================= */
+
 .login-toggle {
   align-self: center;
-  padding: 8px 12px;
-  border: 1px solid #000;
-  border-radius: 4px;
-  background: #fff;
-  color: #000;
+  padding: 9px 14px;
+
+  border: 1px solid #cbd5e1;
+  border-bottom: 3px solid #94a3b8;
+  border-radius: 7px;
+
+  background: #f8fafc;
+  color: #334155;
+
   font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+
   cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
 }
 
-/* Mobile adjustments */
+.login-toggle:hover {
+  background: #e2e8f0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 7px rgba(0, 0, 0, 0.12);
+}
+
+.login-toggle:active {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  box-shadow: none;
+}
+
+.login-toggle:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 3px;
+}
+
+/* =================================
+   MOBILE ADJUSTMENTS
+================================= */
 
 @media (max-width: 560px) {
   .card.event-form {
