@@ -88,6 +88,7 @@ function EventDetails({
         ) : (
           <>
             <div className="event-details-content">
+              {event.pending && <p className="event-pending">Pending approval</p>}
               <p className="event-details-club">{event.clubName || 'Club not specified'}</p>
               <p className="event-details-meta">
                 {event.date} &middot; {event.time}
@@ -116,11 +117,13 @@ function EventDetails({
                 type="button"
                 className="create-btn event-details-rsvp"
                 onClick={hasRSVPed ? onRemoveRSVP : onRSVP}
-                disabled={disabled || isLoading}
+                disabled={disabled || event.pending || isLoading}
               >
                 {isLoading
                   ? 'Please wait...'
-                  : disabled
+                  : event.pending
+                    ? 'Pending approval'
+                    : disabled
                     ? 'Sign in to register'
                     : hasRSVPed
                       ? 'Cancel registration'

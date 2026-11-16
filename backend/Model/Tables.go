@@ -23,6 +23,7 @@ const eventsTable = `
 		description TEXT NOT NULL,
 		contact_email TEXT,
 		website TEXT,
+		pending BOOLEAN NOT NULL DEFAULT TRUE,
 		host_user_id INTEGER NOT NULL,
 		UNIQUE(event_name),
 		FOREIGN KEY(host_user_id) REFERENCES users(user_id) ON DELETE RESTRICT

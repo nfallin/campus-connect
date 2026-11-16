@@ -18,11 +18,15 @@ func (repository *Repository) AddRSVP(userID, eventID int) error {
 		return err
 	}
 
-	if _, err := repository.GetEvent(eventID); err != nil {
+	event, err := repository.GetEvent(eventID)
+	if err != nil {
 		return err
 	}
+	if event.Pending {
+		return ErrNotFound
+	}
 
-	_, err := repository.db.Exec(`
+	_, err = repository.db.Exec(`
 		INSERT INTO rsvps (user_id, event_id)
 		VALUES (?, ?)
 		ON CONFLICT(user_id, event_id) DO NOTHING
@@ -64,13 +68,13 @@ func (repository *Repository) GetUserRSVPs(userID int) ([]Types.EventResponse, e
 
 	rows, err := repository.db.Query(`
 		SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
-			e.club_name, e.description, e.contact_email, e.website, e.host_user_id,
+			e.club_name, e.description, e.contact_email, e.website, e.pending, e.host_user_id,
 			u.user_id, u.user_name, u.user_email,
 			(SELECT COUNT(*) FROM rsvps all_rsvps WHERE all_rsvps.event_id = e.event_id)
 		FROM events e
 		JOIN rsvps r ON r.event_id = e.event_id
 		JOIN users u ON u.user_id = e.host_user_id
-		WHERE r.user_id = ?
+		WHERE r.user_id = ? AND e.pending = FALSE
 		ORDER BY e.date_time, e.event_id
 	`, userID)
 
@@ -90,7 +94,7 @@ func (repository *Repository) GetUserRSVPs(userID int) ([]Types.EventResponse, e
 
 		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
 			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
-			&event.HostUserID, &host.ID, &host.Username, &host.Email,
+			&event.Pending, &event.HostUserID, &host.ID, &host.Username, &host.Email,
 			&event.AttendeeCount); err != nil {
 			return nil, err
 		}

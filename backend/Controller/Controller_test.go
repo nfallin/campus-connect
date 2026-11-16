@@ -138,8 +138,8 @@ func TestEventRoutes(t *testing.T) {
 		t.Fatalf("duplicate event status = %d", response.Code)
 	}
 	// attempt to get that event
-	if response := request(t, controllerBackend.router, http.MethodGet, "/events/1", nil); response.Code != http.StatusOK {
-		t.Fatalf("get event status = %d", response.Code)
+	if response := request(t, controllerBackend.router, http.MethodGet, "/events/1", nil); response.Code != http.StatusNotFound {
+		t.Fatalf("get pending event status = %d", response.Code)
 	}
 	// attempt to get an event with a string ID
 	if response := request(t, controllerBackend.router, http.MethodGet, "/events/nope", nil); response.Code != http.StatusBadRequest {
@@ -233,6 +233,9 @@ func TestRSVPRoutes(t *testing.T) {
 		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description",
 	}, host.ID)
 	if err != nil {
+		t.Fatal(err)
+	}
+	if err := repository.ApproveEvent(event.ID); err != nil {
 		t.Fatal(err)
 	}
 	auth, err := repository.LoginUser(Types.LoginUserRequest{Identifier: "Attendee", Password: "password123"})

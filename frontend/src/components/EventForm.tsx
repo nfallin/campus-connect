@@ -398,6 +398,10 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
         )}
       </div>
 
+      <p className="login-note event-approval-note">
+        Note: This event will be held for approval before it appears publicly.
+      </p>
+
       {submitAttempted && Object.keys(inputErrors).length > 0 && (
         <p className="form-message field-wide" role="status">
           {Object.keys(inputErrors).length} fields need attention.

@@ -7,6 +7,7 @@ import type { Event } from '../types'
 describe('EventDetails toFormData (Kaavya Jethwa)', () => {
   const baseEvent: Event = {
     id: 1,
+    pending: false,
     title: 'Hackathon',
     dateTime: '2026-01-15T00:00:00.000Z',
     date: '2026-01-15',

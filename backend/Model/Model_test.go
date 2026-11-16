@@ -107,7 +107,7 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 		EndDateTime: &endWhen,
 	}, host.ID)
 	if err != nil || event.Host == nil || event.AttendeeCount != 0 ||
-		event.EndDateTime == nil || !event.EndDateTime.Equal(endWhen.Truncate(time.Second)) {
+		event.EndDateTime == nil || !event.EndDateTime.Equal(endWhen.Truncate(time.Second)) || !event.Pending {
 		t.Fatalf("create event = %+v, %v", event, err)
 	}
 	pastEnd := when.Add(-time.Minute)
@@ -137,8 +137,15 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 
 	// attempt to get an event
 	all, err := repository.GetEvents(Types.EventFilters{})
-	if err != nil || len(all) != 1 {
+	if err != nil || len(all) != 0 {
 		t.Fatalf("get events = %+v, %v", all, err)
+	}
+	if err := repository.ApproveEvent(event.ID); err != nil {
+		t.Fatal(err)
+	}
+	all, err = repository.GetEvents(Types.EventFilters{})
+	if err != nil || len(all) != 1 || all[0].Pending {
+		t.Fatalf("get approved events = %+v, %v", all, err)
 	}
 
 	// attempt to filter the list of events by various criteria
@@ -166,7 +173,7 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	name := "Updated meeting"
 	location := "Room 2"
 	updated, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{Name: &name, Location: &location})
-	if err != nil || updated.Name != name || updated.Location != location {
+	if err != nil || updated.Name != name || updated.Location != location || !updated.Pending {
 		t.Fatalf("update event = %+v, %v", updated, err)
 	}
 	updatedEnd := when.Add(2 * time.Hour)
@@ -316,6 +323,9 @@ func TestRepositoryRSVPs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if err := repository.ApproveEvent(event.ID); err != nil {
+		t.Fatal(err)
+	}
 
 	if err := repository.AddRSVP(attendee.ID, event.ID); err != nil {
 		t.Fatal(err)
@@ -355,6 +365,9 @@ func TestRepositoryDeleteRelationships(t *testing.T) {
 		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description",
 	}, host.ID)
 	if err != nil {
+		t.Fatal(err)
+	}
+	if err := repository.ApproveEvent(event.ID); err != nil {
 		t.Fatal(err)
 	}
 	// attempt to add an RSVP
@@ -480,8 +493,8 @@ func TestRepositoryMalformedDate(t *testing.T) {
 	}
 	_, err = repository.db.Exec(`
 		INSERT INTO events (
-			event_name, date_time, location, club_name, description, host_user_id
-		) VALUES (?, ?, ?, ?, ?, ?)
+			event_name, date_time, location, club_name, description, pending, host_user_id
+		) VALUES (?, ?, ?, ?, ?, FALSE, ?)
 	`, "Bad date", "not-a-date", "Room", "Club", "Description", host.ID)
 	if err != nil {
 		t.Fatal(err)
