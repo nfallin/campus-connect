@@ -3,6 +3,8 @@
    MODAL BACKDROP
 ================================= */
 
+import './EventDetails.css'
+
 .event-details-backdrop {
   position: fixed;
   inset: 0;
