@@ -87,3 +87,60 @@
   color: #666;
   font-size: 12px;
 }
+
+
+/* Event card buttons */
+
+.event-item button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 14px;
+  padding: 10px 18px;
+
+  background: #2563eb;
+  color: #fff;
+
+  border: 1px solid #1d4ed8;
+  border-bottom: 4px solid #1e40af;
+  border-radius: 7px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.14);
+
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
+}
+
+.event-item button:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 9px rgba(37, 99, 235, 0.25);
+}
+
+.event-item button:active:not(:disabled) {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  box-shadow: none;
+}
+
+.event-item button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 3px;
+}
+
+.event-item button:disabled {
+  background: #cbd5e1;
+  border-color: #cbd5e1;
+  border-bottom-color: #94a3b8;
+  color: #64748b;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
