@@ -10,6 +10,7 @@ type EventsPageProps = {
   onRSVP: (eventId: number) => void
   onRemoveRSVP: (eventId: number) => void
   onOpenEvent: (event: Event) => void
+  onDownloadCalendar: (event: Event) => void
 }
 
 function EventsPage({
@@ -20,6 +21,7 @@ function EventsPage({
   onRSVP,
   onRemoveRSVP,
   onOpenEvent,
+  onDownloadCalendar,
 }: EventsPageProps) {
   return (
     <main className="events-page">
@@ -39,6 +41,7 @@ function EventsPage({
               onRSVP={() => onRSVP(event.id)}
               onRemoveRSVP={() => onRemoveRSVP(event.id)}
               onOpen={() => onOpenEvent(event)}
+              onDownloadCalendar={() => onDownloadCalendar(event)}
             />
           ))}
         </ul>

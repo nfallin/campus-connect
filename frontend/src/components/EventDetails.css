@@ -134,6 +134,10 @@
   cursor: pointer;
 }
 
+.event-details-actions .calendar-button {
+  margin-top: 12px;
+}
+
 @media (max-width: 480px) {
   .event-details-backdrop {
     padding: 12px;

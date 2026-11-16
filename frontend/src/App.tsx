@@ -47,6 +47,21 @@ function App() {
   const [rsvpLoading, setRsvpLoading] = useState<number[]>([])
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
 
+  const handleDownloadCalendar = async (event: Event) => {
+    try {
+      const blob = await api.download(`/events/${event.id}/calendar`)
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${event.title.replace(/[\\/:*?"<>|]/g, '_')}.ics`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Failed to download calendar event', err)
+      alert('Unable to download the calendar event. Please try again.')
+    }
+  }
+
   useEffect(() => {
     const handleHashChange = () => setPage(getPageFromHash())
 
@@ -287,6 +302,7 @@ function App() {
           )}
           onRemoveRSVP={handleRemoveRSVP}
           onOpenEvent={setSelectedEvent}
+          onDownloadCalendar={handleDownloadCalendar}
           rsvpLoading={rsvpLoading}
           disabled={!currentUser}
         />
@@ -298,6 +314,7 @@ function App() {
           onRSVP={handleRSVP}
           onRemoveRSVP={handleRemoveRSVP}
           onOpenEvent={setSelectedEvent}
+          onDownloadCalendar={handleDownloadCalendar}
           disabled={!currentUser}
         />
       )}
@@ -313,6 +330,7 @@ function App() {
           onRemoveRSVP={() => handleRemoveRSVP(selectedEvent.id)}
           onSave={(data) => handleUpdate(selectedEvent.id, data)}
           onClose={() => setSelectedEvent(null)}
+          onDownloadCalendar={() => handleDownloadCalendar(selectedEvent)}
         />
       )}
     </div>

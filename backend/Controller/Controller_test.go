@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -136,6 +137,28 @@ func TestEventRoutes(t *testing.T) {
 	}
 	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/events", body, auth.Token); response.Code != http.StatusConflict {
 		t.Fatalf("duplicate event status = %d", response.Code)
+	}
+	calendar := requestWithToken(t, controllerBackend.router, http.MethodGet, "/events/1/calendar", nil, auth.Token)
+	if calendar.Code != http.StatusOK {
+		t.Fatalf("download calendar status = %d", calendar.Code)
+	}
+	if got := calendar.Header().Get("Content-Type"); got != "text/calendar; charset=utf-8" {
+		t.Fatalf("calendar content type = %q", got)
+	}
+	if got := calendar.Header().Get("Content-Disposition"); got != `attachment; filename="event-1.ics"` {
+		t.Fatalf("calendar content disposition = %q", got)
+	}
+	for _, line := range []string{
+		"BEGIN:VCALENDAR\r\n",
+		"BEGIN:VEVENT\r\n",
+		"SUMMARY:Meeting\r\n",
+		"DTSTART:",
+		"DTEND:",
+		"END:VCALENDAR\r\n",
+	} {
+		if !strings.Contains(calendar.Body.String(), line) {
+			t.Fatalf("calendar missing %q in %q", line, calendar.Body.String())
+		}
 	}
 	// attempt to get that event
 	if response := request(t, controllerBackend.router, http.MethodGet, "/events/1", nil); response.Code != http.StatusNotFound {

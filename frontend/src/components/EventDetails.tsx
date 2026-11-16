@@ -17,6 +17,7 @@ type EventDetailsProps = {
   onRemoveRSVP: () => void
   onSave: (data: EventFormData) => Promise<void>
   onClose: () => void
+  onDownloadCalendar: () => void
 }
 
 export function toFormData(event: Event): EventFormData {
@@ -51,6 +52,7 @@ function EventDetails({
   onRemoveRSVP,
   onSave,
   onClose,
+  onDownloadCalendar,
 }: EventDetailsProps) {
   const [isEditing, setIsEditing] = useState(false)
 
@@ -138,6 +140,13 @@ function EventDetails({
                   Edit event
                 </button>
               )}
+              <button
+                type="button"
+                className="calendar-button"
+                onClick={onDownloadCalendar}
+              >
+                Add to calendar
+              </button>
             </div>
           </>
         )}

@@ -54,6 +54,21 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return JSON.parse(text) as T
 }
 
+async function download(path: string): Promise<Blob> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    headers: getStoredToken()
+      ? { Authorization: `Bearer ${getStoredToken()}` }
+      : {},
+  })
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new ApiError(res.status, body || res.statusText)
+  }
+
+  return res.blob()
+}
+
 
 export const api = {
   get: <T>(path: string) => request<T>(path),
@@ -64,4 +79,5 @@ export const api = {
   patch: <T>(path: string, data?: unknown) =>
     request<T>(path, { method: 'PATCH', body: data ? JSON.stringify(data) : undefined }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  download,
 }
