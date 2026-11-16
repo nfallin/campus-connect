@@ -71,6 +71,28 @@ To run the frontend unit tests:
 npm test
 ```
 
+## 9. Developer Event Moderation
+For events to display publicly within the app, a developer must manually approve them.<br>
+To review pending events, use the standalone moderation CLI from the `backend` directory:
+```powershell
+cd backend
+```
+
+To view the list of all pending events:
+```powershell
+go run ./cmd/moderate -list
+```
+
+To approve an event and allow it to display publicly:
+```powershell
+go run ./cmd/moderate -approve [EVENT_ID]
+```
+
+To deny an event and delete it from the system:
+```powershell
+go run ./cmd/moderate -deny [EVENT_ID]
+```
+
 ## CI
 - `.github/workflows/backend-ci.yml` runs `go test ./...` and `go build ./...` on every push and pull request.
 - `.github/workflows/frontend-ci.yml` runs `npm test`, `npm run lint`, and `npm run build` on every push and pull request.
