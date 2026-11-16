@@ -10,57 +10,64 @@ This repository contains the React frontend and Go API/Database for Campus Conne
 - Go version 1.26.0 or newer (`go version` to check)
     - Official Go installer: https://go.dev/dl/
 
-## 2. Install Dependencies
-to install backend dependencies:
+
+## 2. Install Backend Dependencies
+From the root directory of the repository, navigate to the backend directory:
 ```bash
 cd backend
+```
+Then run:
+```bash
 go mod download
 ```
-To install frontend dependencies:
-```bash
-cd frontend
-npm install
-```
 
-## 2.5. Database Management
+## 3. Database Management
 If you've previously ran a version of the backend software that contained outdated database table formats, delete the previous database file before running the backend to re-initialize it with the new format.
 ```bash
-cd backend
 rm campus_connect.db
 ```
 You can verify difference in database structures by looking for modifications to `Tables.go`. 
 
-## 3. Launch the backend
+## 4. Launch the Backend
 Open a dedicated terminal for the backend and run:
 ```bash
-cd backend
 go run .
 ```
-This will start the API port `8080`. Keep this terminal open while using the
-API.
+This will start the API on port `8080`. Keep this terminal open while using the API.
 
-## 4. Launch the frontend
-Open a dedicated terminal for the frontend and run:
+## 5. Running Backend Unit Tests
+To run every backend unit test:
 ```bash
-cd frontend
-npm run dev
-```
-Vite prints a local URL (usually `http://localhost:5173`). Open it in a web browser.
-
-## Running unit tests
-
-To run the backend unit tests:
-```bash
-cd backend
 go test ./...
 ```
-To run a single backend package's unit tests:
-```powershell
+
+To run the unit tests for a specific package:
+```bash
 go test ./Model
 ```
-To run the frontend unit tests:
+Replace 'Model' with the package name of your choice. 
+
+## 6. Install Frontend Dependencies
+If you're still in the backend directory, navigate to the frontend directory using:
+```bash
+cd ../frontend
+```
+
+If you're in the root directory, navigate using:
 ```bash
 cd frontend
+```
+
+## 7. Launch the Frontend
+Open a dedicated terminal for the frontend and run:
+```bash
+npm run dev
+```
+Vite prints a local URL (by default it will be `http://localhost:5173`). Open it in a web browser.
+
+## 8. Frontend Unit Tests
+To run the frontend unit tests:
+```bash
 npm test
 ```
 
