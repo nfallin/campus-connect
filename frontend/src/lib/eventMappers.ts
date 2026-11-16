@@ -6,6 +6,7 @@ export function fromEventResponse(event: EventResponse): Event {
 
   return {
     id: event.id,
+    pending: event.pending,
     title: event.name,
     dateTime: event.dateTime,
     endDateTime: event.endDateTime,

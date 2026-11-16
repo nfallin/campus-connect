@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 const authenticatedUserKey = "authenticatedUser"
@@ -18,7 +19,7 @@ func (api *API) registerUser(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, Types.ErrorResponse{
-			Message: err.Error(),
+			Message: readableValidationError(err),
 		})
 		return
 	}
@@ -37,6 +38,31 @@ func (api *API) registerUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, auth)
+}
+
+func readableValidationError(err error) string {
+	var validationErrors validator.ValidationErrors
+	if !errors.As(err, &validationErrors) {
+		return err.Error()
+	}
+	messages := make([]string, 0, len(validationErrors))
+	for _, fieldError := range validationErrors {
+		switch fieldError.StructField() {
+		case "Email":
+			if fieldError.Tag() == "email" {
+				messages = append(messages, "Email must be a valid email address.")
+			} else {
+				messages = append(messages, "Email is required.")
+			}
+		case "Username":
+			messages = append(messages, "Username is required.")
+		case "Password":
+			messages = append(messages, "Password must be at least 8 characters.")
+		default:
+			messages = append(messages, "Please check the highlighted fields.")
+		}
+	}
+	return strings.Join(messages, "\n")
 }
 
 func (api *API) loginUser(c *gin.Context) {
@@ -73,12 +99,21 @@ func (api *API) requireAuth(c *gin.Context) {
 		c.Abort()
 		return
 	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
 		c.Abort()
 		return
 	}
 	c.Set(authenticatedUserKey, user)
+	c.Next()
+}
+
+func (api *API) optionalAuth(c *gin.Context) {
+	user, err := api.repository.AuthenticateToken(bearerToken(c))
+	if err == nil {
+		c.Set(authenticatedUserKey, user)
+	}
 	c.Next()
 }
 

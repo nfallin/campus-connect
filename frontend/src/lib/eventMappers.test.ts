@@ -7,6 +7,7 @@ import type { EventResponse } from '../types'
 describe('fromEventResponse (Kaavya Jethwa)', () => {
   const baseResponse: EventResponse = {
     id: 1,
+    pending: false,
     name: 'Hackathon',
     dateTime: '2026-01-15T18:30:00.000Z',
     location: 'Student Center',

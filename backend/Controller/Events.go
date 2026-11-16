@@ -11,7 +11,12 @@ import (
 )
 
 func (api *API) getEvents(c *gin.Context) {
-	events, err := api.repository.GetEvents(Types.EventFilters{})
+	filters := Types.EventFilters{}
+	if user, exists := c.Get(authenticatedUserKey); exists {
+		viewer := user.(Types.UserResponse).ID
+		filters.ViewerUserID = &viewer
+	}
+	events, err := api.repository.GetEvents(filters)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
 		return
@@ -113,6 +118,14 @@ func (api *API) getEvent(c *gin.Context) {
 	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
+		return
+	}
+	isOwner := false
+	if user, exists := c.Get(authenticatedUserKey); exists {
+		isOwner = event.HostUserID == user.(Types.UserResponse).ID
+	}
+	if event.Pending && !isOwner {
+		c.JSON(http.StatusNotFound, Types.ErrorResponse{Message: "event not found"})
 		return
 	}
 	c.JSON(http.StatusOK, event)

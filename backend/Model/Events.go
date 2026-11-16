@@ -111,9 +111,9 @@ func (repository *Repository) CreateEvent(request Types.CreateEventRequest, host
 	result, err := repository.db.Exec(`
 		INSERT INTO events (
 			event_name, date_time, end_date_time, location, club_name, description,
-			contact_email, website, host_user_id
+			contact_email, website, pending, host_user_id
 		)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE, ?)
 	`, request.Name, request.DateTime.Format(time.RFC3339), formatOptionalDateTime(request.EndDateTime),
 		request.Location, request.ClubName, request.Description, request.ContactEmail, request.WebsiteURL, hostUserID)
 
@@ -141,7 +141,7 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 	err := repository.db.QueryRow(`
 		SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
 			e.club_name, e.description, e.contact_email, e.website,
-			e.host_user_id,
+			e.pending, e.host_user_id,
 			u.user_id, u.user_name, u.user_email,
 			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id)
 		FROM events e
@@ -149,7 +149,7 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 		WHERE e.event_id = ?
 	`, id).Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
 		&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
-		&event.HostUserID, &host.ID, &host.Username, &host.Email,
+		&event.Pending, &event.HostUserID, &host.ID, &host.Username, &host.Email,
 		&event.AttendeeCount)
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -181,7 +181,7 @@ func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.Eve
 	query := `
 		SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
 			e.club_name, e.description, e.contact_email, e.website,
-			e.host_user_id, u.user_id, u.user_name, u.user_email,
+			e.pending, e.host_user_id, u.user_id, u.user_name, u.user_email,
 			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id)
 		FROM events e
 		JOIN users u ON u.user_id = e.host_user_id
@@ -214,6 +214,12 @@ func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.Eve
 		args = append(args, *filters.HostUserID)
 	}
 
+	if filters.ViewerUserID != nil {
+		conditions = append([]string{"(e.pending = FALSE OR e.host_user_id = ?)"}, conditions...)
+		args = append([]any{*filters.ViewerUserID}, args...)
+	} else {
+		conditions = append([]string{"e.pending = FALSE"}, conditions...)
+	}
 	if len(conditions) > 0 {
 		query += " WHERE " + strings.Join(conditions, " AND ")
 	}
@@ -237,7 +243,7 @@ func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.Eve
 
 		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
 			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
-			&event.HostUserID, &host.ID, &host.Username, &host.Email, &event.AttendeeCount); err != nil {
+			&event.Pending, &event.HostUserID, &host.ID, &host.Username, &host.Email, &event.AttendeeCount); err != nil {
 			return nil, err
 		}
 
@@ -269,6 +275,9 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 	if err != nil {
 		return Types.EventResponse{}, err
 	}
+	edited := request.Name != nil || request.DateTime != nil || request.EndDateTime != nil ||
+		request.Location != nil || request.ClubName != nil || request.Description != nil ||
+		request.ContactEmail != nil || request.WebsiteURL != nil
 
 	if request.Name != nil {
 		if *request.Name == "" {
@@ -342,17 +351,73 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 	_, err = repository.db.Exec(`
 		UPDATE events
 		SET event_name = ?, date_time = ?, end_date_time = ?, location = ?, club_name = ?, description = ?,
-			contact_email = ?, website = ?, host_user_id = ?
+			contact_email = ?, website = ?, pending = ?, host_user_id = ?
 		WHERE event_id = ?
 	`, current.Name, current.DateTime.Format(time.RFC3339), formatOptionalDateTime(current.EndDateTime), current.Location,
 		current.ClubName, current.Description, current.ContactEmail, current.WebsiteURL,
-		current.HostUserID, id)
+		edited, current.HostUserID, id)
 
 	if err != nil {
 		return Types.EventResponse{}, translateEventWriteError(err)
 	}
 
 	return repository.GetEvent(id)
+}
+
+func (repository *Repository) GetPendingEvents() ([]Types.EventResponse, error) {
+	rows, err := repository.db.Query(`
+		SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
+			e.club_name, e.description, e.contact_email, e.website,
+			e.pending, e.host_user_id, u.user_id, u.user_name, u.user_email,
+			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id)
+		FROM events e
+		JOIN users u ON u.user_id = e.host_user_id
+		WHERE e.pending = TRUE
+		ORDER BY e.date_time, e.event_id
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	events := make([]Types.EventResponse, 0)
+	for rows.Next() {
+		var event Types.EventResponse
+		var dateTime string
+		var endDateTime sql.NullString
+		var host Types.UserResponse
+		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
+			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
+			&event.Pending, &event.HostUserID, &host.ID, &host.Username, &host.Email,
+			&event.AttendeeCount); err != nil {
+			return nil, err
+		}
+		event.DateTime, err = time.Parse(time.RFC3339, dateTime)
+		if err != nil {
+			return nil, err
+		}
+		if endDateTime.Valid {
+			parsed, parseErr := time.Parse(time.RFC3339, endDateTime.String)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			event.EndDateTime = &parsed
+		}
+		event.Host = &host
+		events = append(events, event)
+	}
+	return events, rows.Err()
+}
+
+func (repository *Repository) ApproveEvent(id int) error {
+	if err := requirePositiveID(id); err != nil {
+		return err
+	}
+	result, err := repository.db.Exec(`UPDATE events SET pending = FALSE WHERE event_id = ? AND pending = TRUE`, id)
+	if err != nil {
+		return err
+	}
+	return requireAffected(result)
 }
 
 func (repository *Repository) DeleteEvent(id int) error {

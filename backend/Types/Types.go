@@ -81,6 +81,7 @@ func (value *OptionalDateTime) UnmarshalJSON(data []byte) error {
 
 type EventResponse struct {
 	ID            int           `json:"id"`
+	Pending       bool          `json:"pending"`
 	Name          string        `json:"name"`
 	DateTime      time.Time     `json:"dateTime"`
 	EndDateTime   *time.Time    `json:"endDateTime,omitempty"`
@@ -95,11 +96,12 @@ type EventResponse struct {
 }
 
 type EventFilters struct {
-	StartDate  *time.Time
-	EndDate    *time.Time
-	ClubName   string
-	Location   string
-	HostUserID *int
+	StartDate    *time.Time
+	EndDate      *time.Time
+	ClubName     string
+	Location     string
+	HostUserID   *int
+	ViewerUserID *int
 }
 
 type ErrorResponse struct {

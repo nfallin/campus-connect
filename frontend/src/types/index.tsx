@@ -11,6 +11,7 @@ export type AuthResponse = {
 
 export type Event = {
   id: number
+  pending: boolean
   title: string
   dateTime: string
   endDateTime?: string | null
@@ -27,6 +28,7 @@ export type Event = {
 
 export type EventResponse = {
   id: number
+  pending: boolean
   name: string
   dateTime: string
   endDateTime?: string | null

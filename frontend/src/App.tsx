@@ -89,6 +89,9 @@ function App() {
     })
     setAuthToken(result.token)
 
+    const eventData = await api.get<{ events: EventResponse[] }>('/events')
+    setEvents(sortEventsChronologically(eventData.events.map(fromEventResponse)))
+
     const rsvpData = await api.get<RSVPResponse>(
       `/users/${result.user.id}/rsvps`
     )

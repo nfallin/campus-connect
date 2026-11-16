@@ -56,6 +56,7 @@ function EventCard({
           {event.clubName || 'Club not specified'}
         </div>
       </div>
+      {event.pending && <p className="event-pending">Pending approval</p>}
 
       <div className="event-meta">
         {formatDate(event.date)} &middot; {event.time}
@@ -99,11 +100,13 @@ function EventCard({
             onRSVP()
           }
         }}
-        disabled={disabled || isLoading}
+        disabled={disabled || event.pending || isLoading}
       >
         {isLoading
           ? 'Please wait...'
-          : disabled
+          : event.pending
+            ? 'Pending approval'
+            : disabled
             ? 'Sign in to register'
             : hasRSVPed
               ? 'Cancel registration'
