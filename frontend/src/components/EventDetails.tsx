@@ -1,149 +1,253 @@
-import { useState } from 'react'
-import EventForm, { type EventFormData } from './EventForm'
-import type { Event } from '../types'
-import {
-  fromUtcDateTimeToLocalDisplayTime,
-  fromUtcDateTimeToLocalTime,
-} from '../lib/eventDateTime'
-import './EventDetails.css'
 
-type EventDetailsProps = {
-  event: Event
-  hasRSVPed: boolean
-  isLoading: boolean
-  disabled: boolean
-  isOwner: boolean
-  onRSVP: () => void
-  onRemoveRSVP: () => void
-  onSave: (data: EventFormData) => Promise<void>
-  onClose: () => void
+/* =================================
+   MODAL BACKDROP
+================================= */
+
+.event-details-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background: rgb(0 0 0 / 45%);
 }
 
-export function toFormData(event: Event): EventFormData {
-  const dateTime = new Date(event.dateTime)
-  const hours = dateTime.getHours()
-  return {
-    title: event.title,
-    date: event.date,
-    hour: String(hours % 12 || 12),
-    minute: String(dateTime.getMinutes()).padStart(2, '0'),
-    period: hours >= 12 ? 'PM' : 'AM',
-    endTime: fromUtcDateTimeToLocalTime(event.endDateTime),
-    location: event.location,
-    clubName: event.clubName,
-    description: event.description,
-    contactEmail: event.contactEmail,
-    website: event.website,
+/* =================================
+   MODAL CONTAINER
+================================= */
+
+.event-details {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 760px;
+  max-height: calc(100dvh - 64px);
+  overflow: hidden;
+  border: 1px solid #000;
+  border-radius: 8px;
+  background: #fff;
+  color: #000;
+  text-align: left;
+}
+
+.event-details::before {
+  content: none;
+}
+
+/* =================================
+   HEADER
+================================= */
+
+.event-details-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+  min-height: 64px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e5e4e7;
+}
+
+.event-details h2 {
+  min-width: 0;
+  margin: 0;
+  font-size: clamp(22px, 4vw, 32px);
+  line-height: 1.15;
+  color: #000;
+  overflow-wrap: anywhere;
+}
+
+/* =================================
+   MODAL CONTENT
+================================= */
+
+.event-details-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px 40px 32px;
+  overflow-wrap: anywhere;
+}
+
+.event-details-editor-view {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px 40px 32px;
+}
+
+.event-details-editor-view .card {
+  padding: 0;
+  border: 0;
+}
+
+.event-details-club {
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.event-details-meta {
+  margin-top: 18px;
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+
+.event-details-description {
+  margin-top: 24px;
+  font-size: 18px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.event-details-contact {
+  margin-top: 20px;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.event-details-contact a {
+  overflow-wrap: anywhere;
+}
+
+/* =================================
+   BUTTON BASE
+================================= */
+
+.event-details button {
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
+}
+
+/* Close button */
+
+.event-details-close {
+  padding: 9px 14px;
+  border: 1px solid #cbd5e1;
+  border-bottom: 3px solid #94a3b8;
+  border-radius: 7px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.event-details-close:hover {
+  background: #e2e8f0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 7px rgba(0, 0, 0, 0.12);
+}
+
+.event-details-close:active {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  box-shadow: none;
+}
+
+/* Edit button */
+
+.event-details-edit-toggle {
+  padding: 9px 14px;
+  border: 1px solid #cbd5e1;
+  border-bottom: 3px solid #94a3b8;
+  border-radius: 7px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.event-details-edit-toggle:hover {
+  background: #e2e8f0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 7px rgba(0, 0, 0, 0.12);
+}
+
+.event-details-edit-toggle:active {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  box-shadow: none;
+}
+
+/* RSVP button sizing */
+
+.event-details-rsvp {
+  min-width: 160px;
+  min-height: 44px;
+}
+
+/* Cancel registration - destructive action */
+
+.event-details-rsvp-cancel {
+  background: #dc2626;
+  border-color: #b91c1c;
+  border-bottom-color: #991b1b;
+}
+
+.event-details-rsvp-cancel:hover:not(:disabled) {
+  background: #b91c1c;
+  border-color: #991b1b;
+  border-bottom-color: #7f1d1d;
+}
+
+/* Keyboard focus */
+
+.event-details button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 3px;
+}
+
+/* =================================
+   FOOTER ACTIONS
+================================= */
+
+.event-details-actions {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 12px;
+  padding: 12px 40px 20px;
+  border-top: 1px solid #e5e4e7;
+  background: #fff;
+}
+
+/* =================================
+   MOBILE RESPONSIVENESS
+================================= */
+
+@media (max-width: 480px) {
+  .event-details-backdrop {
+    padding: 12px;
+  }
+
+  .event-details-content,
+  .event-details-actions,
+  .event-details-editor-view {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .event-details-header {
+    gap: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .event-details-actions {
+    flex-wrap: wrap;
+  }
+
+  .event-details h2 {
+    font-size: 22px;
   }
 }
-
-function toWebsiteHref(website: string) {
-  return /^https?:\/\//i.test(website) ? website : `https://${website}`
-}
-
-function EventDetails({
-  event,
-  hasRSVPed,
-  isLoading,
-  disabled,
-  isOwner,
-  onRSVP,
-  onRemoveRSVP,
-  onSave,
-  onClose,
-}: EventDetailsProps) {
-  const [isEditing, setIsEditing] = useState(false)
-
-  return (
-    <div className="event-details-backdrop" onClick={onClose}>
-      <section
-        className={`event-details${isEditing ? ' event-details-is-editing' : ''}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="event-details-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="event-details-header">
-          <span />
-          <h2 id="event-details-title">{isEditing ? 'Edit event' : event.title}</h2>
-          <button type="button" className="event-details-close" onClick={onClose}>
-            Close
-          </button>
-        </div>
-
-        {isEditing ? (
-          <div className="event-details-editor-view">
-            <EventForm
-              key={event.id + event.dateTime}
-              initialData={toFormData(event)}
-              onSubmit={async (data) => {
-                await onSave(data)
-                setIsEditing(false)
-              }}
-              onCancel={() => setIsEditing(false)}
-              submitLabel="Save changes"
-              submittingLabel="Saving..."
-            />
-          </div>
-        ) : (
-          <>
-            <div className="event-details-content">
-              {event.pending && <p className="event-pending">Pending approval</p>}
-              <p className="event-details-club">{event.clubName || 'Club not specified'}</p>
-              <p className="event-details-meta">
-                {event.date} &middot; {event.time}
-                {event.endDateTime && ` - ${fromUtcDateTimeToLocalDisplayTime(event.endDateTime)}`} &middot; {event.location}
-              </p>
-              <p className="event-details-description">
-                {event.description || 'No description provided.'}
-              </p>
-
-              {(event.contactEmail || event.website) && (
-                <div className="event-details-contact">
-                  {event.contactEmail && (
-                    <a href={`mailto:${event.contactEmail}`}>{event.contactEmail}</a>
-                  )}
-                  {event.contactEmail && event.website && ' · '}
-                  {event.website && (
-                    <a href={toWebsiteHref(event.website)} target="_blank" rel="noreferrer">
-                      {event.website}
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="event-details-actions">
-              <button
-                type="button"
-                className="create-btn event-details-rsvp"
-                onClick={hasRSVPed ? onRemoveRSVP : onRSVP}
-                disabled={disabled || event.pending || isLoading}
-              >
-                {isLoading
-                  ? 'Please wait...'
-                  : event.pending
-                    ? 'Pending approval'
-                    : disabled
-                    ? 'Sign in to register'
-                    : hasRSVPed
-                      ? 'Cancel registration'
-                      : 'Register'}
-              </button>
-              {isOwner && (
-                <button
-                  type="button"
-                  className="event-details-edit-toggle"
-                  onClick={() => setIsEditing(true)}
-                >
-                  Edit event
-                </button>
-              )}
-            </div>
-          </>
-        )}
-      </section>
-    </div>
-  )
-}
-
-export default EventDetails
