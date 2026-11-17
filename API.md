@@ -209,6 +209,20 @@ GET /events/:id
 
 Returns one complete event object.
 
+### Download an event calendar file
+
+```http
+GET /events/:id/calendar
+```
+
+Returns an iCalendar `.ics` file for the event with
+`Content-Type: text/calendar`. The file includes the event title, description,
+location, start time, and end time. If the event has no end time, the end time
+is one hour after the start time.
+
+The endpoint follows the event visibility rules: an unauthenticated user
+cannot download a pending event, while its host can.
+
 #### Response: `400 Bad Request`
 
 Returned when `id` is not an integer.

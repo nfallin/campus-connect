@@ -17,6 +17,7 @@ type EventDetailsProps = {
   onRemoveRSVP: () => void
   onSave: (data: EventFormData) => Promise<void>
   onClose: () => void
+  onDownloadCalendar: () => void
 }
 
 export function toFormData(event: Event): EventFormData {
@@ -51,6 +52,7 @@ function EventDetails({
   onRemoveRSVP,
   onSave,
   onClose,
+  onDownloadCalendar,
 }: EventDetailsProps) {
   const [isEditing, setIsEditing] = useState(false)
 
@@ -136,6 +138,16 @@ function EventDetails({
                   onClick={() => setIsEditing(true)}
                 >
                   Edit event
+                </button>
+              )}
+              {!event.pending && (
+                <button
+                  type="button"
+                  className="event-details-calendar-button"
+                  title="Downloads an iCalendar (.ics) file. Open it with your calendar app to add this event."
+                  onClick={onDownloadCalendar}
+                >
+                  Add to calendar
                 </button>
               )}
             </div>
