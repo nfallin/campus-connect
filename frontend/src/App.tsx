@@ -243,36 +243,14 @@ function App() {
 
   return (
     <div className="page">
-      <div className="page-top">
-        <AppHeader
-          page={visiblePage}
-          currentUser={currentUser}
-          welcomeMessage={welcomeMessage}
-          onLogout={handleLogout}
-        />
+      <AppHeader
+        page={visiblePage}
+        currentUser={currentUser}
+        welcomeMessage={welcomeMessage}
+        onLogout={handleLogout}
+      />
 
-        <nav className="page-nav" aria-label="Main navigation">
-          {!currentUser && (
-            <a href="#login" aria-current={visiblePage === 'login' ? 'page' : undefined}>
-              Login
-            </a>
-          )}
-          {currentUser && (
-            <a href="#create" aria-current={visiblePage === 'create' ? 'page' : undefined}>
-              Create event
-            </a>
-          )}
-          <a href="#events" aria-current={visiblePage === 'events' ? 'page' : undefined}>
-            View events
-          </a>
-          {currentUser && (
-            <a href="#rsvps" aria-current={visiblePage === 'rsvps' ? 'page' : undefined}>
-              My events
-            </a>
-          )}
-        </nav>
-      </div>
-      
+
       {visiblePage === 'login' ? (
         <LoginPage onLogin={handleLogin} onRegister={handleRegister} />
       ) : visiblePage === 'create' ? (

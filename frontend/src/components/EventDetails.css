@@ -86,23 +86,34 @@
   overflow-wrap: anywhere;
 }
 
-.event-details-meta {
-  margin-top: 18px;
-  font-size: 20px;
+.event-details-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e4e7;
+}
+
+.event-details-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.event-details-value {
+  margin: 0;
+  font-size: 18px;
   overflow-wrap: anywhere;
 }
 
 .event-details-description {
-  margin-top: 24px;
-  font-size: 18px;
   line-height: 1.6;
-  overflow-wrap: anywhere;
 }
 
 .event-details-contact {
-  margin-top: 20px;
   font-size: 16px;
-  overflow-wrap: anywhere;
 }
 
 .event-details-contact a {
