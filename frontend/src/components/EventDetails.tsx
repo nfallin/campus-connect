@@ -90,27 +90,42 @@ function EventDetails({
         ) : (
           <>
             <div className="event-details-content">
-              {event.pending && <p className="event-pending">Pending approval</p>}
               <p className="event-details-club">{event.clubName || 'Club not specified'}</p>
-              <p className="event-details-meta">
-                {event.date} &middot; {event.time}
-                {event.endDateTime && ` - ${fromUtcDateTimeToLocalDisplayTime(event.endDateTime)}`} &middot; {event.location}
-              </p>
-              <p className="event-details-description">
-                {event.description || 'No description provided.'}
-              </p>
+
+              <div className="event-details-section">
+                <span className="event-details-label">When</span>
+                <p className="event-details-value">
+                  {event.date} &middot; {event.time}
+                  {event.endDateTime && ` - ${fromUtcDateTimeToLocalDisplayTime(event.endDateTime)}`}
+                </p>
+              </div>
+
+              <div className="event-details-section">
+                <span className="event-details-label">Where</span>
+                <p className="event-details-value">{event.location}</p>
+              </div>
+
+              <div className="event-details-section">
+                <span className="event-details-label">About</span>
+                <p className="event-details-value event-details-description">
+                  {event.description || 'No description provided.'}
+                </p>
+              </div>
 
               {(event.contactEmail || event.website) && (
-                <div className="event-details-contact">
-                  {event.contactEmail && (
-                    <a href={`mailto:${event.contactEmail}`}>{event.contactEmail}</a>
-                  )}
-                  {event.contactEmail && event.website && ' · '}
-                  {event.website && (
-                    <a href={toWebsiteHref(event.website)} target="_blank" rel="noreferrer">
-                      {event.website}
-                    </a>
-                  )}
+                <div className="event-details-section">
+                  <span className="event-details-label">Contact</span>
+                  <div className="event-details-value event-details-contact">
+                    {event.contactEmail && (
+                      <a href={`mailto:${event.contactEmail}`}>{event.contactEmail}</a>
+                    )}
+                    {event.contactEmail && event.website && ' · '}
+                    {event.website && (
+                      <a href={toWebsiteHref(event.website)} target="_blank" rel="noreferrer">
+                        {event.website}
+                      </a>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
