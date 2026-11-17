@@ -140,13 +140,15 @@ function EventDetails({
                   Edit event
                 </button>
               )}
-              <button
-                type="button"
-                className="calendar-button"
-                onClick={onDownloadCalendar}
-              >
-                Add to calendar
-              </button>
+              {!event.pending && (
+                <button
+                  type="button"
+                  className="event-details-calendar-button"
+                  onClick={onDownloadCalendar}
+                >
+                  Add to calendar
+                </button>
+              )}
             </div>
           </>
         )}

@@ -114,16 +114,6 @@ function EventCard({
               ? 'Cancel registration'
               : 'Register'}
       </button>
-      <button
-        type="button"
-        className="calendar-button"
-        onClick={(e) => {
-          e.stopPropagation()
-          onDownloadCalendar()
-        }}
-      >
-        Add to calendar
-      </button>
     </li>
   )
 }

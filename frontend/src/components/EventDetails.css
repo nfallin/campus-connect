@@ -134,6 +134,16 @@
   cursor: pointer;
 }
 
+.event-details-calendar-button {
+  padding: 8px 12px;
+  border: 1px solid #000;
+  border-radius: 4px;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  cursor: pointer;
+}
+
 .event-details-actions .calendar-button {
   margin-top: 12px;
 }
