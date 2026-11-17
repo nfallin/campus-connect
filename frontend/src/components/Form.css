@@ -217,60 +217,13 @@
   outline-offset: -2px;
 }
 
-/* =================================
-   PRIMARY BUTTONS
-================================= */
-
 .create-btn {
   margin-top: 2px;
   padding: 11px 18px;
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.3px;
-
-  border: 1px solid #1d4ed8;
-  border-bottom: 4px solid #1e40af;
-  border-radius: 7px;
-
-  background: #2563eb;
-  color: #fff;
-
-  cursor: pointer;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.14);
-
-  transition:
-    transform 0.12s ease,
-    box-shadow 0.12s ease,
-    background 0.12s ease;
-
   flex-shrink: 0;
-}
-
-.create-btn:hover:not(:disabled) {
-  background: #1d4ed8;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 9px rgba(37, 99, 235, 0.25);
-}
-
-.create-btn:active:not(:disabled) {
-  transform: translateY(2px);
-  border-bottom-width: 1px;
-  box-shadow: none;
-}
-
-.create-btn:focus-visible {
-  outline: 3px solid rgba(37, 99, 235, 0.35);
-  outline-offset: 3px;
-}
-
-.create-btn:disabled {
-  background: #cbd5e1;
-  color: #64748b;
-  border-color: #cbd5e1;
-  border-bottom-color: #94a3b8;
-  cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
 }
 
 /* =================================
@@ -290,51 +243,7 @@
 .event-form-cancel {
   margin-top: 2px;
   padding: 11px 18px;
-
-  border: 1px solid #cbd5e1;
-  border-bottom: 3px solid #94a3b8;
-  border-radius: 7px;
-
-  background: #f8fafc;
-  color: #334155;
-
-  font: inherit;
   font-size: 15px;
-  font-weight: 600;
-
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-
-  transition:
-    transform 0.12s ease,
-    box-shadow 0.12s ease,
-    background 0.12s ease;
-}
-
-.event-form-cancel:hover:not(:disabled) {
-  background: #e2e8f0;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 7px rgba(0, 0, 0, 0.12);
-}
-
-.event-form-cancel:active:not(:disabled) {
-  transform: translateY(2px);
-  border-bottom-width: 1px;
-  box-shadow: none;
-}
-
-.event-form-cancel:focus-visible {
-  outline: 3px solid rgba(37, 99, 235, 0.35);
-  outline-offset: 3px;
-}
-
-.event-form-cancel:disabled {
-  color: #64748b;
-  background: #cbd5e1;
-  border-color: #cbd5e1;
-  border-bottom-color: #94a3b8;
-  cursor: not-allowed;
-  box-shadow: none;
 }
 
 /* =================================

@@ -79,7 +79,7 @@ function EventDetails({
 
           <button
             type="button"
-            className="event-details-close"
+            className="button button-secondary event-details-close"
             onClick={onClose}
             aria-label="Close event details"
           >
@@ -151,7 +151,7 @@ function EventDetails({
             <div className="event-details-actions">
               <button
                 type="button"
-                className={`create-btn event-details-rsvp${hasRSVPed ? ' event-details-rsvp-cancel' : ''}`}
+                className={`button button-primary create-btn event-details-rsvp${hasRSVPed ? ' event-details-rsvp-cancel' : ''}`}
                 onClick={hasRSVPed ? onRemoveRSVP : onRSVP}
                 disabled={disabled || event.pending || isLoading}
               >
@@ -169,7 +169,7 @@ function EventDetails({
               {isOwner && (
                 <button
                   type="button"
-                  className="event-details-edit-toggle"
+                  className="button button-secondary event-details-edit-toggle"
                   onClick={() => setIsEditing(true)}
                 >
                   Edit event

@@ -253,20 +253,20 @@ function App() {
 
         <nav className="page-nav" aria-label="Main navigation">
           {!currentUser && (
-            <a href="#login" aria-current={visiblePage === 'login' ? 'page' : undefined}>
+            <a className="button button-secondary" href="#login" aria-current={visiblePage === 'login' ? 'page' : undefined}>
               Login
             </a>
           )}
           {currentUser && (
-            <a href="#create" aria-current={visiblePage === 'create' ? 'page' : undefined}>
+            <a className="button button-secondary" href="#create" aria-current={visiblePage === 'create' ? 'page' : undefined}>
               Create event
             </a>
           )}
-          <a href="#events" aria-current={visiblePage === 'events' ? 'page' : undefined}>
+          <a className="button button-secondary" href="#events" aria-current={visiblePage === 'events' ? 'page' : undefined}>
             View events
           </a>
           {currentUser && (
-            <a href="#rsvps" aria-current={visiblePage === 'rsvps' ? 'page' : undefined}>
+            <a className="button button-secondary" href="#rsvps" aria-current={visiblePage === 'rsvps' ? 'page' : undefined}>
               My events
             </a>
           )}

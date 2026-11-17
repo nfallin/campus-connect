@@ -92,6 +92,7 @@ function EventCard({
 
       <button
         type="button"
+        className="button button-primary"
         onClick={(e) => {
           e.stopPropagation()
           if (hasRSVPed) {

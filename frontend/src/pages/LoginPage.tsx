@@ -93,7 +93,7 @@ function LoginPage({ onLogin, onRegister }: LoginPageProps) {
 
         <button
           type="submit"
-          className="create-btn"
+          className="button button-primary create-btn"
           disabled={submitting}
         >
           {submitting ? 'Please wait...' : mode === 'login' ? 'Log in' : 'Register'}
@@ -109,7 +109,7 @@ function LoginPage({ onLogin, onRegister }: LoginPageProps) {
           </p>
         )}
 
-        <button type="button" className="login-toggle" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
+        <button type="button" className="button button-secondary login-toggle" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
           {mode === 'login' ? 'Create a new account' : 'I already have an account'}
         </button>
       </form>
