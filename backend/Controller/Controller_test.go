@@ -125,6 +125,7 @@ func TestEventRoutes(t *testing.T) {
 
 	body := Types.CreateEventRequest{
 		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description",
+		ContactEmail: "club@example.com", WebsiteURL: "https://club.example.com",
 	}
 
 	// attempt to list an empty events list
@@ -154,6 +155,9 @@ func TestEventRoutes(t *testing.T) {
 		"SUMMARY:Meeting\r\n",
 		"DTSTART:",
 		"DTEND:",
+		"DESCRIPTION:Description\\n\\nContact email: club@example.com\\nWebsite: https://club.example.com\r\n",
+		"CONTACT:club@example.com\r\n",
+		"URL:https://club.example.com\r\n",
 		"END:VCALENDAR\r\n",
 	} {
 		if !strings.Contains(calendar.Body.String(), line) {

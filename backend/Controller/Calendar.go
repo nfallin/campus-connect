@@ -56,6 +56,14 @@ func eventCalendar(event Types.EventResponse) string {
 		endDateTime = *event.EndDateTime
 	}
 
+	description := event.Description
+	if event.ContactEmail != "" {
+		description += "\n\nContact email: " + event.ContactEmail
+	}
+	if event.WebsiteURL != "" {
+		description += "\nWebsite: " + event.WebsiteURL
+	}
+
 	lines := []string{
 		"BEGIN:VCALENDAR",
 		"VERSION:2.0",
@@ -68,8 +76,11 @@ func eventCalendar(event Types.EventResponse) string {
 		"DTSTART:" + event.DateTime.UTC().Format("20060102T150405Z"),
 		"DTEND:" + endDateTime.UTC().Format("20060102T150405Z"),
 		"SUMMARY:" + escapeCalendarText(event.Name),
-		"DESCRIPTION:" + escapeCalendarText(event.Description),
+		"DESCRIPTION:" + escapeCalendarText(description),
 		"LOCATION:" + escapeCalendarText(event.Location),
+	}
+	if event.ContactEmail != "" {
+		lines = append(lines, "CONTACT:"+escapeCalendarText(event.ContactEmail))
 	}
 	if event.WebsiteURL != "" {
 		lines = append(lines, "URL:"+strings.ReplaceAll(strings.ReplaceAll(event.WebsiteURL, "\r", ""), "\n", ""))

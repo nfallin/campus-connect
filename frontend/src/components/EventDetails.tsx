@@ -144,6 +144,7 @@ function EventDetails({
                 <button
                   type="button"
                   className="event-details-calendar-button"
+                  title="Downloads an iCalendar (.ics) file. Open it with your calendar app to add this event."
                   onClick={onDownloadCalendar}
                 >
                   Add to calendar
