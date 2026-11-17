@@ -25,20 +25,20 @@ function AppHeader({
 
         <nav className="navbar-links" aria-label="Main navigation">
           {!currentUser && (
-            <a href="#login" aria-current={page === 'login' ? 'page' : undefined}>
+            <a className="button button-secondary" href="#login" aria-current={page === 'login' ? 'page' : undefined}>
               Login
             </a>
           )}
           {currentUser && (
-            <a href="#create" aria-current={page === 'create' ? 'page' : undefined}>
+            <a className="button button-secondary" href="#create" aria-current={page === 'create' ? 'page' : undefined}>
               Create event
             </a>
           )}
-          <a href="#events" aria-current={page === 'events' ? 'page' : undefined}>
+          <a className="button button-secondary" href="#events" aria-current={page === 'events' ? 'page' : undefined}>
             View events
           </a>
           {currentUser && (
-            <a href="#rsvps" aria-current={page === 'rsvps' ? 'page' : undefined}>
+            <a className="button button-secondary" href="#rsvps" aria-current={page === 'rsvps' ? 'page' : undefined}>
               My events
             </a>
           )}

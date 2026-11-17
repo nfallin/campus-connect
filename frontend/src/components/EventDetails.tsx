@@ -68,7 +68,7 @@ function EventDetails({
         <div className="event-details-header">
           <span />
           <h2 id="event-details-title">{isEditing ? 'Edit event' : event.title}</h2>
-          <button type="button" className="event-details-close" onClick={onClose}>
+          <button type="button" className="button button-secondary event-details-close" onClick={onClose}>
             Close
           </button>
         </div>
@@ -132,7 +132,7 @@ function EventDetails({
             <div className="event-details-actions">
               <button
                 type="button"
-                className="create-btn event-details-rsvp"
+                className="button button-primary create-btn event-details-rsvp"
                 onClick={hasRSVPed ? onRemoveRSVP : onRSVP}
                 disabled={disabled || event.pending || isLoading}
               >
@@ -149,7 +149,7 @@ function EventDetails({
               {isOwner && (
                 <button
                   type="button"
-                  className="event-details-edit-toggle"
+                  className="button button-secondary event-details-edit-toggle"
                   onClick={() => setIsEditing(true)}
                 >
                   Edit event
@@ -158,7 +158,7 @@ function EventDetails({
               {!event.pending && (
                 <button
                   type="button"
-                  className="event-details-calendar-button"
+                  className="button button-secondary event-details-calendar-button"
                   title="Downloads an iCalendar (.ics) file. Open it with your calendar app to add this event."
                   onClick={onDownloadCalendar}
                 >

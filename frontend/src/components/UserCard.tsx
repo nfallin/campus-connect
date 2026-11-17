@@ -15,7 +15,7 @@ function UserCard({ user, onLogout }: UserCardProps) {
         <span>{user.email}</span>
       </div>
 
-      <button onClick={onLogout}>
+      <button className="button button-secondary" onClick={onLogout}>
         Log out
       </button>
     </div>

@@ -386,13 +386,13 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
       </div>
 
       <div className="event-form-actions">
-        <button type="submit" className="create-btn" disabled={!canSubmit}>
+        <button type="submit" className="button button-primary create-btn" disabled={!canSubmit}>
           {submitting ? submittingLabel : submitLabel}
         </button>
         {onCancel && (
           <button
             type="button"
-            className="event-form-cancel"
+            className="button button-secondary event-form-cancel"
             onClick={onCancel}
             disabled={submitting}
           >

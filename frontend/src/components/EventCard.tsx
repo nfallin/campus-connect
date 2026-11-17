@@ -105,6 +105,7 @@ function EventCard({
       <div className="event-section event-action">
         <button
           type="button"
+          className="button button-primary"
           onClick={(e) => {
             e.stopPropagation()
             if (hasRSVPed) {

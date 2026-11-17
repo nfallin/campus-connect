@@ -176,9 +176,10 @@
 .period-toggle {
   display: flex;
   margin-left: 4px;
-  border: 1px solid #000;
-  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
   overflow: hidden;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 8%);
 }
 
 .period-toggle button {
@@ -187,46 +188,32 @@
   font-weight: 600;
   padding: 8px 10px;
   border: none;
-  background: #fff;
-  color: #000;
+  background: #f8fafc;
+  color: #334155;
   cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
 }
 
 .period-toggle button + button {
-  border-left: 1px solid #000;
+  border-left: 1px solid #cbd5e1;
+}
+
+.period-toggle button:hover {
+  background: #e2e8f0;
 }
 
 .period-toggle button.active {
-  background: #000;
+  background: #2563eb;
   color: #fff;
 }
-
-/* Submit button */
 
 .create-btn {
   margin-top: 2px;
-  padding: 10px 16px;
+  padding: 11px 18px;
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.3px;
-  border: 1px solid #000;
-  border-radius: 4px;
-  background: #000;
-  color: #fff;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
   flex-shrink: 0;
-}
-
-.create-btn:hover:not(:disabled) {
-  opacity: 0.85;
-}
-
-.create-btn:disabled {
-  background: #fff;
-  color: #999;
-  border-color: #ccc;
-  cursor: not-allowed;
 }
 
 .event-form-actions {
@@ -241,21 +228,8 @@
 
 .event-form-cancel {
   margin-top: 2px;
-  padding: 10px 16px;
-  border: 1px solid #000;
-  border-radius: 4px;
-  background: #fff;
-  color: #000;
-  font: inherit;
+  padding: 11px 18px;
   font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.event-form-cancel:disabled {
-  color: #999;
-  border-color: #ccc;
-  cursor: not-allowed;
 }
 
 /* Validation messages */
@@ -281,13 +255,7 @@
 
 .login-toggle {
   align-self: center;
-  padding: 8px 12px;
-  border: 1px solid #000;
-  border-radius: 4px;
-  background: #fff;
-  color: #000;
-  font: inherit;
-  cursor: pointer;
+  padding: 9px 14px;
 }
 
 /* Mobile adjustments */
