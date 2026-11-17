@@ -333,9 +333,12 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
 
       <div className={`field field-wide${getVisibleError('description') ? ' field-invalid' : ''}`}>
         <label htmlFor="description">Description</label>
+        <p className="field-hint">
+          Mention any important requirements, like a dress code, what to bring, or age restrictions.
+        </p>
         <textarea
           id="description"
-          placeholder="Tell people what your event is about..."
+          placeholder="Tell people what your event is about, and include any important requirements (e.g. dress code, what to bring)..."
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           maxLength={MAX_DESCRIPTION_LENGTH}
