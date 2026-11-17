@@ -302,7 +302,6 @@ function App() {
           )}
           onRemoveRSVP={handleRemoveRSVP}
           onOpenEvent={setSelectedEvent}
-          onDownloadCalendar={handleDownloadCalendar}
           rsvpLoading={rsvpLoading}
           disabled={!currentUser}
         />
@@ -314,7 +313,6 @@ function App() {
           onRSVP={handleRSVP}
           onRemoveRSVP={handleRemoveRSVP}
           onOpenEvent={setSelectedEvent}
-          onDownloadCalendar={handleDownloadCalendar}
           disabled={!currentUser}
         />
       )}

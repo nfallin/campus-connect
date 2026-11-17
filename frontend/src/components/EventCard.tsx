@@ -12,7 +12,6 @@ type EventCardProps = {
   onRSVP: () => void
   onRemoveRSVP: () => void
   onOpen: () => void
-  onDownloadCalendar: () => void
 }
 
 export function toWebsiteHref(website: string) {
@@ -33,7 +32,6 @@ function EventCard({
   onRSVP,
   onRemoveRSVP,
   onOpen,
-  onDownloadCalendar,
 }: EventCardProps) {
   function handleKeyDown(e: KeyboardEvent<HTMLLIElement>) {
     if (e.target !== e.currentTarget) return
