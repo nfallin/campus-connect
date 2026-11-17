@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import EventForm, { type EventFormData } from './EventForm'
 import type { Event } from '../types'
@@ -18,12 +17,12 @@ type EventDetailsProps = {
   onRemoveRSVP: () => void
   onSave: (data: EventFormData) => Promise<void>
   onClose: () => void
+  onDownloadCalendar: () => void
 }
 
 export function toFormData(event: Event): EventFormData {
   const dateTime = new Date(event.dateTime)
   const hours = dateTime.getHours()
-
   return {
     title: event.title,
     date: event.date,
@@ -40,9 +39,7 @@ export function toFormData(event: Event): EventFormData {
 }
 
 function toWebsiteHref(website: string) {
-  return /^https?:\/\//i.test(website)
-    ? website
-    : `https://${website}`
+  return /^https?:\/\//i.test(website) ? website : `https://${website}`
 }
 
 function EventDetails({
@@ -55,14 +52,12 @@ function EventDetails({
   onRemoveRSVP,
   onSave,
   onClose,
+  onDownloadCalendar,
 }: EventDetailsProps) {
   const [isEditing, setIsEditing] = useState(false)
 
   return (
-    <div
-      className="event-details-backdrop"
-      onClick={onClose}
-    >
+    <div className="event-details-backdrop" onClick={onClose}>
       <section
         className={`event-details${isEditing ? ' event-details-is-editing' : ''}`}
         role="dialog"
@@ -72,17 +67,8 @@ function EventDetails({
       >
         <div className="event-details-header">
           <span />
-
-          <h2 id="event-details-title">
-            {isEditing ? 'Edit event' : event.title}
-          </h2>
-
-          <button
-            type="button"
-            className="button button-secondary event-details-close"
-            onClick={onClose}
-            aria-label="Close event details"
-          >
+          <h2 id="event-details-title">{isEditing ? 'Edit event' : event.title}</h2>
+          <button type="button" className="button button-secondary event-details-close" onClick={onClose}>
             Close
           </button>
         </div>
@@ -104,54 +90,49 @@ function EventDetails({
         ) : (
           <>
             <div className="event-details-content">
-              {event.pending && (
-                <p className="event-pending">
-                  Pending approval
+              <p className="event-details-club">{event.clubName || 'Club not specified'}</p>
+
+              <div className="event-details-section">
+                <span className="event-details-label">When</span>
+                <p className="event-details-value">
+                  {event.date} &middot; {event.time}
+                  {event.endDateTime && ` - ${fromUtcDateTimeToLocalDisplayTime(event.endDateTime)}`}
                 </p>
-              )}
+              </div>
 
-              <p className="event-details-club">
-                {event.clubName || 'Club not specified'}
-              </p>
+              <div className="event-details-section">
+                <span className="event-details-label">Where</span>
+                <p className="event-details-value">{event.location}</p>
+              </div>
 
-              <p className="event-details-meta">
-                {event.date} &middot; {event.time}
-                {event.endDateTime &&
-                  ` - ${fromUtcDateTimeToLocalDisplayTime(event.endDateTime)}`}
-                {' '}&middot; {event.location}
-              </p>
-
-              <p className="event-details-description">
-                {event.description || 'No description provided.'}
-              </p>
+              <div className="event-details-section">
+                <span className="event-details-label">About</span>
+                <p className="event-details-value event-details-description">
+                  {event.description || 'No description provided.'}
+                </p>
+              </div>
 
               {(event.contactEmail || event.website) && (
-                <div className="event-details-contact">
-                  {event.contactEmail && (
-                    <a href={`mailto:${event.contactEmail}`}>
-                      {event.contactEmail}
-                    </a>
-                  )}
-
-                  {event.contactEmail && event.website && ' · '}
-
-                  {event.website && (
-                    <a
-                      href={toWebsiteHref(event.website)}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {event.website}
-                    </a>
-                  )}
+                <div className="event-details-section">
+                  <span className="event-details-label">Contact</span>
+                  <div className="event-details-value event-details-contact">
+                    {event.contactEmail && (
+                      <a href={`mailto:${event.contactEmail}`}>{event.contactEmail}</a>
+                    )}
+                    {event.contactEmail && event.website && ' · '}
+                    {event.website && (
+                      <a href={toWebsiteHref(event.website)} target="_blank" rel="noreferrer">
+                        {event.website}
+                      </a>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
-
             <div className="event-details-actions">
               <button
                 type="button"
-                className={`button button-primary create-btn event-details-rsvp${hasRSVPed ? ' event-details-rsvp-cancel' : ''}`}
+                className="button button-primary create-btn event-details-rsvp"
                 onClick={hasRSVPed ? onRemoveRSVP : onRSVP}
                 disabled={disabled || event.pending || isLoading}
               >
@@ -160,12 +141,11 @@ function EventDetails({
                   : event.pending
                     ? 'Pending approval'
                     : disabled
-                      ? 'Sign in to register'
-                      : hasRSVPed
-                        ? 'Cancel registration'
-                        : 'Register'}
+                    ? 'Sign in to register'
+                    : hasRSVPed
+                      ? 'Cancel registration'
+                      : 'Register'}
               </button>
-
               {isOwner && (
                 <button
                   type="button"
@@ -173,6 +153,16 @@ function EventDetails({
                   onClick={() => setIsEditing(true)}
                 >
                   Edit event
+                </button>
+              )}
+              {!event.pending && (
+                <button
+                  type="button"
+                  className="button button-secondary event-details-calendar-button"
+                  title="Downloads an iCalendar (.ics) file. Open it with your calendar app to add this event."
+                  onClick={onDownloadCalendar}
+                >
+                  Add to calendar
                 </button>
               )}
             </div>

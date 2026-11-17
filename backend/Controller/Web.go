@@ -28,6 +28,7 @@ func defineRoutes(r *gin.Engine, api *API) {
 	r.POST("/events", api.requireAuth, api.createEvent)
 	r.PATCH("/events/:id", api.requireAuth, api.updateEvent)
 	r.GET("/events/:id", api.optionalAuth, api.getEvent)
+	r.GET("/events/:id/calendar", api.optionalAuth, api.downloadEventCalendar)
 
 	r.POST("/users/register", api.registerUser)
 	r.POST("/users/login", api.loginUser)

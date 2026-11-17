@@ -53,7 +53,8 @@ function LoginPage({ onLogin, onRegister }: LoginPageProps) {
   }
 
   return (
-    <main className="card">
+    <main className="card"
+      style={{ minWidth: 'min(100%, 360px)', margin: '0 auto', padding: '2rem' }}>
       <form onSubmit={handleSubmit}>
         <div className="login-intro">
           <h2>{mode === 'login' ? 'Log in' : 'Create an account'}</h2>

@@ -1,8 +1,9 @@
 
 .events-page {
+  width: 100%;
   text-align: left;
   flex-shrink: 0;
-  max-width: 720px;
+  max-width: var(--app-content-width);
 }
 
 .events-heading {

@@ -56,63 +56,77 @@ function EventCard({
           {event.clubName || 'Club not specified'}
         </div>
       </div>
-      {event.pending && <p className="event-pending">Pending approval</p>}
+      <div className="event-section">
+        <span className="event-label">When</span>
+        <p className="event-value">
+          {formatDate(event.date)} &middot; {event.time}
+          {event.endDateTime && ` - ${fromUtcDateTimeToLocalDisplayTime(event.endDateTime)}`}
+        </p>
+      </div>
 
-      <div className="event-meta">
-        {formatDate(event.date)} &middot; {event.time}
-        {event.endDateTime && ` - ${fromUtcDateTimeToLocalDisplayTime(event.endDateTime)}`} &middot; {event.location}
+      <div className="event-section">
+        <span className="event-label">Where</span>
+        <p className="event-value">{event.location}</p>
       </div>
 
       {event.description && (
-        <p className="event-description">{event.description}</p>
-      )}
-
-      {(event.contactEmail || event.website) && (
-        <div className="event-contact">
-          {event.contactEmail && (
-            <a href={`mailto:${event.contactEmail}`} onClick={(e) => e.stopPropagation()}>
-              {event.contactEmail}
-            </a>
-          )}
-
-          {event.contactEmail && event.website && ' · '}
-
-          {event.website && (
-            <a
-              href={toWebsiteHref(event.website)}
-              target="_blank"
-              rel="noreferrer"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {event.website}
-            </a>
-          )}
+        <div className="event-section">
+          <span className="event-label">About</span>
+          <p className="event-value event-description">{event.description}</p>
         </div>
       )}
 
-      <button
-        type="button"
-        className="button button-primary"
-        onClick={(e) => {
-          e.stopPropagation()
-          if (hasRSVPed) {
-            onRemoveRSVP()
-          } else {
-            onRSVP()
-          }
-        }}
-        disabled={disabled || event.pending || isLoading}
-      >
-        {isLoading
-          ? 'Please wait...'
-          : event.pending
-            ? 'Pending approval'
-            : disabled
-            ? 'Sign in to register'
-            : hasRSVPed
-              ? 'Cancel registration'
-              : 'Register'}
-      </button>
+      {(event.contactEmail || event.website) && (
+        <div className="event-section">
+          <span className="event-label">Contact</span>
+          <div className="event-value event-contact">
+            {event.contactEmail && (
+              <a href={`mailto:${event.contactEmail}`} onClick={(e) => e.stopPropagation()}>
+                {event.contactEmail}
+              </a>
+            )}
+
+            {event.contactEmail && event.website && ' · '}
+
+            {event.website && (
+              <a
+                href={toWebsiteHref(event.website)}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {event.website}
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="event-section event-action">
+        <button
+          type="button"
+          className="button button-primary"
+          onClick={(e) => {
+            e.stopPropagation()
+            if (hasRSVPed) {
+              onRemoveRSVP()
+            } else {
+              onRSVP()
+            }
+          }}
+          disabled={disabled || event.pending || isLoading}
+        >
+          {isLoading
+            ? 'Please wait...'
+            : event.pending
+              ? 'Pending approval'
+              : disabled
+              ? 'Sign in to register'
+              : hasRSVPed
+                ? 'Cancel registration'
+                : 'Register'}
+        </button>
+      </div>
     </li>
   )
 }

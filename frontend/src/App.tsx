@@ -47,6 +47,21 @@ function App() {
   const [rsvpLoading, setRsvpLoading] = useState<number[]>([])
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
 
+  const handleDownloadCalendar = async (event: Event) => {
+    try {
+      const blob = await api.download(`/events/${event.id}/calendar`)
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${event.title.replace(/[\\/:*?"<>|]/g, '_')}.ics`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Failed to download calendar event', err)
+      alert('Unable to download the calendar event. Please try again.')
+    }
+  }
+
   useEffect(() => {
     const handleHashChange = () => setPage(getPageFromHash())
 
@@ -243,36 +258,14 @@ function App() {
 
   return (
     <div className="page">
-      <div className="page-top">
-        <AppHeader
-          page={visiblePage}
-          currentUser={currentUser}
-          welcomeMessage={welcomeMessage}
-          onLogout={handleLogout}
-        />
+      <AppHeader
+        page={visiblePage}
+        currentUser={currentUser}
+        welcomeMessage={welcomeMessage}
+        onLogout={handleLogout}
+      />
 
-        <nav className="page-nav" aria-label="Main navigation">
-          {!currentUser && (
-            <a className="button button-secondary" href="#login" aria-current={visiblePage === 'login' ? 'page' : undefined}>
-              Login
-            </a>
-          )}
-          {currentUser && (
-            <a className="button button-secondary" href="#create" aria-current={visiblePage === 'create' ? 'page' : undefined}>
-              Create event
-            </a>
-          )}
-          <a className="button button-secondary" href="#events" aria-current={visiblePage === 'events' ? 'page' : undefined}>
-            View events
-          </a>
-          {currentUser && (
-            <a className="button button-secondary" href="#rsvps" aria-current={visiblePage === 'rsvps' ? 'page' : undefined}>
-              My events
-            </a>
-          )}
-        </nav>
-      </div>
-      
+
       {visiblePage === 'login' ? (
         <LoginPage onLogin={handleLogin} onRegister={handleRegister} />
       ) : visiblePage === 'create' ? (
@@ -313,6 +306,7 @@ function App() {
           onRemoveRSVP={() => handleRemoveRSVP(selectedEvent.id)}
           onSave={(data) => handleUpdate(selectedEvent.id, data)}
           onClose={() => setSelectedEvent(null)}
+          onDownloadCalendar={() => handleDownloadCalendar(selectedEvent)}
         />
       )}
     </div>

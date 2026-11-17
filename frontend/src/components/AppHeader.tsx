@@ -15,30 +15,45 @@ function AppHeader({
   welcomeMessage,
   onLogout,
 }: AppHeaderProps) {
-  const subtitle =
-    page === 'login' ? 'Sign in or create an account'
-    : page === 'create' ? 'Create an event'
-    : page === 'rsvps' ? 'See your events'
-    : 'Browse events'
-
   return (
-    <header className="page-header">
-      <div className="header-top">
-        <div className="header-title">
-          <h1>Campus Connect</h1>
-          <p className="subtitle">{subtitle}</p>
+    <header className="navbar">
+      <div className="navbar-row">
+        <div className="navbar-brand">
+          <img src="/favicon.png" alt="" className="navbar-logo" />
+          <span className="navbar-title">Campus Connect</span>
         </div>
 
-        {currentUser && (
-          <UserCard user={currentUser} onLogout={onLogout} />
-        )}
-      </div>
+        <nav className="navbar-links" aria-label="Main navigation">
+          {!currentUser && (
+            <a className="button button-secondary" href="#login" aria-current={page === 'login' ? 'page' : undefined}>
+              Login
+            </a>
+          )}
+          {currentUser && (
+            <a className="button button-secondary" href="#create" aria-current={page === 'create' ? 'page' : undefined}>
+              Create event
+            </a>
+          )}
+          <a className="button button-secondary" href="#events" aria-current={page === 'events' ? 'page' : undefined}>
+            View events
+          </a>
+          {currentUser && (
+            <a className="button button-secondary" href="#rsvps" aria-current={page === 'rsvps' ? 'page' : undefined}>
+              My events
+            </a>
+          )}
+        </nav>
 
-      <div className="welcome-message-slot">
-        <div className="welcome-message">
-          {currentUser ? welcomeMessage : ''}
+        <div className="navbar-user">
+          {currentUser && (
+            <UserCard user={currentUser} onLogout={onLogout} />
+          )}
         </div>
       </div>
+
+      {currentUser && welcomeMessage && (
+        <div className="navbar-welcome">{welcomeMessage}</div>
+      )}
     </header>
   )
 }

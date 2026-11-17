@@ -46,32 +46,38 @@
   overflow-wrap: anywhere;
 }
 
-.event-meta {
-  margin-top: 4px;
+.event-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.event-section:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.event-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 2px;
+}
+
+.event-value {
+  margin: 0;
   font-size: 13px;
   color: #555;
   overflow-wrap: anywhere;
 }
 
-.event-pending {
-  margin: 8px 0 0;
-  color: #666;
-  font-size: 13px;
-  font-weight: 600;
-}
-
 .event-description {
-  margin: 10px 0 0;
   font-size: 14px;
   line-height: 1.5;
   color: #333;
-  overflow-wrap: anywhere;
-}
-
-.event-contact {
-  margin-top: 10px;
-  font-size: 13px;
-  overflow-wrap: anywhere;
 }
 
 .event-contact a {
@@ -87,9 +93,6 @@
   color: #666;
   font-size: 12px;
 }
-
-
-/* Event card buttons */
 
 .event-item button {
   margin-top: 14px;

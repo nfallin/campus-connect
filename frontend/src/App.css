@@ -1,6 +1,13 @@
 
 /* Global layout */
 
+:root {
+  /* Single shared content width for the navbar and every page container,
+     so they line up instead of drifting apart (card/events-page/navbar
+     each used to hardcode their own value). */
+  --app-content-width: 640px;
+}
+
 html {
   scrollbar-gutter: stable;
 }
@@ -20,96 +27,12 @@ html {
   color: #111;
 }
 
-/* Shared content width */
-
-.page-header,
-.page-nav,
-.card,
-.events-page {
+.navbar {
   width: 100%;
-  max-width: 420px;
-}
-
-.page-top {
+  max-width: var(--app-content-width);
   position: sticky;
   top: 0;
   z-index: 3;
-  width: 100%;
-  max-width: 1086px;
-  margin-top: -24px;
+  margin: -24px 0 24px;
   background: #fff;
-  padding: 14px 0 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
 }
-
-.page-top .page-header,
-.page-top .page-nav {
-  width: auto;
-  max-width: none;
-}
-
-.page-top .page-header {
-  flex: 1;
-  min-width: 0;
-  margin: 0;
-}
-
-.page-top .page-nav {
-  flex-shrink: 0;
-  margin: 0;
-}
-
-
-/* Navigation */
-
-.page-nav {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 0 0 24px;
-}
-
-.page-nav a {
-  padding: 9px 15px;
-  font-size: 14px;
-  text-decoration: none;
-}
-
-.page-nav a:hover,
-.page-nav a[aria-current='page'] {
-  border-color: #1e40af;
-  border-bottom-color: #1e3a8a;
-  background: #2563eb;
-  color: #fff;
-  box-shadow: 0 4px 7px rgba(37, 99, 235, 0.22);
-  transform: translateY(-1px);
-}
-
-.page-nav a:active {
-  transform: translateY(2px);
-  border-bottom-width: 1px;
-  box-shadow: none;
-}
-
-.page-nav a:focus-visible {
-  outline: 3px solid rgba(37, 99, 235, 0.35);
-  outline-offset: 3px;
-}
-
-@media (max-width: 700px) {
-  .page-top {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding-top: 10px;
-  }
-
-  .page-top .page-nav {
-    justify-content: flex-start;
-  }
-}
-
