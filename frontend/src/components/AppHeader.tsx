@@ -5,14 +5,12 @@ import './AppHeader.css'
 type AppHeaderProps = {
   page: Page
   currentUser: User | null
-  welcomeMessage: string
   onLogout: () => void
 }
 
 function AppHeader({
   page,
   currentUser,
-  welcomeMessage,
   onLogout,
 }: AppHeaderProps) {
   return (

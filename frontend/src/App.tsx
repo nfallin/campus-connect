@@ -40,7 +40,6 @@ function App() {
 
   const [currentUser, setCurrentUser] = useState<User | null>(null)
 
-  const [welcomeMessage, setWelcomeMessage] = useState('')
   const [events, setEvents] = useState<Event[]>([])
   
   const [rsvpedEventIds, setRsvpedEventIds] = useState<number[]>([])
@@ -116,8 +115,6 @@ function App() {
     )
 
     setCurrentUser(result.user)
-    setWelcomeMessage(`Welcome back, ${result.user.username}!`)
-
     window.location.hash = '#events'
   }
 
@@ -129,7 +126,6 @@ function App() {
     })
     setAuthToken(result.token)
     setCurrentUser(result.user)
-    setWelcomeMessage(`Your account has been created, ${result.user.username}!`)
     window.location.hash = '#events'
   }
 
@@ -138,7 +134,6 @@ function App() {
     setCurrentUser(null)
     setRsvpedEventIds([])
     setRsvpLoading([])
-    setWelcomeMessage('')
 
     window.location.hash = '#login'
   }
@@ -261,7 +256,6 @@ function App() {
       <AppHeader
         page={visiblePage}
         currentUser={currentUser}
-        welcomeMessage={welcomeMessage}
         onLogout={handleLogout}
       />
 
