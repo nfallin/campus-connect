@@ -2,6 +2,9 @@
 /* Navbar */
 
 .navbar-row {
+  width: calc(100% - 8px);
+  max-width: var(--app-content-width);
+  margin: 0 auto;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -60,12 +63,4 @@
   font-size: 13px;
   text-decoration: none;
   white-space: nowrap;
-}
-
-/* Welcome message */
-
-.navbar-welcome {
-  padding: 6px 0 0;
-  font-size: 12px;
-  color: rgb(2, 164, 2);
 }

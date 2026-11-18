@@ -50,10 +50,6 @@ function AppHeader({
           )}
         </div>
       </div>
-
-      {currentUser && welcomeMessage && (
-        <div className="navbar-welcome">{welcomeMessage}</div>
-      )}
     </header>
   )
 }

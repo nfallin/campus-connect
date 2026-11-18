@@ -28,8 +28,8 @@ html {
 }
 
 .navbar {
-  width: 100%;
-  max-width: var(--app-content-width);
+  width: calc(100% + 8px);
+  max-width: calc(var(--app-content-width) + 8px);
   position: sticky;
   top: 0;
   z-index: 3;
