@@ -26,14 +26,14 @@ describe('event validation (Sabrina Codipilly)', () => {
     expect(isValidEventInput(validEvent, today)).toBe(true)
   })
 
-  it.each(['title', 'date', 'hour', 'minute', 'location', 'clubName'] as const)(
+  it.each(['title', 'date', 'hour', 'minute', 'location'] as const)(
     'rejects an event with an empty %s',
     (field) => {
       expect(isValidEventInput({ ...validEvent, [field]: '' }, today)).toBe(false)
     },
   )
 
-  it.each(['title', 'location', 'clubName'] as const)(
+  it.each(['title', 'location'] as const)(
     'rejects an event when %s contains only whitespace',
     (field) => {
       expect(isValidEventInput({ ...validEvent, [field]: '   ' }, today)).toBe(false)
@@ -79,6 +79,10 @@ describe('event validation (Sabrina Codipilly)', () => {
 
   it('accepts an empty optional end time and requires a 30-minute duration', () => {
     expect(isValidEventInput(validEvent, today)).toBe(true)
+  })
+
+  it('accepts an event without an organization name', () => {
+    expect(isValidEventInput({ ...validEvent, clubName: '' }, today)).toBe(true)
     expect(
       getEventInputErrors({ ...validEvent, endTime: 'incomplete' }, today),
     ).toContain('Choose both an hour and minute for the end time.')

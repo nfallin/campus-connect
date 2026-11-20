@@ -122,6 +122,19 @@ func TestEventRoutes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	otherUser, err := Model.NewRepository(controllerBackend.db).RegisterUser(Types.RegisterUserRequest{
+		Username: "Other", Email: "other@example.com", Password: "password123",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	otherAuth, err := Model.NewRepository(controllerBackend.db).LoginUser(Types.LoginUserRequest{
+		Identifier: "Other",
+		Password:   "password123",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	body := Types.CreateEventRequest{
 		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description",
@@ -138,6 +151,12 @@ func TestEventRoutes(t *testing.T) {
 	}
 	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/events", body, auth.Token); response.Code != http.StatusConflict {
 		t.Fatalf("duplicate event status = %d", response.Code)
+	}
+	withoutOrganization := body
+	withoutOrganization.Name = "Event without organization"
+	withoutOrganization.ClubName = ""
+	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/events", withoutOrganization, auth.Token); response.Code != http.StatusCreated {
+		t.Fatalf("create event without organization status = %d", response.Code)
 	}
 	calendar := requestWithToken(t, controllerBackend.router, http.MethodGet, "/events/1/calendar", nil, auth.Token)
 	if calendar.Code != http.StatusOK {
@@ -209,6 +228,25 @@ func TestEventRoutes(t *testing.T) {
 	if response := requestWithToken(t, controllerBackend.router, http.MethodPatch, "/events/1", Types.UpdateEventRequest{}, auth.Token); response.Code != http.StatusOK {
 		t.Fatalf("update event status = %d", response.Code)
 	}
+	if response := request(t, controllerBackend.router, http.MethodDelete, "/events/1", nil); response.Code != http.StatusUnauthorized {
+		t.Fatalf("unauthenticated cancel event status = %d", response.Code)
+	}
+	if response := requestWithToken(t, controllerBackend.router, http.MethodDelete, "/events/nope", nil, auth.Token); response.Code != http.StatusBadRequest {
+		t.Fatalf("invalid cancel event ID status = %d", response.Code)
+	}
+	if response := requestWithToken(t, controllerBackend.router, http.MethodDelete, "/events/999", nil, auth.Token); response.Code != http.StatusNotFound {
+		t.Fatalf("missing cancel event status = %d", response.Code)
+	}
+	if response := requestWithToken(t, controllerBackend.router, http.MethodDelete, "/events/1", nil, otherAuth.Token); response.Code != http.StatusForbidden {
+		t.Fatalf("non-owner cancel event status = %d", response.Code)
+	}
+	if response := requestWithToken(t, controllerBackend.router, http.MethodDelete, "/events/1", nil, auth.Token); response.Code != http.StatusNoContent {
+		t.Fatalf("owner cancel event status = %d", response.Code)
+	}
+	if response := requestWithToken(t, controllerBackend.router, http.MethodGet, "/events/1", nil, auth.Token); response.Code != http.StatusNotFound {
+		t.Fatalf("cancelled event lookup status = %d", response.Code)
+	}
+	_ = otherUser
 }
 
 // Test the behavior of each endpoint when the database is closed, which should result in 500 errors.
