@@ -267,9 +267,9 @@ Content-Type: application/json
 
 `hostUserId` is required and must identify an existing user.
 `endDateTime` is optional and, when provided, must be at least 30 minutes after `dateTime`.
-`contactEmail` and `websiteURL` are optional and may be empty.
+`clubName`, `contactEmail`, and `websiteURL` are optional and may be empty.
 The event name is limited to 75 characters. The organization name (`clubName`)
-and location are limited to 50 characters each. The description is limited to
+may contain up to 50 characters. Location is limited to 50 characters. The description is limited to
 500 characters, the contact email to 30 characters, and the website URL to
 60 characters.
 requests that re-use existing event names will be rejected
@@ -335,6 +335,17 @@ The response is the updated event object with status `200 OK`. The endpoint
 returns `404 Not Found` when the event does not exist and `400 Bad Request`
 when the event ID, JSON, or host user ID is invalid. It returns `409 Conflict`
 when the updated name is already used by another event.
+
+### Cancel an event
+
+```http
+DELETE /events/:id
+```
+
+Only the event host can cancel an event. A successful cancellation returns
+`204 No Content` and removes the event along with its registrations.
+Unauthenticated requests receive `401 Unauthorized`, non-host requests receive
+`403 Forbidden`, and missing events receive `404 Not Found`.
 
 ## RSVPs
 

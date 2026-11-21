@@ -38,7 +38,7 @@ type CreateEventRequest struct {
 	DateTime     time.Time  `json:"dateTime" binding:"required"`
 	EndDateTime  *time.Time `json:"endDateTime"`
 	Location     string     `json:"location" binding:"required"`
-	ClubName     string     `json:"clubName" binding:"required"`
+	ClubName     string     `json:"clubName"`
 	Description  string     `json:"description" binding:"required"`
 	ContactEmail string     `json:"contactEmail"`
 	WebsiteURL   string     `json:"websiteURL"`

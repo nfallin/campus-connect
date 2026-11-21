@@ -316,7 +316,7 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
       </div>
 
       <div className={`field${getVisibleError('clubName') ? ' field-invalid' : ''}`}>
-        <label htmlFor="clubName">Club</label>
+        <label htmlFor="clubName">Organization (optional)</label>
         <input
           id="clubName"
           type="text"

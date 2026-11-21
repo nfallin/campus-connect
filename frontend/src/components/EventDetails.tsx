@@ -16,6 +16,7 @@ type EventDetailsProps = {
   onRSVP: () => void
   onRemoveRSVP: () => void
   onSave: (data: EventFormData) => Promise<void>
+  onCancelEvent: () => Promise<void>
   onClose: () => void
   onDownloadCalendar: () => void
 }
@@ -51,10 +52,32 @@ function EventDetails({
   onRSVP,
   onRemoveRSVP,
   onSave,
+  onCancelEvent,
   onClose,
   onDownloadCalendar,
 }: EventDetailsProps) {
   const [isEditing, setIsEditing] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
+
+  async function handleCancelEvent() {
+    if (!window.confirm(`Delete "${event.title}"? This will permanently remove the event and its registrations.`)) {
+      return
+    }
+
+    setIsCancelling(true)
+    try {
+      await onCancelEvent()
+    } catch (error) {
+      console.error('Failed to cancel event', error)
+      window.alert(
+        error instanceof Error
+          ?           `Unable to delete event: ${error.message}`
+          : 'Unable to delete event. Please try again.',
+      )
+    } finally {
+      setIsCancelling(false)
+    }
+  }
 
   return (
     <div className="event-details-backdrop" onClick={onClose}>
@@ -153,6 +176,16 @@ function EventDetails({
                   onClick={() => setIsEditing(true)}
                 >
                   Edit event
+                </button>
+              )}
+              {isOwner && (
+                <button
+                  type="button"
+                  className="button button-secondary event-details-cancel-event"
+                  onClick={handleCancelEvent}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? 'Deleting...' : 'Delete event'}
                 </button>
               )}
               {!event.pending && (

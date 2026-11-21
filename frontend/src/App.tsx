@@ -249,6 +249,13 @@ function App() {
     setSelectedEvent(event)
   }
 
+  const handleCancelEvent = async (eventId: number) => {
+    await api.delete(`/events/${eventId}`)
+    setEvents((prev) => prev.filter((event) => event.id !== eventId))
+    setRsvpedEventIds((prev) => prev.filter((id) => id !== eventId))
+    setSelectedEvent(null)
+  }
+
   const visiblePage =
     !currentUser && (page === 'create' || page === 'rsvps')
       ? 'login'
@@ -305,6 +312,7 @@ function App() {
           onRSVP={() => handleRSVP(selectedEvent.id)}
           onRemoveRSVP={() => handleRemoveRSVP(selectedEvent.id)}
           onSave={(data) => handleUpdate(selectedEvent.id, data)}
+          onCancelEvent={() => handleCancelEvent(selectedEvent.id)}
           onClose={() => setSelectedEvent(null)}
           onDownloadCalendar={() => handleDownloadCalendar(selectedEvent)}
         />
