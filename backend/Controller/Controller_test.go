@@ -152,9 +152,14 @@ func TestEventRoutes(t *testing.T) {
 	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/events", body, auth.Token); response.Code != http.StatusConflict {
 		t.Fatalf("duplicate event status = %d", response.Code)
 	}
-	withoutOrganization := body
-	withoutOrganization.Name = "Event without organization"
-	withoutOrganization.ClubName = ""
+	withoutOrganization := map[string]any{
+		"name":         "Event without organization",
+		"dateTime":     body.DateTime,
+		"location":     body.Location,
+		"description":  body.Description,
+		"contactEmail": body.ContactEmail,
+		"websiteURL":   body.WebsiteURL,
+	}
 	if response := requestWithToken(t, controllerBackend.router, http.MethodPost, "/events", withoutOrganization, auth.Token); response.Code != http.StatusCreated {
 		t.Fatalf("create event without organization status = %d", response.Code)
 	}
