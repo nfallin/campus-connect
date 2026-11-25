@@ -1,27 +1,24 @@
-import UserCard from './UserCard'
 import type { User, Page } from '../types'
 import './AppHeader.css'
 
 type AppHeaderProps = {
   page: Page
   currentUser: User | null
-  welcomeMessage: string
   onLogout: () => void
 }
 
 function AppHeader({
   page,
   currentUser,
-  welcomeMessage,
   onLogout,
 }: AppHeaderProps) {
   return (
     <header className="navbar">
       <div className="navbar-row">
-        <div className="navbar-brand">
+        <a className="navbar-brand" href="#events" aria-label="Campus Connect home">
           <img src="/favicon.png" alt="" className="navbar-logo" />
           <span className="navbar-title">Campus Connect</span>
-        </div>
+        </a>
 
         <nav className="navbar-links" aria-label="Main navigation">
           {!currentUser && (
@@ -44,16 +41,14 @@ function AppHeader({
           )}
         </nav>
 
-        <div className="navbar-user">
-          {currentUser && (
-            <UserCard user={currentUser} onLogout={onLogout} />
-          )}
-        </div>
+        {currentUser && (
+          <div className="navbar-account">
+            <button type="button" className="navbar-logout" onClick={onLogout}>
+              Log out
+            </button>
+          </div>
+        )}
       </div>
-
-      {currentUser && welcomeMessage && (
-        <div className="navbar-welcome">{welcomeMessage}</div>
-      )}
     </header>
   )
 }

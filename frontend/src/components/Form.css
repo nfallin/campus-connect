@@ -199,12 +199,16 @@
 }
 
 .period-toggle button:hover {
-  background: #e2e8f0;
+  background: #f1dfe3;
 }
 
 .period-toggle button.active {
-  background: #2563eb;
+  background: #a51f36;
   color: #fff;
+}
+
+.period-toggle button.active:hover {
+  background: #851a2c;
 }
 
 .create-btn {

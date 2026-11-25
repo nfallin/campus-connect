@@ -24,6 +24,10 @@
   text-align: left;
 }
 
+.event-details-is-editing {
+  max-height: calc(100dvh - 24px);
+}
+
 .event-details::before {
   content: none;
 }
@@ -49,9 +53,57 @@
   padding: 24px 40px 32px;
 }
 
+.event-details-is-editing .event-details-editor-view {
+  padding: 12px 32px 16px;
+}
+
 .event-details-editor-view .card {
   padding: 0;
   border: 0;
+}
+
+.event-details-editor-view .card.event-form {
+  gap: 6px 14px;
+}
+
+.event-details-editor-view .field {
+  gap: 2px;
+}
+
+.event-details-editor-view .field label {
+  font-size: 11px;
+}
+
+.event-details-editor-view .field input,
+.event-details-editor-view .field textarea,
+.event-details-editor-view .time-row select {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.event-details-editor-view .event-date-times {
+  gap: 10px;
+}
+
+.event-details-editor-view .field-hint {
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.event-details-editor-view .description-count,
+.event-details-editor-view .event-approval-note {
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.event-details-editor-view .event-approval-note {
+  white-space: normal;
+}
+
+.event-details-editor-view .event-form-actions .create-btn,
+.event-details-editor-view .event-form-cancel {
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .event-details h2 {
@@ -143,11 +195,20 @@
     padding: 12px;
   }
 
+  .event-details-is-editing {
+    max-height: calc(100dvh - 24px);
+  }
+
   .event-details-content,
   .event-details-actions,
   .event-details-editor-view {
     padding-left: 20px;
     padding-right: 20px;
+  }
+
+  .event-details-is-editing .event-details-editor-view {
+    padding-top: 8px;
+    padding-bottom: 12px;
   }
 
   .event-details-header {
