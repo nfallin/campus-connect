@@ -7,6 +7,7 @@ import {
 } from '../lib/eventDateTime'
 import './EventDetails.css'
 import EventImage from './EventImage'
+import useEventImage from './UseEventImage'
 
 type EventDetailsProps = {
   event: Event
@@ -56,6 +57,7 @@ function EventDetails({
   onDownloadCalendar,
 }: EventDetailsProps) {
   const [isEditing, setIsEditing] = useState(false)
+  const imageUrl = useEventImage(event.id, event.hasImage)
 
   return (
     <div className="event-details-backdrop" onClick={onClose}>
@@ -79,6 +81,7 @@ function EventDetails({
             <EventForm
               key={event.id + event.dateTime}
               initialData={toFormData(event)}
+              initialImageUrl={imageUrl ?? undefined}
               onSubmit={async (data) => {
                 await onSave(data)
                 setIsEditing(false)
