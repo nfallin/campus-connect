@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   getEventDateBounds,
   getEventInputErrorMap,
@@ -40,12 +40,15 @@ export type EventFormData = {
   description: string
   contactEmail: string
   website: string
+  imageFile?: File
+  removeImage?: boolean
 }
 
 type EventFormProps = {
   onSubmit: (data: EventFormData) => Promise<void>
   disabled?: boolean
   initialData?: EventFormData
+  initialImageUrl?: string
   submitLabel?: string
   submittingLabel?: string
   onCancel?: () => void
@@ -74,6 +77,23 @@ function EventForm({
   const [description, setDescription] = useState(initialData?.description ?? '')
   const [contactEmail, setContactEmail] = useState(initialData?.contactEmail ?? '')
   const [website, setWebsite] = useState(initialData?.website ?? '')
+  const [imageFile, setImageFile] = useState<File | undefined>()
+  const [removeImage, setRemoveImage] = useState(false)
+  const [imageError, setImageError] = useState('')
+  const [imagePreview, setImagePreview] = useState('')
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreview('')
+      return
+    }
+
+    const previewUrl = URL.createObjectURL(imageFile)
+    setImagePreview(previewUrl)
+
+    return () => URL.revokeObjectURL(previewUrl)
+  }, [imageFile])
+  
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [touched, setTouched] = useState<Partial<Record<keyof EventFormData, boolean>>>({})
@@ -96,6 +116,8 @@ function EventForm({
     description,
     contactEmail,
     website,
+    imageFile,
+    removeImage,
   }
 
   const inputErrors = getEventInputErrorMap(formData)
@@ -123,7 +145,32 @@ function EventForm({
     setDescription('')
     setContactEmail('')
     setWebsite('')
+    setImageFile(undefined)
+    setRemoveImage(false)
+    setImageError('')
   }
+
+function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const file = e.target.files?.[0]
+
+  if (!file) return
+
+  if (!['image/jpeg', 'image/png'].includes(file.type)) {
+    setImageError('Please select a JPEG or PNG image.')
+    e.target.value = ''
+    return
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    setImageError('Image must be 5 MB or smaller.')
+    e.target.value = ''
+    return
+  }
+
+  setImageError('')
+  setImageFile(file)
+  setRemoveImage(false)
+}
 
 async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -385,6 +432,54 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
         {getVisibleError('website') && <p className="field-error" id="website-error">{getVisibleError('website')}</p>}
       </div>
 
+      <div className="field field-wide">
+        <label htmlFor="eventImage">Event image (optional)</label>
+        <p className="field-hint">
+          Upload a JPEG or PNG image, up to 5 MB.
+        </p>
+      
+        <input
+          id="eventImage"
+          type="file"
+          accept="image/jpeg,image/png"
+          onChange={handleImageChange}
+          disabled={submitting}
+        />
+
+        {imagePreview && (
+          <div className="event-image-preview">
+            <img src={imagePreview} alt="Selected event image preview" />
+          </div>
+        )}
+
+        {!imagePreview && initialImageUrl && !removeImage && (
+          <div className="event-image-preview">
+            <img src={initialImageUrl} alt="Current event image" />
+          </div>
+        )}
+
+        {(imageFile || (initialImageUrl && !removeImage)) && (
+          <button
+            type="button"
+            className="button button-secondary"
+            onClick={() => {
+              setImageFile(undefined)
+              setRemoveImage(true)
+              setImageError('')
+              const input = document.getElementById('eventImage') as HTMLInputElement | null
+              if (input) input.value = ''
+            }}
+            disabled={submitting}
+          >
+            Remove image
+          </button>
+        )}
+      
+        {imageError && (
+          <p className="field-error" role="alert">{imageError}</p>
+        )}
+      </div>
+      
       <div className="event-form-actions">
         <button type="submit" className="button button-primary create-btn" disabled={!canSubmit}>
           {submitting ? submittingLabel : submitLabel}
