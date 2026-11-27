@@ -38,4 +38,8 @@ func defineRoutes(r *gin.Engine, api *API) {
 	r.POST("/users/:userId/rsvps/:eventId", api.requireAuth, api.rsvpAdd)
 	r.DELETE("/users/:userId/rsvps/:eventId", api.requireAuth, api.rsvpRemove)
 	r.GET("/users/:userId/rsvps", api.requireAuth, api.getRSVPs)
+
+	r.POST("/events/:id/image", api.requireAuth, api.uploadEventImage)
+	r.GET("/events/:id/image", api.optionalAuth, api.getEventImage)
+	r.DELETE("/events/:id/image", api.requireAuth, api.deleteEventImage)
 }
