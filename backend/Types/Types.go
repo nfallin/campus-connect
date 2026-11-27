@@ -93,6 +93,7 @@ type EventResponse struct {
 	WebsiteURL    string        `json:"websiteURL"`
 	AttendeeCount int           `json:"attendeeCount"`
 	HostUserID    int           `json:"hostUserId"`
+	HasImage 	  bool 			`json:"hasImage"`
 }
 
 type EventFilters struct {
