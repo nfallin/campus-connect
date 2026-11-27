@@ -23,6 +23,8 @@ const eventsTable = `
 		description TEXT NOT NULL,
 		contact_email TEXT,
 		website TEXT,
+		image_data BLOB,
+		image_content_type TEXT,
 		pending BOOLEAN NOT NULL DEFAULT TRUE,
 		host_user_id INTEGER NOT NULL,
 		UNIQUE(event_name),
