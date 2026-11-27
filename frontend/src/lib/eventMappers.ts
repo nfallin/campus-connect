@@ -19,6 +19,6 @@ export function fromEventResponse(event: EventResponse): Event {
     description: event.description ?? '',
     website: event.websiteURL ?? '',
     hostUserId: event.hostUserId,
-    hasImage: response.hasImage,
+    hasImage: event.hasImage,
   }
 }
