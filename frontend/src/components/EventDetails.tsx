@@ -7,7 +7,7 @@ import {
 } from '../lib/eventDateTime'
 import './EventDetails.css'
 import EventImage from './EventImage'
-import useEventImage from './UseEventImage'
+import useEventImage from './useEventImage'
 
 type EventDetailsProps = {
   event: Event
