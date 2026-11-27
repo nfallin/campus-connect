@@ -18,6 +18,7 @@ describe('EventDetails toFormData (Kaavya Jethwa)', () => {
     contactEmail: 'acm@example.com',
     website: 'https://acm.example.com',
     hostUserId: 7,
+    hasImage: false,
   }
 
   it('maps midnight to 12 AM', () => {
