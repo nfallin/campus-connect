@@ -143,11 +143,12 @@ function App() {
     window.location.hash = '#login'
   }
 
+
   const handleCreate = async (formData: EventFormData) => {
     if (!currentUser) {
       throw new Error('Please log in before creating an event.')
     }
-
+  
     const created = await api.post<EventResponse>('/events', {
       name: formData.title.trim(),
       dateTime: toUtcDateTime(
@@ -165,14 +166,31 @@ function App() {
       contactEmail: formData.contactEmail.trim(),
       websiteURL: formData.website.trim(),
     })
-
+  
+    let imageUploadFailed = false
+  
+    if (formData.imageFile) {
+      try {
+        await api.uploadEventImage(created.id, formData.imageFile)
+      } catch (err) {
+        console.error('Event created, but image upload failed', err)
+        imageUploadFailed = true
+      }
+    }
+  
     const event = fromEventResponse(created)
-
+  
     setEvents((prev) =>
       sortEventsChronologically([...prev, event])
     )
-
+  
     window.location.hash = '#events'
+  
+    if (imageUploadFailed) {
+      alert(
+        'Your event was created, but its image could not be uploaded. You can try adding it again by editing the event.',
+      )
+    }
   }
 
 
