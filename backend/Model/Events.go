@@ -143,14 +143,16 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 			e.club_name, e.description, e.contact_email, e.website,
 			e.pending, e.host_user_id,
 			u.user_id, u.user_name, u.user_email,
-			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id)
+			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id),
+			CASE WHEN e.image_data IS NOT NULL THEN TRUE ELSE FALSE END
 		FROM events e
 		JOIN users u ON u.user_id = e.host_user_id
 		WHERE e.event_id = ?
 	`, id).Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
 		&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
 		&event.Pending, &event.HostUserID, &host.ID, &host.Username, &host.Email,
-		&event.AttendeeCount)
+		&event.AttendeeCount, &event.HasImage))
+		
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return Types.EventResponse{}, ErrNotFound
@@ -182,7 +184,8 @@ func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.Eve
 		SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
 			e.club_name, e.description, e.contact_email, e.website,
 			e.pending, e.host_user_id, u.user_id, u.user_name, u.user_email,
-			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id)
+			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id),
+			CASE WHEN e.image_data IS NOT NULL THEN TRUE ELSE FALSE END
 		FROM events e
 		JOIN users u ON u.user_id = e.host_user_id
 	`
@@ -243,7 +246,7 @@ func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.Eve
 
 		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
 			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
-			&event.Pending, &event.HostUserID, &host.ID, &host.Username, &host.Email, &event.AttendeeCount); err != nil {
+			&event.Pending, &event.HostUserID, &host.ID, &host.Username, &host.Email, &event.AttendeeCount, &event.HasImage); err != nil {
 			return nil, err
 		}
 
@@ -369,7 +372,8 @@ func (repository *Repository) GetPendingEvents() ([]Types.EventResponse, error) 
 		SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
 			e.club_name, e.description, e.contact_email, e.website,
 			e.pending, e.host_user_id, u.user_id, u.user_name, u.user_email,
-			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id)
+			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id),
+			CASE WHEN e.image_data IS NOT NULL THEN TRUE ELSE FALSE END
 		FROM events e
 		JOIN users u ON u.user_id = e.host_user_id
 		WHERE e.pending = TRUE
@@ -389,7 +393,7 @@ func (repository *Repository) GetPendingEvents() ([]Types.EventResponse, error) 
 		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
 			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
 			&event.Pending, &event.HostUserID, &host.ID, &host.Username, &host.Email,
-			&event.AttendeeCount); err != nil {
+			&event.AttendeeCount, &event.HasImage); err != nil {
 			return nil, err
 		}
 		event.DateTime, err = time.Parse(time.RFC3339, dateTime)
