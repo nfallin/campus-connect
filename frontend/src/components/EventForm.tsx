@@ -96,7 +96,9 @@ function EventForm({
   
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
-  const [touched, setTouched] = useState<Partial<Record<keyof EventFormData, boolean>>>({})
+  type ValidatedField = Exclude<keyof EventFormData, 'imageFile' | 'removeImage'>
+
+  const [touched, setTouched] = useState<Partial<Record<ValidatedField, boolean>>>({})
   const [submitAttempted, setSubmitAttempted] = useState(false)
 
   const dateBounds = getEventDateBounds()
@@ -123,11 +125,11 @@ function EventForm({
   const inputErrors = getEventInputErrorMap(formData)
   const canSubmit = !disabled && !submitting
 
-  function getVisibleError(field: keyof EventFormData) {
+  function getVisibleError(field: ValidatedField) {    
     return submitAttempted || touched[field] ? inputErrors[field] : undefined
   }
 
-  function markTouched(field: keyof EventFormData) {
+  function markTouched(field: ValidatedField) {
     setTouched((prev) => ({ ...prev, [field]: true }))
   }
 
