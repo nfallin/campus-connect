@@ -3,6 +3,7 @@ import type { KeyboardEvent } from 'react'
 import type { Event } from '../types'
 import { fromUtcDateTimeToLocalDisplayTime } from '../lib/eventDateTime'
 import './EventCard.css'
+import EventImage from './EventImage'
 
 type EventCardProps = {
   event: Event
@@ -50,6 +51,10 @@ function EventCard({
       onClick={onOpen}
       onKeyDown={handleKeyDown}
     >
+      <EventImage
+        eventId={event.id}
+        hasImage={event.hasImage}
+      />
       <div className="event-heading">
         <div className="event-title">{event.title}</div>
         <div className="event-club">
