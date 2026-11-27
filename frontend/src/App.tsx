@@ -240,6 +240,7 @@ function App() {
     }
   }
 
+  
   const handleUpdate = async (eventId: number, formData: EventFormData) => {
     const updated = await api.patch<EventResponse>(`/events/${eventId}`, {
       name: formData.title.trim(),
@@ -258,14 +259,39 @@ function App() {
       contactEmail: formData.contactEmail.trim(),
       websiteURL: formData.website.trim(),
     })
+  
+    let imageChangeFailed = false
+  
+    try {
+      if (formData.imageFile) {
+        await api.uploadEventImage(eventId, formData.imageFile)
+      } else if (formData.removeImage) {
+        await api.deleteEventImage(eventId)
+      }
+    } catch (err) {
+      console.error('Event updated, but image change failed', err)
+      imageChangeFailed = true
+    }
+  
     const event = fromEventResponse(updated)
+  
     setEvents((prev) =>
-      sortEventsChronologically(prev.map((current) =>
-        current.id === event.id ? event : current
-      )),
+      sortEventsChronologically(
+        prev.map((current) =>
+          current.id === event.id ? event : current
+        )
+      ),
     )
+  
     setSelectedEvent(event)
+  
+    if (imageChangeFailed) {
+      alert(
+        'Your event details were updated, but the image could not be changed. Please try again.',
+      )
+    }
   }
+
 
   const visiblePage =
     !currentUser && (page === 'create' || page === 'rsvps')
