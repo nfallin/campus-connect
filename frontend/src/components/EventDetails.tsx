@@ -6,6 +6,7 @@ import {
   fromUtcDateTimeToLocalTime,
 } from '../lib/eventDateTime'
 import './EventDetails.css'
+import EventImage from './EventImage'
 
 type EventDetailsProps = {
   event: Event
@@ -90,6 +91,11 @@ function EventDetails({
         ) : (
           <>
             <div className="event-details-content">
+              <EventImage
+                eventId={event.id}
+                hasImage={event.hasImage}
+                className="event-details-image"
+              />
               <p className="event-details-club">{event.clubName || 'Club not specified'}</p>
 
               <div className="event-details-section">
