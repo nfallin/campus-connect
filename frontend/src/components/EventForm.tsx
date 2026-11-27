@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react'
 import {
   getEventDateBounds,
@@ -44,6 +45,11 @@ export type EventFormData = {
   removeImage?: boolean
 }
 
+type ValidatedField = Exclude<
+  keyof EventFormData,
+  'imageFile' | 'removeImage'
+>
+
 type EventFormProps = {
   onSubmit: (data: EventFormData) => Promise<void>
   disabled?: boolean
@@ -58,6 +64,7 @@ function EventForm({
   onSubmit,
   disabled = false,
   initialData,
+  initialImageUrl,
   submitLabel = 'Create event',
   submittingLabel = 'Creating...',
   onCancel,
@@ -77,6 +84,7 @@ function EventForm({
   const [description, setDescription] = useState(initialData?.description ?? '')
   const [contactEmail, setContactEmail] = useState(initialData?.contactEmail ?? '')
   const [website, setWebsite] = useState(initialData?.website ?? '')
+
   const [imageFile, setImageFile] = useState<File | undefined>()
   const [removeImage, setRemoveImage] = useState(false)
   const [imageError, setImageError] = useState('')
@@ -93,18 +101,19 @@ function EventForm({
 
     return () => URL.revokeObjectURL(previewUrl)
   }, [imageFile])
-  
+
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
-  type ValidatedField = Exclude<keyof EventFormData, 'imageFile' | 'removeImage'>
 
   const [touched, setTouched] = useState<Partial<Record<ValidatedField, boolean>>>({})
   const [submitAttempted, setSubmitAttempted] = useState(false)
 
   const dateBounds = getEventDateBounds()
-  const endTime = endHour || endMinute
-    ? to24HourTime(endHour, endMinute, endPeriod) || 'incomplete'
-    : ''
+
+  const endTime =
+    endHour || endMinute
+      ? to24HourTime(endHour, endMinute, endPeriod) || 'incomplete'
+      : ''
 
   const formData: EventFormData = {
     title,
@@ -125,7 +134,7 @@ function EventForm({
   const inputErrors = getEventInputErrorMap(formData)
   const canSubmit = !disabled && !submitting
 
-  function getVisibleError(field: ValidatedField) {    
+  function getVisibleError(field: ValidatedField) {
     return submitAttempted || touched[field] ? inputErrors[field] : undefined
   }
 
@@ -152,29 +161,29 @@ function EventForm({
     setImageError('')
   }
 
-function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-  const file = e.target.files?.[0]
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
 
-  if (!file) return
+    if (!file) return
 
-  if (!['image/jpeg', 'image/png'].includes(file.type)) {
-    setImageError('Please select a JPEG or PNG image.')
-    e.target.value = ''
-    return
+    if (!['image/jpeg', 'image/png'].includes(file.type)) {
+      setImageError('Please select a JPEG or PNG image.')
+      e.target.value = ''
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setImageError('Image must be 5 MB or smaller.')
+      e.target.value = ''
+      return
+    }
+
+    setImageError('')
+    setImageFile(file)
+    setRemoveImage(false)
   }
 
-  if (file.size > 5 * 1024 * 1024) {
-    setImageError('Image must be 5 MB or smaller.')
-    e.target.value = ''
-    return
-  }
-
-  setImageError('')
-  setImageFile(file)
-  setRemoveImage(false)
-}
-
-async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     setSubmitAttempted(true)
 
@@ -213,7 +222,11 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
           aria-invalid={Boolean(getVisibleError('title'))}
           aria-describedby={getVisibleError('title') ? 'title-error' : undefined}
         />
-        {getVisibleError('title') && <p className="field-error" id="title-error">{getVisibleError('title')}</p>}
+        {getVisibleError('title') && (
+          <p className="field-error" id="title-error">
+            {getVisibleError('title')}
+          </p>
+        )}
       </div>
 
       <div className="event-date-times field-wide">
@@ -230,7 +243,11 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
             aria-invalid={Boolean(getVisibleError('date'))}
             aria-describedby={getVisibleError('date') ? 'date-error' : undefined}
           />
-          {getVisibleError('date') && <p className="field-error" id="date-error">{getVisibleError('date')}</p>}
+          {getVisibleError('date') && (
+            <p className="field-error" id="date-error">
+              {getVisibleError('date')}
+            </p>
+          )}
         </div>
 
         <div className={`field${getVisibleError('hour') || getVisibleError('minute') ? ' field-invalid' : ''}`}>
@@ -289,7 +306,9 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
             </div>
           </div>
           {(getVisibleError('hour') || getVisibleError('minute')) && (
-            <p className="field-error">{getVisibleError('hour') || getVisibleError('minute')}</p>
+            <p className="field-error">
+              {getVisibleError('hour') || getVisibleError('minute')}
+            </p>
           )}
         </div>
 
@@ -344,7 +363,11 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
               </button>
             </div>
           </div>
-          {getVisibleError('endTime') && <p className="field-error" id="endTime-error">{getVisibleError('endTime')}</p>}
+          {getVisibleError('endTime') && (
+            <p className="field-error" id="endTime-error">
+              {getVisibleError('endTime')}
+            </p>
+          )}
         </div>
       </div>
 
@@ -361,7 +384,11 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
           aria-invalid={Boolean(getVisibleError('location'))}
           aria-describedby={getVisibleError('location') ? 'location-error' : undefined}
         />
-        {getVisibleError('location') && <p className="field-error" id="location-error">{getVisibleError('location')}</p>}
+        {getVisibleError('location') && (
+          <p className="field-error" id="location-error">
+            {getVisibleError('location')}
+          </p>
+        )}
       </div>
 
       <div className={`field${getVisibleError('clubName') ? ' field-invalid' : ''}`}>
@@ -377,7 +404,11 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
           aria-invalid={Boolean(getVisibleError('clubName'))}
           aria-describedby={getVisibleError('clubName') ? 'clubName-error' : undefined}
         />
-        {getVisibleError('clubName') && <p className="field-error" id="clubName-error">{getVisibleError('clubName')}</p>}
+        {getVisibleError('clubName') && (
+          <p className="field-error" id="clubName-error">
+            {getVisibleError('clubName')}
+          </p>
+        )}
       </div>
 
       <div className={`field field-wide${getVisibleError('description') ? ' field-invalid' : ''}`}>
@@ -396,7 +427,11 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
           aria-invalid={Boolean(getVisibleError('description'))}
           aria-describedby={`description-count${getVisibleError('description') ? ' description-error' : ''}`}
         />
-        {getVisibleError('description') && <p className="field-error" id="description-error">{getVisibleError('description')}</p>}
+        {getVisibleError('description') && (
+          <p className="field-error" id="description-error">
+            {getVisibleError('description')}
+          </p>
+        )}
         <p className="description-count" id="description-count" aria-live="polite">
           {description.length}/{MAX_DESCRIPTION_LENGTH} characters
         </p>
@@ -415,7 +450,11 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
           aria-invalid={Boolean(getVisibleError('contactEmail'))}
           aria-describedby={getVisibleError('contactEmail') ? 'contactEmail-error' : undefined}
         />
-        {getVisibleError('contactEmail') && <p className="field-error" id="contactEmail-error">{getVisibleError('contactEmail')}</p>}
+        {getVisibleError('contactEmail') && (
+          <p className="field-error" id="contactEmail-error">
+            {getVisibleError('contactEmail')}
+          </p>
+        )}
       </div>
 
       <div className={`field${getVisibleError('website') ? ' field-invalid' : ''}`}>
@@ -431,7 +470,11 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
           aria-invalid={Boolean(getVisibleError('website'))}
           aria-describedby={getVisibleError('website') ? 'website-error' : undefined}
         />
-        {getVisibleError('website') && <p className="field-error" id="website-error">{getVisibleError('website')}</p>}
+        {getVisibleError('website') && (
+          <p className="field-error" id="website-error">
+            {getVisibleError('website')}
+          </p>
+        )}
       </div>
 
       <div className="field field-wide">
@@ -439,7 +482,7 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
         <p className="field-hint">
           Upload a JPEG or PNG image, up to 5 MB.
         </p>
-      
+
         <input
           id="eventImage"
           type="file"
@@ -476,12 +519,12 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
             Remove image
           </button>
         )}
-      
+
         {imageError && (
           <p className="field-error" role="alert">{imageError}</p>
         )}
       </div>
-      
+
       <div className="event-form-actions">
         <button type="submit" className="button button-primary create-btn" disabled={!canSubmit}>
           {submitting ? submittingLabel : submitLabel}
@@ -507,6 +550,7 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
           {Object.keys(inputErrors).length} fields need attention.
         </p>
       )}
+
       {disabled && (
         <p className="form-message field-wide" role="status">
           You must be signed in to create an event.
