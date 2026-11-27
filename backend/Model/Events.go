@@ -138,21 +138,22 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 	var endDateTime sql.NullString
 	var host Types.UserResponse
 
+	
 	err := repository.db.QueryRow(`
-		SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
-			e.club_name, e.description, e.contact_email, e.website,
-			e.pending, e.host_user_id,
-			u.user_id, u.user_name, u.user_email,
-			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id),
-			CASE WHEN e.image_data IS NOT NULL THEN TRUE ELSE FALSE END
-		FROM events e
-		JOIN users u ON u.user_id = e.host_user_id
-		WHERE e.event_id = ?
+	    SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
+	        e.club_name, e.description, e.contact_email, e.website,
+	        e.pending, e.host_user_id,
+	        u.user_id, u.user_name, u.user_email,
+	        (SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id),
+	        CASE WHEN e.image_data IS NOT NULL THEN TRUE ELSE FALSE END
+	    FROM events e
+	    JOIN users u ON u.user_id = e.host_user_id
+	    WHERE e.event_id = ?
 	`, id).Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
-		&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
-		&event.Pending, &event.HostUserID, &host.ID, &host.Username, &host.Email,
-		&event.AttendeeCount, &event.HasImage))
-		
+	    &event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
+	    &event.Pending, &event.HostUserID, &host.ID, &host.Username, &host.Email,
+	    &event.AttendeeCount, &event.HasImage)
+
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return Types.EventResponse{}, ErrNotFound
