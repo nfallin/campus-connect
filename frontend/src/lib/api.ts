@@ -1,3 +1,4 @@
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
 const TOKEN_KEY = 'campus-connect-token'
 
@@ -24,15 +25,17 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const isFormData = options.body instanceof FormData
+
   const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
       ...(getStoredToken()
         ? { Authorization: `Bearer ${getStoredToken()}` }
         : {}),
       ...options.headers,
     },
-    ...options,
   })
 
   if (!res.ok) {
@@ -69,15 +72,46 @@ async function download(path: string): Promise<Blob> {
   return res.blob()
 }
 
-
 export const api = {
   get: <T>(path: string) => request<T>(path),
+
   post: <T>(path: string, data?: unknown) =>
-    request<T>(path, { method: 'POST', body: data ? JSON.stringify(data) : undefined }),
+    request<T>(path, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    }),
+
   put: <T>(path: string, data?: unknown) =>
-    request<T>(path, { method: 'PUT', body: data ? JSON.stringify(data) : undefined }),
+    request<T>(path, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    }),
+
   patch: <T>(path: string, data?: unknown) =>
-    request<T>(path, { method: 'PATCH', body: data ? JSON.stringify(data) : undefined }),
+    request<T>(path, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    }),
+
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+
+  uploadEventImage: (eventId: number, file: File) => {
+    const formData = new FormData()
+    formData.append('image', file)
+
+    return request<{ message: string }>(`/events/${eventId}/image`, {
+      method: 'POST',
+      body: formData,
+    })
+  },
+
+  deleteEventImage: (eventId: number) =>
+    request<{ message: string }>(`/events/${eventId}/image`, {
+      method: 'DELETE',
+    }),
+
+  getEventImage: (eventId: number) =>
+    download(`/events/${eventId}/image`),
+
   download,
 }
