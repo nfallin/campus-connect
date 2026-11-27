@@ -17,6 +17,7 @@ describe('fromEventResponse (Kaavya Jethwa)', () => {
     websiteURL: 'https://acm.example.com',
     attendeeCount: 3,
     hostUserId: 7,
+    hasImage: false,
   }
 
   it('maps every field from the API response onto the frontend Event shape', () => {
