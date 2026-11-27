@@ -23,6 +23,7 @@ export type Event = {
   description: string
   contactEmail: string
   website: string
+  hasImage: boolean
   hostUserId: number
 }
 
@@ -38,6 +39,7 @@ export type EventResponse = {
   host?: User
   contactEmail: string
   websiteURL: string
+  hasImage: boolean
   attendeeCount: number
   hostUserId: number
 }
