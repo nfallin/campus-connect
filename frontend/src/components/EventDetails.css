@@ -177,3 +177,11 @@
   object-fit: cover;
   border-radius: 8px;
 }
+
+.event-details-image {
+  margin-bottom: 20px;
+}
+
+.event-details-image .event-image {
+  max-height: 320px;
+}
