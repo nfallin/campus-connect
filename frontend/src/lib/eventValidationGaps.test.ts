@@ -79,7 +79,7 @@ describe('event validation gaps (Kaavya Jethwa)', () => {
 
   it('accepts empty optional contact email and website fields', () => {
     expect(
-      isValidEventInput({ ...validEvent, contactEmail: '', website: '' }, today),
+      isValidEventInput({ ...validEvent, clubName: '', contactEmail: '', website: '' }, today),
     ).toBe(true)
   })
 
@@ -90,7 +90,6 @@ describe('event validation gaps (Kaavya Jethwa)', () => {
           ...validEvent,
           title: '',
           location: '',
-          clubName: '',
           description: '',
           website: 'not a url',
         },
@@ -99,7 +98,6 @@ describe('event validation gaps (Kaavya Jethwa)', () => {
     ).toEqual([
       'Enter an event title.',
       'Enter a location.',
-      'Enter a club name.',
       'Enter a description.',
       'Enter a valid website URL or leave it blank.',
     ])

@@ -100,6 +100,44 @@ func (api *API) updateEvent(c *gin.Context) {
 	c.JSON(http.StatusOK, event)
 }
 
+func (api *API) deleteEvent(c *gin.Context) {
+	eventID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: "event id must be an integer"})
+		return
+	}
+
+	event, err := api.repository.GetEvent(eventID)
+	if errors.Is(err, Model.ErrInvalidID) {
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
+		return
+	}
+	if errors.Is(err, Model.ErrNotFound) {
+		c.JSON(http.StatusNotFound, Types.ErrorResponse{Message: "event not found"})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
+		return
+	}
+	if event.HostUserID != authenticatedUserID(c) {
+		c.JSON(http.StatusForbidden, Types.ErrorResponse{Message: "only the event host can cancel this event"})
+		return
+	}
+
+	if err := api.repository.DeleteEvent(eventID); errors.Is(err, Model.ErrInvalidID) {
+		c.JSON(http.StatusBadRequest, Types.ErrorResponse{Message: err.Error()})
+		return
+	} else if errors.Is(err, Model.ErrNotFound) {
+		c.JSON(http.StatusNotFound, Types.ErrorResponse{Message: "event not found"})
+		return
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, Types.ErrorResponse{Message: err.Error()})
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
 func (api *API) getEvent(c *gin.Context) {
 	eventID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

@@ -87,9 +87,6 @@ func (repository *Repository) CreateEvent(request Types.CreateEventRequest, host
 	if request.Location == "" {
 		return Types.EventResponse{}, fmt.Errorf("%w: location is required", ErrInvalidEvent)
 	}
-	if request.ClubName == "" {
-		return Types.EventResponse{}, fmt.Errorf("%w: club name is required", ErrInvalidEvent)
-	}
 	if request.Description == "" {
 		return Types.EventResponse{}, fmt.Errorf("%w: description is required", ErrInvalidEvent)
 	}
@@ -323,9 +320,6 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 	}
 
 	if request.ClubName != nil {
-		if *request.ClubName == "" {
-			return Types.EventResponse{}, fmt.Errorf("%w: club name cannot be empty", ErrInvalidEvent)
-		}
 		current.ClubName = *request.ClubName
 	}
 

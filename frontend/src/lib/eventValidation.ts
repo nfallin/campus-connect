@@ -123,9 +123,7 @@ export function getEventInputErrorMap(
   } else if (input.location.length > MAX_EVENT_FIELD_LENGTHS.location) {
     errors.location = `Keep the location to ${MAX_EVENT_FIELD_LENGTHS.location} characters or fewer.`
   }
-  if (input.clubName.trim() === '') {
-    errors.clubName = 'Enter a club name.'
-  } else if (input.clubName.length > MAX_EVENT_FIELD_LENGTHS.clubName) {
+  if (input.clubName.length > MAX_EVENT_FIELD_LENGTHS.clubName) {
     errors.clubName = `Keep the organization name to ${MAX_EVENT_FIELD_LENGTHS.clubName} characters or fewer.`
   }
   if (input.description.trim() === '') {
