@@ -36,6 +36,7 @@ export function toFormData(event: Event): EventFormData {
     description: event.description,
     contactEmail: event.contactEmail,
     website: event.website,
+    interests: event.interests,
   }
 }
 
@@ -114,6 +115,19 @@ function EventDetails({
           <>
             <div className="event-details-content">
               <p className="event-details-club">{event.clubName || 'Club not specified'}</p>
+
+              {event.interests.length > 0 && (
+                <div className="event-details-section">
+                  <span className="event-details-label">Interests</span>
+                  <div className="event-details-interests">
+                    {event.interests.map((interest) => (
+                      <span className="event-details-interest-tag" key={interest}>
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="event-details-section">
                 <span className="event-details-label">When</span>

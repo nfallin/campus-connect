@@ -24,6 +24,7 @@ func newRouter(repository *Model.Repository) *gin.Engine {
 
 // define get/post routes here
 func defineRoutes(r *gin.Engine, api *API) {
+	r.GET("/event-interests", api.getEventInterests)
 	r.GET("/events", api.optionalAuth, api.getEvents)
 	r.POST("/events", api.requireAuth, api.createEvent)
 	r.PATCH("/events/:id", api.requireAuth, api.updateEvent)

@@ -34,20 +34,22 @@ type AuthResponse struct {
 }
 
 type CreateEventRequest struct {
-	Name         string     `json:"name" binding:"required"`
-	DateTime     time.Time  `json:"dateTime" binding:"required"`
-	EndDateTime  *time.Time `json:"endDateTime"`
-	Location     string     `json:"location" binding:"required"`
-	ClubName     string     `json:"clubName"`
-	Description  string     `json:"description" binding:"required"`
-	ContactEmail string     `json:"contactEmail"`
-	WebsiteURL   string     `json:"websiteURL"`
+	Name         string          `json:"name" binding:"required"`
+	DateTime     time.Time       `json:"dateTime" binding:"required"`
+	EndDateTime  *time.Time      `json:"endDateTime"`
+	Interests    []EventInterest `json:"interests"`
+	Location     string          `json:"location" binding:"required"`
+	ClubName     string          `json:"clubName"`
+	Description  string          `json:"description" binding:"required"`
+	ContactEmail string          `json:"contactEmail"`
+	WebsiteURL   string          `json:"websiteURL"`
 }
 
 type UpdateEventRequest struct {
 	Name         *string           `json:"name"`
 	DateTime     *time.Time        `json:"dateTime"`
 	EndDateTime  *OptionalDateTime `json:"endDateTime,omitempty"`
+	Interests    *[]EventInterest  `json:"interests"`
 	Location     *string           `json:"location"`
 	ClubName     *string           `json:"clubName"`
 	Description  *string           `json:"description"`
@@ -80,19 +82,61 @@ func (value *OptionalDateTime) UnmarshalJSON(data []byte) error {
 }
 
 type EventResponse struct {
-	ID            int           `json:"id"`
-	Pending       bool          `json:"pending"`
-	Name          string        `json:"name"`
-	DateTime      time.Time     `json:"dateTime"`
-	EndDateTime   *time.Time    `json:"endDateTime,omitempty"`
-	Location      string        `json:"location"`
-	ClubName      string        `json:"clubName"`
-	Description   string        `json:"description"`
-	Host          *UserResponse `json:"host,omitempty"`
-	ContactEmail  string        `json:"contactEmail"`
-	WebsiteURL    string        `json:"websiteURL"`
-	AttendeeCount int           `json:"attendeeCount"`
-	HostUserID    int           `json:"hostUserId"`
+	ID            int             `json:"id"`
+	Pending       bool            `json:"pending"`
+	Name          string          `json:"name"`
+	DateTime      time.Time       `json:"dateTime"`
+	EndDateTime   *time.Time      `json:"endDateTime,omitempty"`
+	Interests     []EventInterest `json:"interests"`
+	Location      string          `json:"location"`
+	ClubName      string          `json:"clubName"`
+	Description   string          `json:"description"`
+	Host          *UserResponse   `json:"host,omitempty"`
+	ContactEmail  string          `json:"contactEmail"`
+	WebsiteURL    string          `json:"websiteURL"`
+	AttendeeCount int             `json:"attendeeCount"`
+	HostUserID    int             `json:"hostUserId"`
+}
+
+type EventInterest string
+
+const (
+	EventInterestCareer          EventInterest = "Career"
+	EventInterestSports          EventInterest = "Sports"
+	EventInterestOutdoors        EventInterest = "Outdoors"
+	EventInterestComputerScience EventInterest = "Computer Science"
+	EventInterestArtsAndCrafts   EventInterest = "Arts & Crafts"
+	EventInterestFood            EventInterest = "Food"
+	EventInterestSocial          EventInterest = "Social"
+	EventInterestSpeaker         EventInterest = "Speaker"
+	EventInterestPerformance     EventInterest = "Performance"
+	EventInterestVolunteering    EventInterest = "Volunteering"
+)
+
+var eventInterests = [...]EventInterest{
+	EventInterestCareer,
+	EventInterestSports,
+	EventInterestOutdoors,
+	EventInterestComputerScience,
+	EventInterestArtsAndCrafts,
+	EventInterestFood,
+	EventInterestSocial,
+	EventInterestSpeaker,
+	EventInterestPerformance,
+	EventInterestVolunteering,
+}
+
+func AllEventInterests() []EventInterest {
+	return append([]EventInterest(nil), eventInterests[:]...)
+}
+
+func IsValidEventInterest(interest EventInterest) bool {
+	for _, validInterest := range eventInterests {
+		if interest == validInterest {
+			return true
+		}
+	}
+	return false
 }
 
 type EventFilters struct {

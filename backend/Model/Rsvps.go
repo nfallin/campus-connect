@@ -68,7 +68,7 @@ func (repository *Repository) GetUserRSVPs(userID int) ([]Types.EventResponse, e
 
 	rows, err := repository.db.Query(`
 		SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
-			e.club_name, e.description, e.contact_email, e.website, e.pending, e.host_user_id,
+			e.club_name, e.description, e.contact_email, e.website, e.interests, e.pending, e.host_user_id,
 			u.user_id, u.user_name, u.user_email,
 			(SELECT COUNT(*) FROM rsvps all_rsvps WHERE all_rsvps.event_id = e.event_id)
 		FROM events e
@@ -90,12 +90,16 @@ func (repository *Repository) GetUserRSVPs(userID int) ([]Types.EventResponse, e
 		var event Types.EventResponse
 		var dateTime string
 		var endDateTime sql.NullString
+		var interestsJSON string
 		var host Types.UserResponse
 
 		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
-			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
+			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL, &interestsJSON,
 			&event.Pending, &event.HostUserID, &host.ID, &host.Username, &host.Email,
 			&event.AttendeeCount); err != nil {
+			return nil, err
+		}
+		if err := storeEventInterests(&event, interestsJSON); err != nil {
 			return nil, err
 		}
 

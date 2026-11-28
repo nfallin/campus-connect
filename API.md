@@ -47,6 +47,7 @@ IDs are positive integers.
   "name": "Game Night",
   "dateTime": "2026-10-25T18:30:00Z",
   "endDateTime": "2026-10-25T20:30:00Z",
+  "interests": ["Social", "Food"],
   "location": "Room 101",
   "clubName": "Game Development Club",
   "description": "Come play games!",
@@ -161,6 +162,34 @@ Returned when no user has that ID.
 
 ## Events
 
+### Get event interests
+
+```http
+GET /event-interests
+```
+
+Returns the supported event interest tags. This catalog is also used to
+validate interests submitted when creating or updating an event.
+
+#### Response: `200 OK`
+
+```json
+{
+  "interests": [
+    "Career",
+    "Sports",
+    "Outdoors",
+    "Computer Science",
+    "Arts & Crafts",
+    "Food",
+    "Social",
+    "Speaker",
+    "Performance",
+    "Volunteering"
+  ]
+}
+```
+
 ### List events
 
 ```http
@@ -181,6 +210,7 @@ Returns all events. Results are sorted by `dateTime`, then by `id`.
       "location": "Room 101",
       "clubName": "Game Development Club",
       "description": "Come play games!",
+      "interests": ["Social", "Food"],
       "attendeeCount": 12,
       "hostUserId": 1
     }
@@ -195,6 +225,12 @@ If there are no events:
   "events": []
 }
 ```
+
+### Create or update an event
+
+Include an optional `interests` array in the create or update request. It can
+contain up to five values from `GET /event-interests`; omitted values are
+stored as an empty array.
 
 The MVP does not define event filtering. Filtering by date, club, or other
 criteria may be added after the MVP.

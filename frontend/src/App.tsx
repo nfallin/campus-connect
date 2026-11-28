@@ -164,6 +164,7 @@ function App() {
       description: formData.description.trim(),
       contactEmail: formData.contactEmail.trim(),
       websiteURL: formData.website.trim(),
+      interests: formData.interests,
     })
 
     const event = fromEventResponse(created)
@@ -239,6 +240,7 @@ function App() {
       description: formData.description.trim(),
       contactEmail: formData.contactEmail.trim(),
       websiteURL: formData.website.trim(),
+      interests: formData.interests,
     })
     const event = fromEventResponse(updated)
     setEvents((prev) =>

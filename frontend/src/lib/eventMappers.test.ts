@@ -17,6 +17,7 @@ describe('fromEventResponse (Kaavya Jethwa)', () => {
     websiteURL: 'https://acm.example.com',
     attendeeCount: 3,
     hostUserId: 7,
+    interests: ['Career', 'Computer Science'],
   }
 
   it('maps every field from the API response onto the frontend Event shape', () => {
@@ -31,6 +32,7 @@ describe('fromEventResponse (Kaavya Jethwa)', () => {
     expect(event.contactEmail).toBe('acm@example.com')
     expect(event.website).toBe('https://acm.example.com')
     expect(event.hostUserId).toBe(7)
+    expect(event.interests).toEqual(['Career', 'Computer Science'])
   })
 
   it('derives date and time from the dateTime field', () => {
@@ -56,6 +58,7 @@ describe('fromEventResponse (Kaavya Jethwa)', () => {
       contactEmail: undefined,
       description: undefined,
       websiteURL: undefined,
+      interests: undefined,
     } as unknown as EventResponse
 
     const event = fromEventResponse(sparseResponse)

@@ -18,6 +18,7 @@ describe('EventDetails toFormData (Kaavya Jethwa)', () => {
     contactEmail: 'acm@example.com',
     website: 'https://acm.example.com',
     hostUserId: 7,
+    interests: ['Career'],
   }
 
   it('maps midnight to 12 AM', () => {
@@ -61,5 +62,6 @@ describe('EventDetails toFormData (Kaavya Jethwa)', () => {
     expect(formData.description).toBe('A day of coding.')
     expect(formData.contactEmail).toBe('acm@example.com')
     expect(formData.website).toBe('https://acm.example.com')
+    expect(formData.interests).toEqual(['Career'])
   })
 })

@@ -3,6 +3,7 @@ package Model
 import (
 	"campus_connect/Types"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -17,6 +18,7 @@ const (
 	maxEventDescriptionLength  = 500
 	maxEventEmailLength        = 30
 	maxEventWebsiteLength      = 60
+	maxEventInterests          = 5
 )
 
 // Events
@@ -59,6 +61,38 @@ func formatOptionalDateTime(value *time.Time) any {
 	return value.Format(time.RFC3339)
 }
 
+func normalizeEventInterests(interests []Types.EventInterest) []Types.EventInterest {
+	if interests == nil {
+		return []Types.EventInterest{}
+	}
+	return interests
+}
+
+func validateEventInterests(interests []Types.EventInterest) error {
+	if len(interests) > maxEventInterests {
+		return fmt.Errorf("%w: choose no more than %d interests", ErrInvalidEvent, maxEventInterests)
+	}
+	seen := make(map[Types.EventInterest]struct{}, len(interests))
+	for _, interest := range interests {
+		if !Types.IsValidEventInterest(interest) {
+			return fmt.Errorf("%w: invalid interest %q", ErrInvalidEvent, interest)
+		}
+		if _, exists := seen[interest]; exists {
+			return fmt.Errorf("%w: duplicate interest %q", ErrInvalidEvent, interest)
+		}
+		seen[interest] = struct{}{}
+	}
+	return nil
+}
+
+func storeEventInterests(event *Types.EventResponse, serialized string) error {
+	if err := json.Unmarshal([]byte(serialized), &event.Interests); err != nil {
+		return err
+	}
+	event.Interests = normalizeEventInterests(event.Interests)
+	return nil
+}
+
 func validateEventEndDateTime(start, end time.Time) error {
 	if end.Sub(start) < 30*time.Minute {
 		return fmt.Errorf("%w: end date time must be at least 30 minutes after start date time", ErrInvalidEvent)
@@ -67,6 +101,9 @@ func validateEventEndDateTime(start, end time.Time) error {
 }
 
 func (repository *Repository) CreateEvent(request Types.CreateEventRequest, hostUserID int) (Types.EventResponse, error) {
+	if err := validateEventInterests(request.Interests); err != nil {
+		return Types.EventResponse{}, err
+	}
 	if request.Name == "" {
 		return Types.EventResponse{}, fmt.Errorf("%w: name is required", ErrInvalidEvent)
 	}
@@ -105,14 +142,18 @@ func (repository *Repository) CreateEvent(request Types.CreateEventRequest, host
 		return Types.EventResponse{}, err
 	}
 
+	interestsJSON, err := json.Marshal(normalizeEventInterests(request.Interests))
+	if err != nil {
+		return Types.EventResponse{}, err
+	}
 	result, err := repository.db.Exec(`
 		INSERT INTO events (
 			event_name, date_time, end_date_time, location, club_name, description,
-			contact_email, website, pending, host_user_id
+			contact_email, website, interests, pending, host_user_id
 		)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE, ?)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE, ?)
 	`, request.Name, request.DateTime.Format(time.RFC3339), formatOptionalDateTime(request.EndDateTime),
-		request.Location, request.ClubName, request.Description, request.ContactEmail, request.WebsiteURL, hostUserID)
+		request.Location, request.ClubName, request.Description, request.ContactEmail, request.WebsiteURL, string(interestsJSON), hostUserID)
 
 	if err != nil {
 		return Types.EventResponse{}, translateEventWriteError(err)
@@ -133,11 +174,12 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 	var event Types.EventResponse
 	var dateTime string
 	var endDateTime sql.NullString
+	var interestsJSON string
 	var host Types.UserResponse
 
 	err := repository.db.QueryRow(`
 		SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
-			e.club_name, e.description, e.contact_email, e.website,
+			e.club_name, e.description, e.contact_email, e.website, e.interests,
 			e.pending, e.host_user_id,
 			u.user_id, u.user_name, u.user_email,
 			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id)
@@ -145,7 +187,7 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 		JOIN users u ON u.user_id = e.host_user_id
 		WHERE e.event_id = ?
 	`, id).Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
-		&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
+		&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL, &interestsJSON,
 		&event.Pending, &event.HostUserID, &host.ID, &host.Username, &host.Email,
 		&event.AttendeeCount)
 
@@ -154,6 +196,9 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 	}
 
 	if err != nil {
+		return Types.EventResponse{}, err
+	}
+	if err := storeEventInterests(&event, interestsJSON); err != nil {
 		return Types.EventResponse{}, err
 	}
 
@@ -177,7 +222,7 @@ func (repository *Repository) GetEvent(id int) (Types.EventResponse, error) {
 func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.EventResponse, error) {
 	query := `
 		SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
-			e.club_name, e.description, e.contact_email, e.website,
+			e.club_name, e.description, e.contact_email, e.website, e.interests,
 			e.pending, e.host_user_id, u.user_id, u.user_name, u.user_email,
 			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id)
 		FROM events e
@@ -236,11 +281,15 @@ func (repository *Repository) GetEvents(filters Types.EventFilters) ([]Types.Eve
 		var event Types.EventResponse
 		var dateTime string
 		var endDateTime sql.NullString
+		var interestsJSON string
 		var host Types.UserResponse
 
 		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
-			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
+			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL, &interestsJSON,
 			&event.Pending, &event.HostUserID, &host.ID, &host.Username, &host.Email, &event.AttendeeCount); err != nil {
+			return nil, err
+		}
+		if err := storeEventInterests(&event, interestsJSON); err != nil {
 			return nil, err
 		}
 
@@ -274,7 +323,7 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 	}
 	edited := request.Name != nil || request.DateTime != nil || request.EndDateTime != nil ||
 		request.Location != nil || request.ClubName != nil || request.Description != nil ||
-		request.ContactEmail != nil || request.WebsiteURL != nil
+		request.ContactEmail != nil || request.WebsiteURL != nil || request.Interests != nil
 
 	if request.Name != nil {
 		if *request.Name == "" {
@@ -337,18 +386,28 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 	if request.WebsiteURL != nil {
 		current.WebsiteURL = *request.WebsiteURL
 	}
+	if request.Interests != nil {
+		current.Interests = normalizeEventInterests(*request.Interests)
+	}
+	if err := validateEventInterests(current.Interests); err != nil {
+		return Types.EventResponse{}, err
+	}
 
 	if err := validateEventFieldLengths(current); err != nil {
+		return Types.EventResponse{}, err
+	}
+	interestsJSON, err := json.Marshal(normalizeEventInterests(current.Interests))
+	if err != nil {
 		return Types.EventResponse{}, err
 	}
 
 	_, err = repository.db.Exec(`
 		UPDATE events
 		SET event_name = ?, date_time = ?, end_date_time = ?, location = ?, club_name = ?, description = ?,
-			contact_email = ?, website = ?, pending = ?, host_user_id = ?
+			contact_email = ?, website = ?, interests = ?, pending = ?, host_user_id = ?
 		WHERE event_id = ?
 	`, current.Name, current.DateTime.Format(time.RFC3339), formatOptionalDateTime(current.EndDateTime), current.Location,
-		current.ClubName, current.Description, current.ContactEmail, current.WebsiteURL,
+		current.ClubName, current.Description, current.ContactEmail, current.WebsiteURL, string(interestsJSON),
 		edited, current.HostUserID, id)
 
 	if err != nil {
@@ -361,7 +420,7 @@ func (repository *Repository) UpdateEvent(id int, request Types.UpdateEventReque
 func (repository *Repository) GetPendingEvents() ([]Types.EventResponse, error) {
 	rows, err := repository.db.Query(`
 		SELECT e.event_id, e.event_name, e.date_time, e.end_date_time, e.location,
-			e.club_name, e.description, e.contact_email, e.website,
+			e.club_name, e.description, e.contact_email, e.website, e.interests,
 			e.pending, e.host_user_id, u.user_id, u.user_name, u.user_email,
 			(SELECT COUNT(*) FROM rsvps r WHERE r.event_id = e.event_id)
 		FROM events e
@@ -379,11 +438,15 @@ func (repository *Repository) GetPendingEvents() ([]Types.EventResponse, error) 
 		var event Types.EventResponse
 		var dateTime string
 		var endDateTime sql.NullString
+		var interestsJSON string
 		var host Types.UserResponse
 		if err := rows.Scan(&event.ID, &event.Name, &dateTime, &endDateTime, &event.Location,
-			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL,
+			&event.ClubName, &event.Description, &event.ContactEmail, &event.WebsiteURL, &interestsJSON,
 			&event.Pending, &event.HostUserID, &host.ID, &host.Username, &host.Email,
 			&event.AttendeeCount); err != nil {
+			return nil, err
+		}
+		if err := storeEventInterests(&event, interestsJSON); err != nil {
 			return nil, err
 		}
 		event.DateTime, err = time.Parse(time.RFC3339, dateTime)

@@ -2,6 +2,7 @@ package Model
 
 import (
 	"campus_connect/Types"
+	"database/sql"
 	"errors"
 	"strings"
 	"testing"
@@ -17,6 +18,35 @@ func testRepository(t *testing.T) *Repository {
 	}
 	t.Cleanup(func() { db.Close() })
 	return NewRepository(db)
+}
+
+func TestEnsureEventInterestsColumnMigratesExistingEvents(t *testing.T) {
+	db, err := sql.Open("sqlite", t.TempDir()+"\\legacy.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	if _, err := db.Exec(`CREATE TABLE events (event_id INTEGER PRIMARY KEY)`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`INSERT INTO events (event_id) VALUES (1)`); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := ensureEventInterestsColumn(db); err != nil {
+		t.Fatal(err)
+	}
+	if err := ensureEventInterestsColumn(db); err != nil {
+		t.Fatalf("re-run migration: %v", err)
+	}
+
+	var interests string
+	if err := db.QueryRow(`SELECT interests FROM events WHERE event_id = 1`).Scan(&interests); err != nil {
+		t.Fatal(err)
+	}
+	if interests != "[]" {
+		t.Fatalf("legacy event interests = %q, want []", interests)
+	}
 }
 
 func TestRepositoryUsers(t *testing.T) {
@@ -105,10 +135,32 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
 		Name: "Meeting", DateTime: when, Location: "Room 1", ClubName: "Club A", Description: "Description",
 		EndDateTime: &endWhen,
+		Interests:   []Types.EventInterest{Types.EventInterestCareer, Types.EventInterestFood},
 	}, host.ID)
 	if err != nil || event.Host == nil || event.AttendeeCount != 0 ||
-		event.EndDateTime == nil || !event.EndDateTime.Equal(endWhen.Truncate(time.Second)) || !event.Pending {
+		event.EndDateTime == nil || !event.EndDateTime.Equal(endWhen.Truncate(time.Second)) || !event.Pending ||
+		len(event.Interests) != 2 || event.Interests[0] != Types.EventInterestCareer || event.Interests[1] != Types.EventInterestFood {
 		t.Fatalf("create event = %+v, %v", event, err)
+	}
+	if _, err := repository.CreateEvent(Types.CreateEventRequest{
+		Name: "Too many interests", DateTime: when, Location: "Room", ClubName: "Club",
+		Description: "Description", Interests: Types.AllEventInterests()[:6],
+	}, host.ID); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("create event with more than five interests error = %v", err)
+	}
+	if _, err := repository.CreateEvent(Types.CreateEventRequest{
+		Name: "Invalid interest", DateTime: when, Location: "Room", ClubName: "Club",
+		Description: "Description", Interests: []Types.EventInterest{"Not an interest"},
+	}, host.ID); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("create event with invalid interest error = %v", err)
+	}
+	if _, err := repository.CreateEvent(Types.CreateEventRequest{
+		Name: "Duplicate interests", DateTime: when, Location: "Room", ClubName: "Club",
+		Description: "Description", Interests: []Types.EventInterest{
+			Types.EventInterestCareer, Types.EventInterestCareer,
+		},
+	}, host.ID); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("create event with duplicate interests error = %v", err)
 	}
 	pastEnd := when.Add(-time.Minute)
 	if _, err := repository.CreateEvent(Types.CreateEventRequest{
@@ -144,7 +196,8 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 		t.Fatal(err)
 	}
 	all, err = repository.GetEvents(Types.EventFilters{})
-	if err != nil || len(all) != 1 || all[0].Pending {
+	if err != nil || len(all) != 1 || all[0].Pending ||
+		len(all[0].Interests) != 2 || all[0].Interests[1] != Types.EventInterestFood {
 		t.Fatalf("get approved events = %+v, %v", all, err)
 	}
 
@@ -172,8 +225,12 @@ func TestRepositoryEventsAndFilters(t *testing.T) {
 	// attempt to update an event with new information
 	name := "Updated meeting"
 	location := "Room 2"
-	updated, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{Name: &name, Location: &location})
-	if err != nil || updated.Name != name || updated.Location != location || !updated.Pending {
+	updatedInterests := []Types.EventInterest{Types.EventInterestSports}
+	updated, err := repository.UpdateEvent(event.ID, Types.UpdateEventRequest{
+		Name: &name, Location: &location, Interests: &updatedInterests,
+	})
+	if err != nil || updated.Name != name || updated.Location != location || !updated.Pending ||
+		len(updated.Interests) != 1 || updated.Interests[0] != Types.EventInterestSports {
 		t.Fatalf("update event = %+v, %v", updated, err)
 	}
 	updatedEnd := when.Add(2 * time.Hour)
@@ -328,6 +385,7 @@ func TestRepositoryRSVPs(t *testing.T) {
 	attendee, _ := repository.RegisterUser(Types.RegisterUserRequest{Username: "Attendee", Email: "attendee@example.com", Password: "password123"})
 	event, err := repository.CreateEvent(Types.CreateEventRequest{
 		Name: "Meeting", DateTime: time.Now().UTC().Add(24 * time.Hour), Location: "Room", ClubName: "Club", Description: "Description",
+		Interests: []Types.EventInterest{Types.EventInterestSocial},
 	}, host.ID)
 	if err != nil {
 		t.Fatal(err)
@@ -343,7 +401,8 @@ func TestRepositoryRSVPs(t *testing.T) {
 		t.Fatal(err)
 	}
 	rsvps, err := repository.GetUserRSVPs(attendee.ID)
-	if err != nil || len(rsvps) != 1 || rsvps[0].AttendeeCount != 1 {
+	if err != nil || len(rsvps) != 1 || rsvps[0].AttendeeCount != 1 ||
+		len(rsvps[0].Interests) != 1 || rsvps[0].Interests[0] != Types.EventInterestSocial {
 		t.Fatalf("get RSVPs = %+v, %v", rsvps, err)
 	}
 	if err := repository.RemoveRSVP(attendee.ID, event.ID); err != nil {
