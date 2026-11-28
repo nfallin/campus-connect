@@ -52,10 +52,9 @@ function EventCard({
     >
       <div className="event-heading">
         <div className="event-title">{event.title}</div>
-        <div className="event-club">
-          {event.clubName || 'Club not specified'}
-        </div>
+        {event.clubName && <div className="event-club">{event.clubName}</div>}
       </div>
+
       <div className="event-section">
         <span className="event-label">When</span>
         <p className="event-value">
@@ -68,39 +67,6 @@ function EventCard({
         <span className="event-label">Where</span>
         <p className="event-value">{event.location}</p>
       </div>
-
-      {event.description && (
-        <div className="event-section">
-          <span className="event-label">About</span>
-          <p className="event-value event-description">{event.description}</p>
-        </div>
-      )}
-
-      {(event.contactEmail || event.website) && (
-        <div className="event-section">
-          <span className="event-label">Contact</span>
-          <div className="event-value event-contact">
-            {event.contactEmail && (
-              <a href={`mailto:${event.contactEmail}`} onClick={(e) => e.stopPropagation()}>
-                {event.contactEmail}
-              </a>
-            )}
-
-            {event.contactEmail && event.website && ' · '}
-
-            {event.website && (
-              <a
-                href={toWebsiteHref(event.website)}
-                target="_blank"
-                rel="noreferrer"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {event.website}
-              </a>
-            )}
-          </div>
-        </div>
-      )}
 
       <div className="event-section event-action">
         <button

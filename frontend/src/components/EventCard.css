@@ -1,10 +1,15 @@
 
 .event-item {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  min-height: 280px;
+  padding: 22px;
   list-style: none;
-  border: 1px solid #000;
-  border-radius: 8px;
-  padding: 16px;
+  border: 1px solid #e4e6eb;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgb(15 23 42 / 5%);
   overflow-wrap: anywhere;
 }
 
@@ -14,73 +19,54 @@
 
 .event-item-clickable:hover,
 .event-item-clickable:focus-visible {
-  background: #f7f7f7;
-  outline: 2px solid #000;
-  outline-offset: 2px;
+  border-color: #e2b9c0;
+  background: #fff;
+  outline: 3px solid rgb(165 31 54 / 10%);
+  outline-offset: 1px;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 9%);
 }
 
 .event-heading {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
+  display: grid;
+  gap: 8px;
 }
 
 .event-title {
-  flex: 1 1 240px;
   min-width: 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: #000;
+  color: #17212b;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.3;
   overflow-wrap: anywhere;
 }
 
 .event-club {
-  flex: 0 1 auto;
   min-width: 0;
-  color: #555;
-  font-size: 13px;
+  color: var(--brand);
+  font-size: 14px;
   font-weight: 600;
-  text-align: right;
   overflow-wrap: anywhere;
 }
 
 .event-section {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid #e5e5e5;
-}
-
-.event-section:first-of-type {
-  border-top: none;
-  padding-top: 0;
+  margin-top: 20px;
 }
 
 .event-label {
   display: block;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #888;
-  margin-bottom: 2px;
+  color: #7b8794;
+  margin-bottom: 5px;
 }
 
 .event-value {
   margin: 0;
-  font-size: 13px;
-  color: #555;
-  overflow-wrap: anywhere;
-}
-
-.event-description {
-  font-size: 14px;
-  line-height: 1.5;
-  color: #333;
-}
-
-.event-contact a {
+  font-size: 15px;
+  line-height: 1.45;
+  color: #374151;
   overflow-wrap: anywhere;
 }
 
@@ -95,6 +81,26 @@
 }
 
 .event-item button {
-  margin-top: 14px;
+  margin-top: 0;
   font-size: 14px;
+}
+
+.event-action {
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+.event-action .button-primary {
+  width: 100%;
+  min-height: 46px;
+  border-color: var(--brand);
+  border-bottom-color: var(--brand-dark);
+  border-radius: 8px;
+  background: var(--brand);
+  box-shadow: 0 3px 6px rgb(165 31 54 / 15%);
+}
+
+.event-action .button-primary:hover:not(:disabled) {
+  background: var(--brand-dark);
+  box-shadow: 0 5px 12px rgb(165 31 54 / 20%);
 }

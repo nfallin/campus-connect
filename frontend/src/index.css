@@ -30,6 +30,12 @@
   }
 }
 
+@media (max-width: 700px) {
+  #root {
+    border: 0;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --text: #9ca3af;
@@ -51,11 +57,10 @@
 }
 
 #root {
-  width: 1126px;
+  width: 1440px;
   max-width: 100%;
   margin: 0 auto;
   text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -83,18 +88,18 @@ button,
 }
 
 .button-primary {
-  border: 1px solid #1d4ed8;
-  border-bottom: 4px solid #1e40af;
+  border: 1px solid #a51f36;
+  border-bottom: 4px solid #851a2c;
   border-radius: 7px;
-  background: #2563eb;
+  background: #a51f36;
   color: #fff;
   box-shadow: 0 3px 6px rgb(0 0 0 / 14%);
 }
 
 .button-primary:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: #851a2c;
   transform: translateY(-2px);
-  box-shadow: 0 5px 9px rgb(37 99 235 / 25%);
+  box-shadow: 0 5px 9px rgb(133 26 44 / 25%);
 }
 
 .button-primary:active:not(:disabled) {
@@ -126,7 +131,7 @@ button,
 
 button:focus-visible,
 .button:focus-visible {
-  outline: 3px solid rgb(37 99 235 / 35%);
+  outline: 3px solid rgb(165 31 54 / 35%);
   outline-offset: 3px;
 }
 
