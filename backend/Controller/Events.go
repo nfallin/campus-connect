@@ -10,6 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func (api *API) getEventInterests(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"interests": Types.AllEventInterests()})
+}
+
 func (api *API) getEvents(c *gin.Context) {
 	filters := Types.EventFilters{}
 	if user, exists := c.Get(authenticatedUserKey); exists {

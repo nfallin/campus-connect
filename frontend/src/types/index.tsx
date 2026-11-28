@@ -9,6 +9,8 @@ export type AuthResponse = {
   token: string
 }
 
+export type EventInterest = string
+
 export type Event = {
   id: number
   pending: boolean
@@ -24,6 +26,7 @@ export type Event = {
   contactEmail: string
   website: string
   hostUserId: number
+  interests: EventInterest[]
 }
 
 export type EventResponse = {
@@ -40,6 +43,7 @@ export type EventResponse = {
   websiteURL: string
   attendeeCount: number
   hostUserId: number
+  interests: EventInterest[]
 }
 
 export type RSVPResponse = {

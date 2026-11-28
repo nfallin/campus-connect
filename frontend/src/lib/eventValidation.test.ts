@@ -20,10 +20,20 @@ describe('event validation (Sabrina Codipilly)', () => {
     location: 'Student Center',
     clubName: 'ACM',
     description: 'Join us for a day of coding and fun!',
+    interests: [],
   }
 
   it('accepts an event when every required field is provided', () => {
     expect(isValidEventInput(validEvent, today)).toBe(true)
+  })
+
+  it('rejects events with more than five interests', () => {
+    expect(
+      getEventInputErrors({
+        ...validEvent,
+        interests: ['Career', 'Sports', 'Outdoors', 'Social', 'Food', 'Speaker'],
+      }),
+    ).toContain('Choose no more than 5 interests.')
   })
 
   it.each(['title', 'date', 'hour', 'minute', 'location'] as const)(

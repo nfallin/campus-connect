@@ -110,6 +110,20 @@ func TestUserRoutes(t *testing.T) {
 
 func TestEventRoutes(t *testing.T) {
 	controllerBackend := newControllerBackend(t)
+	interestsResponse := request(t, controllerBackend.router, http.MethodGet, "/event-interests", nil)
+	if interestsResponse.Code != http.StatusOK {
+		t.Fatalf("get event interests status = %d", interestsResponse.Code)
+	}
+	var interestsBody struct {
+		Interests []Types.EventInterest `json:"interests"`
+	}
+	if err := json.NewDecoder(interestsResponse.Body).Decode(&interestsBody); err != nil {
+		t.Fatal(err)
+	}
+	if len(interestsBody.Interests) != 10 || interestsBody.Interests[0] != Types.EventInterestCareer ||
+		interestsBody.Interests[9] != Types.EventInterestVolunteering {
+		t.Fatalf("event interests = %+v", interestsBody.Interests)
+	}
 	host, err := Model.NewRepository(controllerBackend.db).RegisterUser(Types.RegisterUserRequest{Username: "Host", Email: "host@example.com", Password: "password123"})
 	if err != nil {
 		t.Fatal(err)

@@ -36,6 +36,7 @@ export function toFormData(event: Event): EventFormData {
     description: event.description,
     contactEmail: event.contactEmail,
     website: event.website,
+    interests: event.interests,
   }
 }
 

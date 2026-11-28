@@ -51,8 +51,44 @@ func createTables(db *sql.DB) error {
 	if _, err := db.Exec(eventsTable); err != nil {
 		return err
 	}
+	if err := ensureEventInterestsColumn(db); err != nil {
+		return err
+	}
 	if _, err := db.Exec(rsvpTable); err != nil {
 		return err
 	}
 	return nil
+}
+
+func ensureEventInterestsColumn(db *sql.DB) error {
+	rows, err := db.Query(`PRAGMA table_info(events)`)
+	if err != nil {
+		return err
+	}
+	hasInterests := false
+	for rows.Next() {
+		var columnID int
+		var name, columnType string
+		var notNull, primaryKey int
+		var defaultValue sql.NullString
+		if err := rows.Scan(&columnID, &name, &columnType, &notNull, &defaultValue, &primaryKey); err != nil {
+			rows.Close()
+			return err
+		}
+		if name == "interests" {
+			hasInterests = true
+		}
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return err
+	}
+	if err := rows.Close(); err != nil {
+		return err
+	}
+	if hasInterests {
+		return nil
+	}
+	_, err = db.Exec(`ALTER TABLE events ADD COLUMN interests TEXT NOT NULL DEFAULT '[]'`)
+	return err
 }

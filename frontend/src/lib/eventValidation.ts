@@ -1,3 +1,5 @@
+import type { EventInterest } from '../types'
+
 export type EventInput = {
   title: string
   date: string
@@ -10,11 +12,13 @@ export type EventInput = {
   description: string
   contactEmail?: string
   website?: string
+  interests: EventInterest[]
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const WEBSITE_PATTERN = /^(https?:\/\/)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+(\/\S*)?$/
 export const MAX_DESCRIPTION_LENGTH = 500
+export const MAX_EVENT_INTERESTS = 5
 export const MAX_EVENT_FIELD_LENGTHS = {
   title: 75,
   clubName: 50,
@@ -63,6 +67,10 @@ export function getEventInputErrorMap(
   const contactEmail = input.contactEmail?.trim() ?? ''
   const website = input.website?.trim() ?? ''
   const errors: Partial<Record<keyof EventInput, string>> = {}
+
+  if (input.interests.length > MAX_EVENT_INTERESTS) {
+    errors.interests = `Choose no more than ${MAX_EVENT_INTERESTS} interests.`
+  }
 
   if (input.title.trim() === '') {
     errors.title = 'Enter an event title.'

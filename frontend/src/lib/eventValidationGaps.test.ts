@@ -21,6 +21,7 @@ describe('event validation gaps (Kaavya Jethwa)', () => {
     location: 'Student Center',
     clubName: 'ACM',
     description: 'Join us for a day of coding and fun!',
+    interests: [],
   }
 
   it('rejects an event with an empty description', () => {

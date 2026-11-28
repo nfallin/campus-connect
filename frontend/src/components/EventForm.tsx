@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { api } from '../lib/api'
 import {
   getEventDateBounds,
   getEventInputErrorMap,
   MAX_DESCRIPTION_LENGTH,
   MAX_EVENT_FIELD_LENGTHS,
+  MAX_EVENT_INTERESTS,
 } from '../lib/eventValidation'
+import type { EventInterest } from '../types'
 import './Form.css'
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1))
@@ -40,6 +43,7 @@ export type EventFormData = {
   description: string
   contactEmail: string
   website: string
+  interests: EventInterest[]
 }
 
 type EventFormProps = {
@@ -74,10 +78,33 @@ function EventForm({
   const [description, setDescription] = useState(initialData?.description ?? '')
   const [contactEmail, setContactEmail] = useState(initialData?.contactEmail ?? '')
   const [website, setWebsite] = useState(initialData?.website ?? '')
+  const [interests, setInterests] = useState<EventInterest[]>(initialData?.interests ?? [])
+  const [interestOptions, setInterestOptions] = useState<EventInterest[]>([])
+  const [interestsLoading, setInterestsLoading] = useState(true)
+  const [interestLoadError, setInterestLoadError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [touched, setTouched] = useState<Partial<Record<keyof EventFormData, boolean>>>({})
   const [submitAttempted, setSubmitAttempted] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    api.get<{ interests: EventInterest[] }>('/event-interests').then(
+      (data) => {
+        if (active) setInterestOptions(data.interests)
+      },
+      (err: unknown) => {
+        console.error('Failed to load event interests', err)
+        if (active) setInterestLoadError('Unable to load event interests. Please try again.')
+      },
+    ).finally(() => {
+      if (active) setInterestsLoading(false)
+    })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   const dateBounds = getEventDateBounds()
   const endTime = endHour || endMinute
@@ -96,10 +123,11 @@ function EventForm({
     description,
     contactEmail,
     website,
+    interests,
   }
 
   const inputErrors = getEventInputErrorMap(formData)
-  const canSubmit = !disabled && !submitting
+  const canSubmit = !disabled && !submitting && !interestsLoading && !interestLoadError
 
   function getVisibleError(field: keyof EventFormData) {
     return submitAttempted || touched[field] ? inputErrors[field] : undefined
@@ -123,6 +151,7 @@ function EventForm({
     setDescription('')
     setContactEmail('')
     setWebsite('')
+    setInterests([])
   }
 
 async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
@@ -330,6 +359,41 @@ async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
         />
         {getVisibleError('clubName') && <p className="field-error" id="clubName-error">{getVisibleError('clubName')}</p>}
       </div>
+
+      <fieldset className="field field-wide event-interest-field">
+        <legend>Interests (select up to {MAX_EVENT_INTERESTS})</legend>
+        <p className="field-hint">Choose the interests that best describe this event.</p>
+        {interestsLoading ? (
+          <p className="field-hint" role="status">Loading interests...</p>
+        ) : interestLoadError ? (
+          <p className="field-error" role="alert">{interestLoadError}</p>
+        ) : (
+          <div className="event-interest-options">
+            {interestOptions.map((interest) => {
+              const checked = interests.includes(interest)
+              return (
+                <label className="event-interest-option" key={interest}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={!checked && interests.length >= MAX_EVENT_INTERESTS}
+                    onChange={() => {
+                      setInterests((current) =>
+                        checked
+                          ? current.filter((selected) => selected !== interest)
+                          : [...current, interest],
+                      )
+                      markTouched('interests')
+                    }}
+                  />
+                  <span>{interest}</span>
+                </label>
+              )
+            })}
+          </div>
+        )}
+        {getVisibleError('interests') && <p className="field-error">{getVisibleError('interests')}</p>}
+      </fieldset>
 
       <div className={`field field-wide${getVisibleError('description') ? ' field-invalid' : ''}`}>
         <label htmlFor="description">Description</label>

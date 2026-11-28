@@ -55,6 +55,13 @@ function EventCard({
         <div className="event-club">
           {event.clubName || 'Club not specified'}
         </div>
+        {event.interests.length > 0 && (
+          <div className="event-interest-tags" aria-label="Event interests">
+            {event.interests.map((interest) => (
+              <span className="event-interest-tag" key={interest}>{interest}</span>
+            ))}
+          </div>
+        )}
       </div>
       <div className="event-section">
         <span className="event-label">When</span>
